@@ -7,13 +7,13 @@
 
 function normalize_url(url) {
   if (url.slice(-1) == '/') {
-    return url.slice(0, -1)
+    return url.slice(0, -1);
   }
-  return url
+  return url;
 }
 
-var mapping_service_url
-var content_service_url
+var mapping_service_url;
+var content_service_url;
 
 // TODO: create function that long-polls and waits for an etcd key change, then calls
 // get_mapping_service_url() and get_content_service_url() to update the
@@ -21,28 +21,28 @@ var content_service_url
 
 function set_mapping_service_url() {
   // TODO: replace process.env with etcd call
-  mapping_service_url = process.env.MAPPING_SERVICE_URL
+  mapping_service_url = process.env.MAPPING_SERVICE_URL;
 }
 
 function set_content_service_url() {
   // TODO: replace process.env with etcd call
-  content_service_url = process.env.CONTENT_SERVICE_URL
+  content_service_url = process.env.CONTENT_SERVICE_URL;
 }
 
-set_mapping_service_url()
-set_content_service_url()
+set_mapping_service_url();
+set_content_service_url();
 
 var http = require('http');
 var express = require('express'),
     exphbs  = require('express-handlebars');
 
-var app = express()
-app.engine('handlebars', exphbs())
-app.set('view engine', 'handlebars')
+var app = express();
+app.engine('handlebars', exphbs());
+app.set('view engine', 'handlebars');
 
 app.get('/', function(req, presenterRes) {
   // form route to query
-  mapping_route = normalize_url(mapping_service_url) + '/at/' + req.hostname + req.path
+  mapping_route = normalize_url(mapping_service_url) + '/at/' + req.hostname + req.path;
   // query mapping service for content ID
   http.get(mapping_route, function(mappingRes) {
     switch(mappingRes.statusCode) {
@@ -63,19 +63,16 @@ app.get('/', function(req, presenterRes) {
         });
         mappingRes.on('end', function(){
           // parse string reponse to JSON
-          console.log("body: ", body)
-          body = JSON.parse(body)
+          body = JSON.parse(body);
           // form content route
-          content_route = normalize_url(content_service_url) + '/content/' + encodeURIComponent(body['content-id'])
-          console.log("content_route: ", content_route)
+          content_route = normalize_url(content_service_url) + '/content/' + encodeURIComponent(body['content-id']);
           // query content service for metadata
           http.get(content_route, function(contentRes){
-            //console.log("contentRes: ", contentRes)
             switch(contentRes.statusCode) {
               // handle content ID not found
               case 404:
                 presenterRes.statusCode = 404;
-                throw new Error('Content not found in content service')
+                throw new Error('Content not found in content service');
                 break;
               // handle content ID found
               case 200:
@@ -88,15 +85,14 @@ app.get('/', function(req, presenterRes) {
                   metadata = JSON.parse(body);
                   // TODO: determine layout structure for content (perhaps calling the
                   // mapping service or a layout service). For now, it's hard-coded.
-                  layout_type = 'layouts/temp.handlebars'
+                  layout_type = 'layouts/temp.handlebars';
                   // render content with metadata
                   presenterRes.render(layout_type, metadata, function(err, html) {
                     if(err) {
-                      console.log('Error rendering content: ', err)
-                      throw new Error('Error rendering content')
+                      throw new Error('Error rendering content');
                     }
                     // send rendered html to user
-                    presenterRes.send(html)
+                    presenterRes.send(html);
                   });
                 });
                 contentRes.on('error', function(e){

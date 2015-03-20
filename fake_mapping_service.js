@@ -7,10 +7,10 @@
 
 var express = require('express');
 
-var app = express()
+var app = express();
 
 app.get('/at/:presented_id', function(req, res) {
-  res.send('{"content-id": "https://github.com/deconst/deconst-docs"}')
+  res.send('{"content-id": "https://github.com/deconst/deconst-docs"}');
 });
 
 var server = app.listen(8081);
