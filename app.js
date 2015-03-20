@@ -42,7 +42,7 @@ app.set('view engine', 'handlebars');
 
 app.get('/', function(req, presenterRes) {
   // form route to query
-  mapping_route = normalize_url(mapping_service_url) + '/at/' + req.hostname + req.path;
+  mapping_route = normalize_url(mapping_service_url) + '/at/' + encodeURIComponent(req.hostname) + encodeURIComponent(req.path);
   // query mapping service for content ID
   http.get(mapping_route, function(mappingRes) {
     switch(mappingRes.statusCode) {
