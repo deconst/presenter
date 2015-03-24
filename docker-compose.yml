@@ -18,6 +18,6 @@ presenter:
   environment:
     MAPPING_SERVICE_URL: http://mapping:9999/
     CONTENT_SERVICE_URL: http://content:8080/
-    PRESENTED_URL_HOST: docker
+    PRESENTED_URL_DOMAIN: docker
   ports:
   - "80:8080"
