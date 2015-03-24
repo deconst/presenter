@@ -22,12 +22,19 @@ var presented_url_host = process.env.PRESENTED_URL_HOST;
 
 function set_mapping_service_url() {
   // TODO: replace process.env with etcd call
-  mapping_service_url = process.env.MAPPING_SERVICE_URL;
+  mapping_service_url = normalize_url(process.env.MAPPING_SERVICE_URL);
 }
 
 function set_content_service_url() {
   // TODO: replace process.env with etcd call
-  content_service_url = process.env.CONTENT_SERVICE_URL;
+  content_service_url = normalize_url(process.env.CONTENT_SERVICE_URL);
+}
+
+// Derive the presented URL for a specific request, honoring the presented_url_host setting if
+// one is provided.
+function presented_url(req) {
+  var domain = presented_url_host ? presented_url_host : req.hostname;
+  return domain + req.path;
 }
 
 set_mapping_service_url();
@@ -43,28 +50,34 @@ app.engine('handlebars', exphbs());
 app.set('view engine', 'handlebars');
 
 app.get('/', function(req, presenterRes) {
-  // form route to query
-  mapping_route = urljoin(normalize_url(mapping_service_url), 'at', encodeURIComponent(req.hostname + req.path));
-  // query mapping service for content ID
+  // Generate the mapping service URL.
+  mapping_route = urljoin(mapping_service_url, 'at', encodeURIComponent(presented_url(req)));
+
+  // Query the mapping service to acquire a content ID, or a 404 if the presented URL is way off.
   request(mapping_route, function(error, mappingRes, body) {
     if (!error && mappingRes.statusCode == 200) {
       body = JSON.parse(body);
-      // form content route
-      content_route = urljoin(normalize_url(content_service_url), 'content', encodeURIComponent(body['content-id']));
-      // query content service for metadata
-      request(content_route, function(error, mappingRes, body){
+
+      // Assemble the content service request URL for the returned content ID.
+      content_route = urljoin(content_service_url, 'content', encodeURIComponent(body['content-id']));
+
+      // Query the content service for a metadata envelope, or a 404 if the content ID is not present.
+      request(content_route, function(error, mappingRes, body) {
         if (!error && mappingRes.statusCode == 200) {
-          // parse string reponse to JSON
+          // Parse the metadata envelope as JSON.
           metadata = JSON.parse(body);
+
           // TODO: determine layout structure for content (perhaps calling the
           // mapping service or a layout service). For now, it's hard-coded.
           layout_type = 'layouts/temp.handlebars';
-          // render content with metadata
+
+          // Render the final content from the metadata envelope.
           presenterRes.render(layout_type, metadata, function(err, html) {
-            if(err) {
+            if (err) {
               throw new Error('Error rendering content');
             }
-            // send rendered html to user
+
+            // Send the rendered HTML back to the user.
             presenterRes.send(html);
           });
         } else {
