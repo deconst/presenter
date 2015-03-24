@@ -14,7 +14,7 @@ function normalize_url(url) {
 
 var mapping_service_url;
 var content_service_url;
-var presented_url_host = process.env.PRESENTED_URL_HOST;
+var presented_url_domain = process.env.PRESENTED_URL_DOMAIN;
 
 // TODO: create function that long-polls and waits for an etcd key change, then calls
 // get_mapping_service_url() and get_content_service_url() to update the
@@ -30,10 +30,10 @@ function set_content_service_url() {
   content_service_url = normalize_url(process.env.CONTENT_SERVICE_URL);
 }
 
-// Derive the presented URL for a specific request, honoring the presented_url_host setting if
+// Derive the presented URL for a specific request, honoring the presented_url_domain setting if
 // one is provided.
 function presented_url(req) {
-  var domain = presented_url_host ? presented_url_host : req.hostname;
+  var domain = presented_url_domain ? presented_url_domain : req.hostname;
   return domain + req.path;
 }
 
