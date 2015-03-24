@@ -14,6 +14,7 @@ function normalize_url(url) {
 
 var mapping_service_url;
 var content_service_url;
+var presented_url_host = process.env.PRESENTED_URL_HOST;
 
 // TODO: create function that long-polls and waits for an etcd key change, then calls
 // get_mapping_service_url() and get_content_service_url() to update the
