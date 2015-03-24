@@ -1,0 +1,23 @@
+---
+content:
+  image: deconst/content-service
+  environment:
+    RACKSPACE_USERNAME:
+    RACKSPACE_APIKEY:
+    RACKSPACE_REGION: DFW
+    RACKSPACE_CONTAINER: presenter-dev
+mapping:
+  image: deconst/mapping-service
+  environment:
+    MAPREPO_URL: https://github.com/deconst/map-example.git
+presenter:
+  build: .
+  links:
+  - content
+  - mapping
+  environment:
+    MAPPING_SERVICE_URL: http://mapping:9999/
+    CONTENT_SERVICE_URL: http://content:8080/
+    PRESENTED_URL_HOST: docker
+  ports:
+  - "80:8080"
