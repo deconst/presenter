@@ -6,10 +6,12 @@ content:
     RACKSPACE_APIKEY:
     RACKSPACE_REGION: DFW
     RACKSPACE_CONTAINER: presenter-dev
+    CONTENT_LOG_LEVEL: DEBUG
 mapping:
   image: deconst/mapping-service
   environment:
     MAPREPO_URL: https://github.com/deconst/map-example.git
+    MAP_LOG_LEVEL: DEBUG
 presenter:
   build: .
   links:
@@ -18,6 +20,6 @@ presenter:
   environment:
     MAPPING_SERVICE_URL: http://mapping:9999/
     CONTENT_SERVICE_URL: http://content:8080/
-    PRESENTED_URL_DOMAIN: docker
+    PRESENTED_URL_DOMAIN: mysite.com
   ports:
   - "80:8080"
