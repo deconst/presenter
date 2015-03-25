@@ -49,7 +49,7 @@ var app = express();
 app.engine('handlebars', exphbs());
 app.set('view engine', 'handlebars');
 
-app.get('/', function(req, presenterRes) {
+app.get('/*', function(req, presenterRes) {
   // Generate the mapping service URL.
   mapping_route = urljoin(mapping_service_url, 'at', encodeURIComponent(presented_url(req)));
 
