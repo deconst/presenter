@@ -34,7 +34,7 @@ function set_content_service_url() {
 // one is provided.
 function presented_url(req) {
   var domain = presented_url_domain ? presented_url_domain : req.hostname;
-  return domain + req.path;
+  return "https://" + domain + req.path;
 }
 
 set_mapping_service_url();
