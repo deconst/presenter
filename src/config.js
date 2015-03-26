@@ -31,11 +31,11 @@ function normalize_url(url) {
 // Read configuration values from the environment. Report an error and raise an exception if any
 // required values are missing.
 exports.configure = function (env) {
-  missing = [];
+  var missing = [];
 
   for (name in configuration) {
-    setting = configuration[name];
-    value = env[setting.env];
+    var setting = configuration[name];
+    var value = env[setting.env];
 
     if (value && setting.normalize) {
       value = setting.normalize(value);
