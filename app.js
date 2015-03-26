@@ -7,7 +7,7 @@
 
 var
   express = require('express'),
-  exphbs  = require('express-handlebars'),
+  exphbs = require('express-handlebars'),
   config = require('./src/config'),
   routes = require('./src/routes');
 
