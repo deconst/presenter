@@ -3,6 +3,7 @@
 var
   request = require('request'),
   urljoin = require('url-join'),
+  async = require('async'),
   config = require('./config');
 
 // Derive the presented URL for a specific request, honoring the presented_url_domain setting if
@@ -12,46 +13,82 @@ function presented_url(req) {
   return "https://" + domain + req.path;
 }
 
-module.exports = function (req, presenterRes) {
-  // Generate the mapping service URL.
-  presented = presented_url(req);
-  mapping_route = urljoin(config.mapping_service_url(), 'at', encodeURIComponent(presented));
+// Call the mapping service to identify the content ID that's mapped to the presented URL.
+function mapping(presented, callback) {
+  mapping_url = urljoin(config.mapping_service_url(), 'at', encodeURIComponent(presented));
 
-  // Query the mapping service to acquire a content ID, or a 404 if the presented URL is way off.
-  request(mapping_route, function(error, mappingRes, body) {
-    if (!error && mappingRes.statusCode == 200) {
-      body = JSON.parse(body);
-
-      // Assemble the content service request URL for the returned content ID.
-      content_route = urljoin(config.content_service_url(), 'content', encodeURIComponent(body['content-id']));
-
-      // Query the content service for a metadata envelope, or a 404 if the content ID is not present.
-      request(content_route, function(error, mappingRes, body) {
-        if (!error && mappingRes.statusCode == 200) {
-          // Parse the metadata envelope as JSON.
-          metadata = JSON.parse(body);
-
-          // TODO: determine layout structure for content (perhaps calling the
-          // mapping service or a layout service). For now, it's hard-coded.
-          layout_type = 'layouts/temp.handlebars';
-
-          // Render the final content from the metadata envelope.
-          presenterRes.render(layout_type, metadata, function(err, html) {
-            if (err) {
-              throw new Error('Error rendering content');
-            }
-
-            // Send the rendered HTML back to the user.
-            presenterRes.send(html);
-          });
-        } else {
-          presenterRes.status(404).end();
-          throw new Error('Content not found in content service');
-        }
-      });
-    } else {
-      presenterRes.status(404).end();
-      throw new Error('Map key not found in mapping service.');
+  request(mapping_url, function (error, res, body) {
+    if (error) {
+      callback(error);
+      return;
     }
+
+    if (res.statusCode !== 200) {
+      callback(new Error("No mapping found for presented URL [" + presented + "]"));
+      return;
+    }
+
+    body = JSON.parse(body);
+    callback(null, body['content-id']);
+  });
+}
+
+// Call the content service to acquire the metadata envelope at this content ID.
+function content(content_id, callback) {
+  content_url = urljoin(config.content_service_url(), 'content', encodeURIComponent(content_id));
+
+  request(content_url, function (error, res, body) {
+    if (error) {
+      callback(error);
+      return;
+    }
+
+    if (res.statusCode !== 200) {
+      callback(new Error("No content found for content ID [" + content_id + "]"));
+      return;
+    }
+
+    metadata = JSON.parse(metadata);
+    callback(null, metadata);
+  });
+}
+
+// Call the layout service to decide which layout to apply to this content ID.
+function layout(content_id, callback) {
+  // TODO call the layout service here.
+  callback(null, "layouts/temp.handlebars");
+}
+
+module.exports = function (req, res) {
+  presented = presented_url(req);
+
+  async.waterfall([
+    function (callback) {
+      mapping(presented, callback);
+    },
+    function (content_id, callback) {
+      async.parallel({
+        content: function (cb) { content(content_id, cb); },
+        layout: function (cb) { layout(content_id, cb); }
+      }, callback);
+    }
+  ], function (err, result) {
+    if (err) {
+      console.error(err);
+      res.send("Error: " + err);
+      res.status(404).end();
+      return;
+    }
+
+    res.render(result.layout, metadata, function (err, html) {
+      if (err) {
+        console.error(err);
+        res.send("Rendering error: " + err);
+        res.status(500).end();
+        return;
+      }
+
+      res.send(html);
+    })
   });
 }
