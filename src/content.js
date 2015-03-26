@@ -12,9 +12,10 @@ function presented_url(req) {
   return "https://" + domain + req.path;
 }
 
-exports = function (req, res) {
+module.exports = function (req, presenterRes) {
   // Generate the mapping service URL.
-  mapping_route = urljoin(config.mapping_service_url(), 'at', encodeURIComponent(presented_url(req)));
+  presented = presented_url(req);
+  mapping_route = urljoin(config.mapping_service_url(), 'at', encodeURIComponent(presented));
 
   // Query the mapping service to acquire a content ID, or a 404 if the presented URL is way off.
   request(mapping_route, function(error, mappingRes, body) {
