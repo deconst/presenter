@@ -45,7 +45,7 @@ exports.configure = function (env) {
 
     // Missing or blank values from the environment are considered "unset."
     if (! value && setting.required) {
-      missing.append(setting);
+      missing.push(setting);
     }
   }
 
