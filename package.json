@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "A component that builds and returns the final document.",
   "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deconst/presenter.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "docker-build": "docker build -t presenter .",
