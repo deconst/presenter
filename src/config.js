@@ -64,7 +64,9 @@ exports.configure = function (env) {
 
 // Export "getter" functions with the same name as each configuration option.
 for (name in configuration) {
-  exports[name] = function () {
-    return configuration[name].value;
-  }
+  (function (each) {
+    exports[each] = function () {
+      return configuration[each].value;
+    }
+  })(name);
 }
