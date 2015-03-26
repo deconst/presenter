@@ -11,7 +11,7 @@ var
   config = require('./src/config'),
   routes = require('./src/routes');
 
-config.configure();
+config.configure(process.env);
 
 var app = express();
 
