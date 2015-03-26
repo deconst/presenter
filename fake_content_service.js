@@ -14,4 +14,6 @@ app.get('/content/*', function(req, res) {
   res.send(JSON.stringify(j));
 });
 
-var server = app.listen(8082);
+var server = app.listen(8082, function() {
+  console.log('Fake Content Service listening at ' + server.address().address + ':' + server.address().port);
+});
