@@ -48,7 +48,7 @@ function content(content_id, callback) {
       return;
     }
 
-    metadata = JSON.parse(metadata);
+    metadata = JSON.parse(body);
     callback(null, metadata);
   });
 }
@@ -74,16 +74,16 @@ module.exports = function (req, res) {
     }
   ], function (err, result) {
     if (err) {
-      console.error(err);
-      res.send("Error: " + err);
+      console.error("Assembling: " + err);
+      res.send("Assembling: " + err);
       res.status(404).end();
       return;
     }
 
     res.render(result.layout, metadata, function (err, html) {
       if (err) {
-        console.error(err);
-        res.send("Rendering error: " + err);
+        console.error("Rendering:" + err);
+        res.send("Rendering: " + err);
         res.status(500).end();
         return;
       }
