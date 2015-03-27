@@ -28,6 +28,13 @@ function normalize_url(url) {
   return url;
 }
 
+// Create a getter function for the named setting.
+function make_getter(setting_name) {
+  return function () {
+    return configuration[setting_name].value;
+  };
+}
+
 // Read configuration values from the environment. Report an error and raise an exception if any
 // required values are missing.
 exports.configure = function (env) {
@@ -64,9 +71,5 @@ exports.configure = function (env) {
 
 // Export "getter" functions with the same name as each configuration option.
 for (var name in configuration) {
-  (function (each) {
-    exports[each] = function () {
-      return configuration[each].value;
-    }
-  })(name);
+  exports[name] = make_getter(name);
 }
