@@ -32,10 +32,10 @@ function mapping(presented, callback) {
       return;
     }
 
-    logger.debug("Mapping service response: successful.").
+    logger.debug("Mapping service response: successful.");
 
-    body = JSON.parse(body);
-    content_id = body["content-id"];
+    var doc = JSON.parse(body);
+    content_id = doc["content-id"];
     callback(null, content_id);
   });
 }
