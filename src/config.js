@@ -17,15 +17,27 @@ var configuration = {
     env: "PRESENTED_URL_DOMAIN",
     description: "Override the domain of presented URLs",
     required: false
+  },
+  log_level: {
+    env: "PRESENTER_LOG_LEVEL",
+    description: "Log level for the presenter.",
+    normalize: normalize_lower,
+    def: "info",
+    required: false
   }
 };
 
-// Utility function to ensure that no URLs end with a trailing slash.
+// Normalize a URL by ensuring that it ends with a trailing slash.
 function normalize_url(url) {
   if (url.slice(-1) === '/') {
     return url.slice(0, -1);
   }
   return url;
+}
+
+// Normalize a string by ensuring that it's lowercase.
+function normalize_lower(str) {
+  return str.toLowerCase();
 }
 
 // Create a getter function for the named setting.
@@ -43,6 +55,10 @@ exports.configure = function (env) {
   for (var name in configuration) {
     var setting = configuration[name];
     var value = env[setting.env];
+
+    if (! value && setting.def) {
+      value = setting.def;
+    }
 
     if (value && setting.normalize) {
       value = setting.normalize(value);

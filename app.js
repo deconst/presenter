@@ -5,23 +5,26 @@
 *
 */
 
+var config = require('./src/config');
+
+config.configure(process.env);
+
 var
   express = require('express'),
   logging = require('./src/logging'),
   exphbs = require('express-handlebars'),
-  config = require('./src/config'),
   routes = require('./src/routes');
 
-config.configure(process.env);
-
-var app = express();
+var
+  app = express(),
+  logger = logging.getLogger();
 
 app.engine('handlebars', exphbs());
 app.set('view engine', 'handlebars');
-app.use(logging.requestLogger('debug'));
+app.use(logging.requestLogger());
 
 routes.install(app);
 
 var server = app.listen(8080, function() {
-  logging.getLogger().info('Presenter listening at http://%s:%s', server.address().address, server.address().port);
+  logger.info('Presenter listening at http://%s:%s', server.address().address, server.address().port);
 });
