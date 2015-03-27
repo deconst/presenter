@@ -21,5 +21,6 @@ presenter:
     MAPPING_SERVICE_URL: http://mapping:9999/
     CONTENT_SERVICE_URL: http://content:8080/
     PRESENTED_URL_DOMAIN: mysite.com
+    PRESENTER_LOG_LEVEL: DEBUG
   ports:
   - "80:8080"

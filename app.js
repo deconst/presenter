@@ -18,7 +18,7 @@ var app = express();
 
 app.engine('handlebars', exphbs());
 app.set('view engine', 'handlebars');
-app.use(logging.requestLogger('debug'));
+app.use(logging.requestLogger());
 
 routes.install(app);
 

@@ -1,4 +1,6 @@
-var winston = require('winston');
+var
+  winston = require('winston'),
+  config = require('./config');
 
 var logger;
 
@@ -38,7 +40,7 @@ exports.getLogger = function (level) {
     },
     transports: [
       new winston.transports.Console({
-        level: level || 'info',
+        level: level || config.log_level(),
         prettyPrint: true,
         colorize: true,
         timestamp: true
