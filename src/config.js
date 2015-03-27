@@ -17,6 +17,12 @@ var configuration = {
     env: "PRESENTED_URL_DOMAIN",
     description: "Override the domain of presented URLs",
     required: false
+  },
+  log_level: {
+    env: "PRESENTER_LOG_LEVEL",
+    description: "Log level for the presenter.",
+    def: "INFO",
+    required: false
   }
 };
 
@@ -43,6 +49,10 @@ exports.configure = function (env) {
   for (var name in configuration) {
     var setting = configuration[name];
     var value = env[setting.env];
+
+    if (! value && setting.def) {
+      value = setting.def;
+    }
 
     if (value && setting.normalize) {
       value = setting.normalize(value);
