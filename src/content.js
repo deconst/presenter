@@ -66,7 +66,7 @@ function content(content_id, callback) {
 // Call the layout service to decide which layout to apply to this content ID.
 function layout(content_id, callback) {
   // TODO call the layout service here.
-  callback(null, "layouts/temp.handlebars");
+  callback(null, "content");
 }
 
 module.exports = function (req, res) {

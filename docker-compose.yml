@@ -7,11 +7,15 @@ content:
     RACKSPACE_REGION: DFW
     RACKSPACE_CONTAINER: presenter-dev
     CONTENT_LOG_LEVEL: DEBUG
+  ports:
+  - "8080:8080"
 mapping:
   image: deconst/mapping-service
   environment:
     MAPREPO_URL: https://github.com/deconst/map-example.git
     MAP_LOG_LEVEL: DEBUG
+  ports:
+  - "9999:9999"
 presenter:
   build: .
   links:
