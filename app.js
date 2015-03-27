@@ -19,8 +19,11 @@ var
   app = express(),
   logger = logging.getLogger();
 
-app.engine('handlebars', exphbs());
-app.set('view engine', 'handlebars');
+app.engine('handlebars', exphbs({
+  defaultLayout: 'default',
+  extname: '.hbs'
+}));
+app.set('view engine', '.hbs');
 app.use(logging.requestLogger());
 
 routes.install(app);
