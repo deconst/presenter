@@ -7,6 +7,7 @@
 
 var
   express = require('express'),
+  logging = require('./src/logging'),
   exphbs = require('express-handlebars'),
   config = require('./src/config'),
   routes = require('./src/routes');
@@ -17,7 +18,10 @@ var app = express();
 
 app.engine('handlebars', exphbs());
 app.set('view engine', 'handlebars');
+app.use(logging.requestLogger('debug'));
 
 routes.install(app);
 
-app.listen(8080);
+var server = app.listen(8080, function() {
+  logging.getLogger().info('Presenter listening at http://%s:%s', server.address().address, server.address().port);
+});
