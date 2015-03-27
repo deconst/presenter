@@ -15,7 +15,7 @@ function presented_url(req) {
 
 // Call the mapping service to identify the content ID that's mapped to the presented URL.
 function mapping(presented, callback) {
-  mapping_url = urljoin(config.mapping_service_url(), 'at', encodeURIComponent(presented));
+  var mapping_url = urljoin(config.mapping_service_url(), 'at', encodeURIComponent(presented));
 
   request(mapping_url, function (error, res, body) {
     if (error) {
@@ -35,7 +35,7 @@ function mapping(presented, callback) {
 
 // Call the content service to acquire the metadata envelope at this content ID.
 function content(content_id, callback) {
-  content_url = urljoin(config.content_service_url(), 'content', encodeURIComponent(content_id));
+  var content_url = urljoin(config.content_service_url(), 'content', encodeURIComponent(content_id));
 
   request(content_url, function (error, res, body) {
     if (error) {
@@ -60,7 +60,7 @@ function layout(content_id, callback) {
 }
 
 module.exports = function (req, res) {
-  presented = presented_url(req);
+  var presented = presented_url(req);
 
   async.waterfall([
     function (callback) {
@@ -89,6 +89,6 @@ module.exports = function (req, res) {
       }
 
       res.send(html);
-    })
+    });
   });
-}
+};

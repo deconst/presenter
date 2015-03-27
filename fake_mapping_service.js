@@ -13,4 +13,6 @@ app.get('/at/:presented_id', function(req, res) {
   res.send('{"content-id": "https://github.com/deconst/deconst-docs"}');
 });
 
-var server = app.listen(8081);
+var server = app.listen(8081, function() {
+  console.log('Fake Mapper listening at ' + server.address().address + ':' + server.address().port);
+});

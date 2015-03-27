@@ -5,20 +5,20 @@ var configuration = {
     env: "MAPPING_SERVICE_URL",
     description: "URL of the mapping service",
     normalize: normalize_url,
-    required: true,
+    required: true
   },
   content_service_url: {
     env: "CONTENT_SERVICE_URL",
     description: "URL of the content service",
     normalize: normalize_url,
-    required: true,
+    required: true
   },
   presented_url_domain: {
     env: "PRESENTED_URL_DOMAIN",
     description: "Override the domain of presented URLs",
-    required: false,
+    required: false
   }
-}
+};
 
 // Utility function to ensure that no URLs end with a trailing slash.
 function normalize_url(url) {
@@ -33,7 +33,7 @@ function normalize_url(url) {
 exports.configure = function (env) {
   var missing = [];
 
-  for (name in configuration) {
+  for (var name in configuration) {
     var setting = configuration[name];
     var value = env[setting.env];
 
@@ -55,15 +55,15 @@ exports.configure = function (env) {
     console.error("");
     missing.forEach(function (setting) {
       console.error("  " + setting.env + ": " + setting.description);
-    })
+    });
     console.error("");
 
     throw new Error("Inadequate configuration");
   }
-}
+};
 
 // Export "getter" functions with the same name as each configuration option.
-for (name in configuration) {
+for (var name in configuration) {
   (function (each) {
     exports[each] = function () {
       return configuration[each].value;
