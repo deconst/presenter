@@ -4,9 +4,9 @@ var
 
 var logger;
 
-exports.requestLogger = function(level) {
+exports.requestLogger = function() {
   if (!logger) {
-    exports.getLogger(level);
+    exports.getLogger();
   }
 
   return function(req, res, next) {
@@ -16,7 +16,7 @@ exports.requestLogger = function(level) {
   };
 };
 
-exports.getLogger = function (level) {
+exports.getLogger = function () {
   if (logger) {
     return logger;
   }
@@ -40,7 +40,7 @@ exports.getLogger = function (level) {
     },
     transports: [
       new winston.transports.Console({
-        level: level || config.log_level(),
+        level: config.log_level(),
         prettyPrint: true,
         colorize: true,
         timestamp: true
