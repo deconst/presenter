@@ -21,17 +21,23 @@ var configuration = {
   log_level: {
     env: "PRESENTER_LOG_LEVEL",
     description: "Log level for the presenter.",
-    def: "INFO",
+    normalize: normalize_lower,
+    def: "info",
     required: false
   }
 };
 
-// Utility function to ensure that no URLs end with a trailing slash.
+// Normalize a URL by ensuring that it ends with a trailing slash.
 function normalize_url(url) {
   if (url.slice(-1) === '/') {
     return url.slice(0, -1);
   }
   return url;
+}
+
+// Normalize a string by ensuring that it's lowercase.
+function normalize_lower(str) {
+  return str.toLowerCase();
 }
 
 // Create a getter function for the named setting.
