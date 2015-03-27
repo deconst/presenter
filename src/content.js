@@ -32,10 +32,10 @@ function mapping(presented, callback) {
       return;
     }
 
-    logger.debug("Mapping service response: successful.");
-
     var doc = JSON.parse(body);
     content_id = doc["content-id"];
+
+    logger.debug("Mapping service response: success => [" + content_id + "]");
     callback(null, content_id);
   });
 }
@@ -87,20 +87,10 @@ module.exports = function (req, res) {
   ], function (err, result) {
     if (err) {
       logger.error("Assembling: " + err);
-      res.send("Assembling: " + err);
-      res.status(404).end();
+      res.status(404).render('404');
       return;
     }
 
-    res.render(result.layout, metadata, function (err, html) {
-      if (err) {
-        logger.error("Rendering: " + err);
-        res.send("Rendering: " + err);
-        res.status(500).end();
-        return;
-      }
-
-      res.send(html);
-    });
+    res.render(result.layout, { metadata: metadata });
   });
 };
