@@ -12,7 +12,7 @@ content:
 mapping:
   image: deconst/mapping-service
   environment:
-    MAPREPO_URL: https://github.com/deconst/map-example.git
+    CONTROL_REPO_URL: https://github.com/deconst/map-example.git
     MAP_LOG_LEVEL: DEBUG
   ports:
   - "9999:9999"
