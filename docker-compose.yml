@@ -8,22 +8,22 @@ content:
     RACKSPACE_CONTAINER: presenter-dev
     CONTENT_LOG_LEVEL: DEBUG
   ports:
-  - "8080:8080"
+  - "9000:8080"
 mapping:
   image: deconst/mapping-service
   environment:
     CONTROL_REPO_URL: https://github.com/deconst/map-example.git
     MAP_LOG_LEVEL: DEBUG
   ports:
-  - "9999:9999"
+  - "9001:8080"
 presenter:
   build: .
   links:
   - content
   - mapping
   environment:
-    MAPPING_SERVICE_URL: http://mapping:9999/
-    CONTENT_SERVICE_URL: http://content:8080/
+    CONTENT_SERVICE_URL: http://content:9000/
+    MAPPING_SERVICE_URL: http://mapping:9001/
     PRESENTED_URL_DOMAIN: mysite.com
     PRESENTER_LOG_LEVEL: DEBUG
   ports:
