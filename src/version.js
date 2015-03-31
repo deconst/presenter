@@ -7,7 +7,7 @@ var
 var commit = child_process.execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
 
 module.exports = function (req, res) {
-  res.render({
+  res.json({
     service: info.name,
     version: info.version,
     commit: commit
