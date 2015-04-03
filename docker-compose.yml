@@ -5,7 +5,8 @@ content:
     RACKSPACE_USERNAME:
     RACKSPACE_APIKEY:
     RACKSPACE_REGION: DFW
-    RACKSPACE_CONTAINER: presenter-dev
+    CONTENT_CONTAINER: deconst-presenter-dev-content
+    ASSET_CONTAINER: deconst-presenter-dev-assets
     CONTENT_LOG_LEVEL: DEBUG
   ports:
   - "9000:8080"
