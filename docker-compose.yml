@@ -1,6 +1,6 @@
 ---
 content:
-  image: deconst/content-service
+  image: quay.io/deconst/content-service
   environment:
     RACKSPACE_USERNAME:
     RACKSPACE_APIKEY:
@@ -10,7 +10,7 @@ content:
   ports:
   - "9000:8080"
 mapping:
-  image: deconst/mapping-service
+  image: quay.io/deconst/mapping-service
   environment:
     CONTROL_REPO_URL: https://github.com/deconst/map-example.git
     MAP_LOG_LEVEL: DEBUG
