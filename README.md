@@ -1,6 +1,9 @@
 # presenter
 
-A component that builds and returns the final document.
+A Deconst component that assembles and returns completed HTML documents to end users.
+
+[![Build Status](https://travis-ci.org/deconst/presenter.svg?branch=master)](https://travis-ci.org/deconst/presenter)
+[![Docker Repository on Quay.io](https://quay.io/repository/deconst/presenter/status "Docker Repository on Quay.io")](https://quay.io/repository/deconst/presenter)
 
 ## Installation
 
