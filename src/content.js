@@ -58,15 +58,36 @@ function content(content_id, callback) {
 
     logger.debug("Content service request: successful.");
 
-    metadata = JSON.parse(body);
-    callback(null, metadata);
+    envelope = JSON.parse(body);
+    callback(null, envelope);
   });
 }
 
-// Call the layout service to decide which layout to apply to this content ID.
-function layout(content_id, callback) {
-  // TODO call the layout service here.
-  callback(null, "content");
+// Call the layout service to decide which layout to apply to this presented URL.
+function layout(presented_url, envelope, callback) {
+  var
+    layout_key = envelope.layout_key || "default",
+    encoded_presented = encodeURIComponent(presented_url),
+    layout_url = urljoin(config.layout_service_url(), encoded_presented, layout_key);
+
+  logger.debug("Layout service request: [" + layout_url + "]");
+
+  request(layout_url, function (error, res, body) {
+    if (error) {
+      callback(error);
+      return;
+    }
+
+    if (res.statusCode !== 200) {
+      callback(new Error("No layout found for presented URL [" + presented_url + "]"));
+      return;
+    }
+
+    callback(null, {
+      envelope: envelope,
+      layout: body
+    });
+  });
 }
 
 module.exports = function (req, res) {
@@ -75,15 +96,9 @@ module.exports = function (req, res) {
   logger.verbose("Handling presented URL [" + presented + "].");
 
   async.waterfall([
-    function (callback) {
-      mapping(presented, callback);
-    },
-    function (content_id, callback) {
-      async.parallel({
-        content: function (cb) { content(content_id, cb); },
-        layout: function (cb) { layout(content_id, cb); }
-      }, callback);
-    }
+    async.apply(mapping, presented),
+    content,
+    async.apply(layout, presented)
   ], function (err, result) {
     if (err) {
       logger.error("Assembling: " + err);
@@ -91,6 +106,6 @@ module.exports = function (req, res) {
       return;
     }
 
-    res.render(result.layout, { metadata: metadata });
+    res.render(result.layout, { envelope: result.envelope });
   });
 };
