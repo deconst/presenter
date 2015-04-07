@@ -11,7 +11,6 @@ config.configure(process.env);
 
 var
   express = require('express'),
-  exphbs = require('express-handlebars'),
   logging = require('./src/logging'),
   routes = require('./src/routes');
 
