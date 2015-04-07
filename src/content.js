@@ -4,6 +4,7 @@ var
   request = require('request'),
   urljoin = require('url-join'),
   async = require('async'),
+  handlebars = require('handlebars'),
   config = require('./config'),
   logging = require('./logging');
 
@@ -83,9 +84,11 @@ function layout(presented_url, envelope, callback) {
       return;
     }
 
+    var layout = handlebars.compile(body);
+
     callback(null, {
       envelope: envelope,
-      layout: body
+      layout: layout
     });
   });
 }
@@ -106,6 +109,10 @@ module.exports = function (req, res) {
       return;
     }
 
-    res.render(result.layout, { envelope: result.envelope });
+    var html = result.layout({
+      envelope: result.envelope
+    });
+
+    res.send(html);
   });
 };
