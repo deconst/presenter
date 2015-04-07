@@ -13,6 +13,12 @@ var configuration = {
     normalize: normalize_url,
     required: true
   },
+  layout_service_url: {
+    env: "LAYOUT_SERVICE_URL",
+    description: "URL of the layout service",
+    normalize: normalize_url,
+    required: true
+  },
   presented_url_domain: {
     env: "PRESENTED_URL_DOMAIN",
     description: "Override the domain of presented URLs",
