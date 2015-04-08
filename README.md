@@ -30,4 +30,6 @@ Set the following environment variables:
 
  * `CONTENT_SERVICE_URL`: **Required**. URL of the content service.
 
+ * `LAYOUT_SERVICE_URL`: **Required**. URL of the layout service.
+
  * `PRESENTED_URL_DOMAIN`: Use a constant instead of the `Host:` value as the domain of the presented URL. Useful for development in environments without DNS.

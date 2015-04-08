@@ -11,7 +11,6 @@ config.configure(process.env);
 
 var
   express = require('express'),
-  exphbs = require('express-handlebars'),
   logging = require('./src/logging'),
   routes = require('./src/routes');
 
@@ -19,11 +18,6 @@ var
   app = express(),
   logger = logging.getLogger();
 
-app.engine('hbs', exphbs({
-  defaultLayout: 'default',
-  extname: '.hbs'
-}));
-app.set('view engine', 'hbs');
 app.use(logging.requestLogger());
 
 routes.install(app);
