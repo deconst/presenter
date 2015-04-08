@@ -10,6 +10,18 @@ var
 
 var logger = logging.getLogger();
 
+var page500 = "<!DOCTYPE html>" +
+  "<html>" +
+  "<head>" +
+    "<meta charset=\"utf-8\">" +
+    "<title>Rendered by Deconst</title>" +
+  "</head>" +
+  "<body>" +
+    "<h1>Whoops</h1>" +
+    "<p>It looks like you asked for a page that we don't have!</p>" +
+  "</body>" +
+  "</html>";
+
 // Derive the presented URL for a specific request, honoring the presented_url_domain setting if
 // one is provided.
 function presented_url(req) {
@@ -105,7 +117,7 @@ module.exports = function (req, res) {
   ], function (err, result) {
     if (err) {
       logger.error("Assembling: " + err);
-      res.status(404).render('404');
+      res.status(500).send(page500);
       return;
     }
 
