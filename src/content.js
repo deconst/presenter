@@ -144,7 +144,7 @@ module.exports = function (req, res) {
   ], function (err, result) {
     if (err) {
       var code = 404;
-      if(err.type == "NotFound") {
+      if(err.type === "NotFound") {
         logger.error("NotFound: " + err);
       } else {
         logger.error("ServerError: " + err);
