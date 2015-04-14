@@ -109,8 +109,8 @@ function layout(presented_url, envelope, callback) {
 
 // If a 404 or 500 occurs anywhere in the pipeline, return a custom error page.
 function error_layout(presented_url, status_code, callback) {
-  encoded_presented = encodeURIComponent(presented_url),)
-  layout_url = urljoin(config.layout_service_url(), 'error', encoded_presented, status_code)
+  encoded_presented = encodeURIComponent(presented_url);
+  layout_url = urljoin(config.layout_service_url(), 'error', encoded_presented, status_code);
 
   logger.debug("Error layout page request: [" + layout_url + "]");
 
@@ -144,7 +144,7 @@ module.exports = function (req, res) {
   ], function (err, result) {
     if (err) {
       var code = 404;
-      if err.type == "NotFound" {
+      if(err.type == "NotFound") {
         logger.error("NotFound: " + err);
       } else {
         logger.error("ServerError: " + err);
