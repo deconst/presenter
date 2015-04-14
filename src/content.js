@@ -92,7 +92,9 @@ function layout(presented_url, envelope, callback) {
     }
 
     if (res.statusCode !== 200) {
-      callback(new Error("No layout found for presented URL [" + presented_url + "]"));
+      var err = new Error("No layout found for presented URL [" + presented_url + "]");
+      err.type = "NotFound";
+      callback(err);
       return;
     }
 
@@ -102,6 +104,31 @@ function layout(presented_url, envelope, callback) {
       envelope: envelope,
       layout: layout
     });
+  });
+}
+
+// If a 404 or 500 occurs anywhere in the pipeline, return a custom error page.
+function error_layout(presented_url, status_code, callback) {
+  encoded_presented = encodeURIComponent(presented_url);
+  layout_url = urljoin(config.layout_service_url(), 'error', encoded_presented, status_code);
+
+  logger.debug("Error layout page request: [" + layout_url + "]");
+
+  request(layout_url, function (error, res, body) {
+    if (error) {
+      callback(error);
+      return;
+    }
+
+    if (res.statusCode !== 200) {
+      var err = new Error("No error layout page for url [" + layout_url + "]");
+      callback(err);
+      return;
+    }
+
+    var layout = handlebars.compile(body);
+
+    callback(null, res, layout);
   });
 }
 
@@ -116,8 +143,19 @@ module.exports = function (req, res) {
     async.apply(layout, presented)
   ], function (err, result) {
     if (err) {
-      logger.error("Assembling: " + err);
-      res.status(500).send(page500);
+      var code = 404;
+      if(err.type === "NotFound") {
+        logger.error("NotFound: " + err);
+      } else {
+        logger.error("ServerError: " + err);
+        code = 500;
+      }
+      error_layout(presented, code, function(error, response, body) {
+        if(response.statusCode !== 200 || result.error) {
+          response.status(code).send(page500);
+        }
+        response.status(code).send(body);
+      });
       return;
     }
 
