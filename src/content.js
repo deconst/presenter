@@ -161,8 +161,8 @@ module.exports = function (req, res) {
           logger.error("Unable to retrieve custom error layout for HTTP status [" + code + "]", layout_err);
         }
         response.status(code).send(layout_body || page500);
-        return;
       });
+      return;
     }
 
     var html = result.layout({
