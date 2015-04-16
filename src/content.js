@@ -128,7 +128,7 @@ function error_layout(presented_url, status_code, callback) {
 
     var layout = handlebars.compile(body);
 
-    callback(null, res, layout);
+    callback(null, layout);
   });
 }
 
@@ -150,11 +150,11 @@ module.exports = function (req, res) {
         logger.error("ServerError: " + err);
         code = 500;
       }
-      error_layout(presented, code, function(error, response, body) {
-        if(response.statusCode !== 200 || result.error) {
-          response.status(code).send(page500);
+      error_layout(presented, code, function(layout_err, layout_body) {
+        if (layout_err) {
+          logger.error("Unable to retrieve layout: " + layout_err);
         }
-        response.status(code).send(body);
+        response.status(code).send(layout_body || page500);
       });
       return;
     }
