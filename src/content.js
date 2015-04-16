@@ -156,6 +156,10 @@ module.exports = function (req, res) {
   ], function (err, result) {
     if (err) {
       var code = err.statusCode || 500;
+      var message = err.statusMessage || "Error";
+
+      logger.info(message + ": [" + code + "] " + err);
+
       error_layout(presented, code, function(layout_err, layout_body) {
         if (layout_err) {
           logger.error("Unable to retrieve custom error layout for HTTP status [" + code + "]", layout_err);
