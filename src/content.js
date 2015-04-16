@@ -138,9 +138,7 @@ function error_layout(presented_url, status_code, callback) {
       return;
     }
 
-    var layout = handlebars.compile(body);
-
-    callback(null, layout);
+    callback(null, handlebars.compile(body)());
   });
 }
 
@@ -164,7 +162,7 @@ module.exports = function (req, res) {
         if (layout_err) {
           logger.error("Unable to retrieve custom error layout for HTTP status [" + code + "]", layout_err);
         }
-        res.status(code).send(layout_body({}) || page500);
+        res.status(code).send(layout_body || page500);
       });
       return;
     }
