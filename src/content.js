@@ -29,6 +29,21 @@ function presented_url(req) {
   return "https://" + domain + req.path;
 }
 
+// Create an Error object with the provided message and a custom attribute that remembers the
+// (presumably non-200) status code of the associated HTTP response.
+function response_error(res, message) {
+  var err = new Error(message);
+  err.statusCode = res.statusCode;
+
+  if (err.statusCode === 404) {
+    err.statusMessage = "Required resource not found";
+  } else {
+    err.statusMessage = "Upstream server error";
+  }
+
+  return err;
+}
+
 // Call the mapping service to identify the content ID that's mapped to the presented URL.
 function mapping(presented, callback) {
   var mapping_url = urljoin(config.mapping_service_url(), 'at', encodeURIComponent(presented));
@@ -41,7 +56,7 @@ function mapping(presented, callback) {
     }
 
     if (res.statusCode !== 200) {
-      callback(new Error("No mapping found for presented URL [" + presented + "]"));
+      callback(response_error(res, "No mapping found for presented URL [" + presented + "]"));
       return;
     }
 
@@ -65,7 +80,7 @@ function content(content_id, callback) {
     }
 
     if (res.statusCode !== 200) {
-      callback(new Error("No content found for content ID [" + content_id + "]"));
+      callback(response_error(res, "No content found for content ID [" + content_id + "]"));
       return;
     }
 
@@ -92,9 +107,7 @@ function layout(presented_url, envelope, callback) {
     }
 
     if (res.statusCode !== 200) {
-      var err = new Error("No layout found for presented URL [" + presented_url + "]");
-      err.type = "NotFound";
-      callback(err);
+      callback(response_error(res, "No layout found for presented URL [" + presented_url + "]"));
       return;
     }
 
@@ -121,8 +134,7 @@ function error_layout(presented_url, status_code, callback) {
     }
 
     if (res.statusCode !== 200) {
-      var err = new Error("No error layout page for url [" + layout_url + "]");
-      callback(err);
+      callback(response_error(res, "No error layout page for url [" + layout_url + "]"));
       return;
     }
 
@@ -143,20 +155,14 @@ module.exports = function (req, res) {
     async.apply(layout, presented)
   ], function (err, result) {
     if (err) {
-      var code = 404;
-      if(err.type === "NotFound") {
-        logger.error("NotFound: " + err);
-      } else {
-        logger.error("ServerError: " + err);
-        code = 500;
-      }
+      var code = err.statusCode || 500;
       error_layout(presented, code, function(layout_err, layout_body) {
         if (layout_err) {
-          logger.error("Unable to retrieve layout: " + layout_err);
+          logger.error("Unable to retrieve custom error layout for HTTP status [" + code + "]", layout_err);
         }
         response.status(code).send(layout_body || page500);
+        return;
       });
-      return;
     }
 
     var html = result.layout({
