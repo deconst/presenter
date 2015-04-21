@@ -68,7 +68,8 @@ function mapping(presented, callback) {
   });
 }
 
-// Call the content service to acquire the metadata envelope at this content ID.
+// Call the content service to acquire the document containing the metadata envelope and any
+// associated attributes at this content ID.
 function content(content_id, callback) {
   var content_url = urljoin(config.content_service_url(), 'content', encodeURIComponent(content_id));
   logger.debug("Content service request: [" + content_url + "]");
@@ -86,15 +87,15 @@ function content(content_id, callback) {
 
     logger.debug("Content service request: successful.");
 
-    envelope = JSON.parse(body);
-    callback(null, envelope);
+    content_doc = JSON.parse(body);
+    callback(null, content_doc);
   });
 }
 
 // Call the layout service to decide which layout to apply to this presented URL.
-function layout(presented_url, envelope, callback) {
+function layout(presented_url, content_doc, callback) {
   var
-    layout_key = envelope.layout_key || "default",
+    layout_key = content_doc.envelope.layout_key || "default",
     encoded_presented = encodeURIComponent(presented_url),
     layout_url = urljoin(config.layout_service_url(), encoded_presented, layout_key);
 
@@ -114,7 +115,7 @@ function layout(presented_url, envelope, callback) {
     var layout = handlebars.compile(body);
 
     callback(null, {
-      envelope: envelope,
+      content_doc: content_doc,
       layout: layout
     });
   });
@@ -167,9 +168,7 @@ module.exports = function (req, res) {
       return;
     }
 
-    var html = result.layout({
-      envelope: result.envelope
-    });
+    var html = result.layout(result.content_doc);
 
     res.send(html);
   });
