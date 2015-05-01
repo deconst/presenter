@@ -4,8 +4,8 @@
 
 var
   express = require('express'),
-  logging = require('./src/logging'),
-  routes = require('./src/routes');
+  logging = require('./logging'),
+  routes = require('./routes');
 
 exports.create = function () {
   var
