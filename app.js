@@ -5,6 +5,9 @@
 *
 */
 
+var logging = require('./src/logging'),
+    logger = logging.getLogger();
+
 var config = require('./src/config');
 
 config.configure(process.env);
