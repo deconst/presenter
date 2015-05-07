@@ -168,6 +168,9 @@ module.exports = function (req, res) {
       return;
     }
 
+    // Apply final transformations and additions to the content document before rendering.
+    result.content_doc.presented_url = presented;
+
     var html = result.layout(result.content_doc);
 
     res.send(html);
