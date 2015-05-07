@@ -12,8 +12,13 @@ var config = require('./src/config');
 
 config.configure(process.env);
 
-var app = require('./src/server').create();
+var
+  logger = require('./src/logging').getLogger(),
+  app = require('./src/server').create();
 
 var server = app.listen(8080, function() {
-  logger.info('Presenter listening at http://%s:%s', server.address().address, server.address().port);
+  var host = server.address().address;
+  var port = server.address().port;
+
+  logger.info('Presenter listening at http://%s:%s', host, port);
 });
