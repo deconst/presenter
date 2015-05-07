@@ -168,7 +168,13 @@ module.exports = function (req, res) {
       return;
     }
 
-    var html = result.layout(result.content_doc);
+    // Apply final transformations and additions to the content document before rendering.
+    var content_doc = result.content_doc;
+
+    content_doc.presented_url = presented;
+    content_doc.has_next_or_previous = !!(content_doc.next || content_doc.previous);
+
+    var html = result.layout(content_doc);
 
     res.send(html);
   });
