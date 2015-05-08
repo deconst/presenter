@@ -1,21 +1,26 @@
 // Unit tests for the content endpoint.
 
+var config = require("../src/config");
+
+settings = {
+  MAPPING_SERVICE_URL: "http://mapping",
+  CONTENT_SERVICE_URL: "http://content",
+  LAYOUT_SERVICE_URL: "http://layout",
+  PRESENTED_URL_DOMAIN: "deconst.horse"
+};
+
+config.configure(settings);
+
 var
   request = require("supertest"),
   nock = require("nock"),
-  config = require("../src/config"),
   server = require("../src/server");
 
 nock.enableNetConnect("127.0.0.1");
 
 describe("/*", function () {
   beforeEach(function () {
-    config.configure({
-      MAPPING_SERVICE_URL: "http://mapping",
-      CONTENT_SERVICE_URL: "http://content",
-      LAYOUT_SERVICE_URL: "http://layout",
-      PRESENTED_URL_DOMAIN: "deconst.horse"
-    });
+    config.configure(settings);
   });
 
   it("assembles a page", function (done) {

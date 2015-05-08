@@ -8,9 +8,7 @@ var
   routes = require('./routes');
 
 exports.create = function () {
-  var
-    app = express(),
-    logger = logging.getLogger();
+  var app = express();
 
   app.use(logging.requestLogger());
 

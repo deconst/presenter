@@ -5,15 +5,12 @@
 *
 */
 
-var logging = require('./src/logging'),
-    logger = logging.getLogger();
-
 var config = require('./src/config');
 
 config.configure(process.env);
 
 var
-  logger = require('./src/logging').getLogger(),
+  logger = require('./src/logging').logger,
   app = require('./src/server').create();
 
 var server = app.listen(8080, function() {
