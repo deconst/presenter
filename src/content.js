@@ -6,9 +6,7 @@ var
   async = require('async'),
   handlebars = require('handlebars'),
   config = require('./config'),
-  logging = require('./logging');
-
-var logger = logging.getLogger();
+  logger = require('./logging').logger;
 
 var page500 = "<!DOCTYPE html>" +
   "<html>" +
