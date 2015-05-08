@@ -170,7 +170,8 @@ module.exports = function (req, res) {
     var content_doc = result.content_doc;
 
     content_doc.presented_url = presented;
-    content_doc.has_next_or_previous = !!(content_doc.next || content_doc.previous);
+    content_doc.has_next_or_previous =
+      !!(content_doc.envelope.next || content_doc.envelope.previous);
 
     var html = result.layout(content_doc);
 
