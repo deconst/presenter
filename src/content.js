@@ -5,6 +5,7 @@ var
   urljoin = require('url-join'),
   async = require('async'),
   handlebars = require('handlebars'),
+  _ = require('lodash'),
   config = require('./config'),
   logger = require('./logging').logger;
 
@@ -110,9 +111,56 @@ function postprocess(presented_url, content_doc, callback) {
 
 // If the content document contains any query results, resolve their content IDs to presented URLs.
 function related(content_doc, callback) {
-  // console.log("Content document", content_doc);
+  if (! content_doc.results) {
+    return callback(null, {});
+  }
 
-  callback(null, {});
+  var resultSetNames = _.keys(content_doc.results);
+
+  async.map(
+    resultSetNames,
+    function (resultSetName, callback) {
+      async.map(
+        content_doc.results[resultSetName],
+        function (result, callback) {
+          if (result.contentID) {
+            // Query the mapping service to discover the URL that will map to this result's
+            // content ID.
+            var mapping_url = urljoin(config.mapping_service_url(),
+              'url',
+              encodeURIComponent(result.contentID)
+            );
+
+            logger.debug("Mapping service request: [" + mapping_url + "]");
+
+            request(mapping_url, function (err, res, body) {
+              if (err) return callback(err);
+
+              var doc = JSON.parse(body);
+              result.url = doc['presented-url'];
+
+              callback(null, result);
+            });
+          } else {
+            callback(null, result);
+          }
+        },
+        callback
+      );
+    },
+    function (err, resultSets) {
+      if (err) return callback(err);
+
+      var transformed = {};
+      for (var i = 0; i < resultSetNames.length; i++) {
+        var name = resultSetNames[i];
+
+        transformed[name] = resultSets[i];
+      }
+
+      callback(null, transformed);
+    }
+  );
 }
 
 // Call the layout service to decide which layout to apply to this presented URL.
