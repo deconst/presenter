@@ -90,6 +90,31 @@ function content(content_id, callback) {
   });
 }
 
+// Now that a content document is available, perform post-processing calls in parallel.
+function postprocess(presented_url, content_doc, callback) {
+  async.parallel([
+    async.apply(related, content_doc),
+    async.apply(layout, presented_url, content_doc)
+  ], function (err, output) {
+    if (err) return callback(err);
+
+    var output_doc = {
+      envelope: content_doc.envelope,
+      results: output[0],
+      layout: output[1]
+    };
+
+    callback(null, output_doc);
+  });
+}
+
+// If the content document contains any query results, resolve their content IDs to presented URLs.
+function related(content_doc, callback) {
+  // console.log("Content document", content_doc);
+
+  callback(null, {});
+}
+
 // Call the layout service to decide which layout to apply to this presented URL.
 function layout(presented_url, content_doc, callback) {
   var
@@ -112,10 +137,7 @@ function layout(presented_url, content_doc, callback) {
 
     var layout = handlebars.compile(body);
 
-    callback(null, {
-      content_doc: content_doc,
-      layout: layout
-    });
+    callback(null, layout);
   });
 }
 
@@ -149,8 +171,8 @@ module.exports = function (req, res) {
   async.waterfall([
     async.apply(mapping, presented),
     content,
-    async.apply(layout, presented)
-  ], function (err, result) {
+    async.apply(postprocess, presented)
+  ], function (err, content_doc) {
     if (err) {
       var code = err.statusCode || 500;
       var message = err.statusMessage || "Error";
@@ -167,13 +189,12 @@ module.exports = function (req, res) {
     }
 
     // Apply final transformations and additions to the content document before rendering.
-    var content_doc = result.content_doc;
 
     content_doc.presented_url = presented;
     content_doc.has_next_or_previous =
       !!(content_doc.envelope.next || content_doc.envelope.previous);
 
-    var html = result.layout(content_doc);
+    var html = content_doc.layout(content_doc);
 
     res.send(html);
   });
