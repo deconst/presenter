@@ -142,8 +142,8 @@ function related(content_doc, callback) {
               var
                 doc = JSON.parse(body),
                 u = doc['presented-url'],
-                domain = config.presented_url_domain(),
-                proto = config.presented_url_proto();
+                domain = config.public_url_domain(),
+                proto = config.public_url_proto();
 
               if (domain || proto) {
                 var parsed = url.parse(u);

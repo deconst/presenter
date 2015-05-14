@@ -86,15 +86,26 @@ describe("/*", function () {
   });
 
   it("transforms related content URLs with a presented domain and protocol", function (done) {
+    config.configure({
+      MAPPING_SERVICE_URL: "http://mapping",
+      CONTENT_SERVICE_URL: "http://content",
+      LAYOUT_SERVICE_URL: "http://layout",
+      PRESENTED_URL_PROTO: "https",
+      PRESENTED_URL_DOMAIN: "deconst.horse",
+      PUBLIC_URL_PROTO: "http",
+      PUBLIC_URL_DOMAIN: "localhost",
+      PRESENTER_LOG_LEVEL: process.env.PRESENTER_LOG_LEVEL
+    });
+
     var mapping = nock("http://mapping")
       .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
       .reply(200, { "content-id": "https://github.com/deconst/fake" })
       .get("/url/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Fone")
-      .reply(200, { "presented-url": "http://other.wtf/one" })
+      .reply(200, { "presented-url": "https://other.wtf/one" })
       .get("/url/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Ftwo")
-      .reply(200, { "presented-url": "http://other.wtf/two" })
+      .reply(200, { "presented-url": "https://other.wtf/two" })
       .get("/url/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Fthree")
-      .reply(200, { "presented-url": "http://other.wtf/three" });
+      .reply(200, { "presented-url": "https://other.wtf/three" });
 
     var content = nock("http://content")
       .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
@@ -112,8 +123,8 @@ describe("/*", function () {
       .get("/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz/default")
       .reply(200, "URLs: {{#each results.sample}}<{{url}}>{{/each}}");
 
-    var rendered = "URLs: <https://deconst.horse/one>" +
-      "<https://deconst.horse/two><https://deconst.horse/three>";
+    var rendered = "URLs: <http://localhost/one>" +
+      "<http://localhost/two><http://localhost/three>";
 
     request(server.create())
       .get("/foo/bar/baz")
