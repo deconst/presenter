@@ -104,6 +104,7 @@ function postprocess(presented_url, content_doc, callback) {
 
     var output_doc = {
       envelope: content_doc.envelope,
+      assets: content_doc.assets,
       results: output[0],
       layout: output[1]
     };
