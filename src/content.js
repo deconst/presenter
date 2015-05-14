@@ -21,11 +21,13 @@ var page500 = "<!DOCTYPE html>" +
   "</body>" +
   "</html>";
 
-// Derive the presented URL for a specific request, honoring the presented_url_domain setting if
-// one is provided.
+// Derive the presented URL for a specific request, honoring the presented_url_domain and
+// presented_url_proto settings if provided.
 function presented_url(req) {
+  var proto = config.presented_url_proto() || req.protocol;
   var domain = config.presented_url_domain() || req.hostname;
-  return "https://" + domain + req.path;
+
+  return proto + "://" + domain + req.path;
 }
 
 // Create an Error object with the provided message and a custom attribute that remembers the

@@ -19,6 +19,11 @@ var configuration = {
     normalize: normalize_url,
     required: true
   },
+  presented_url_proto: {
+    env: "PRESENTED_URL_PROTO",
+    description: "Override the protocol of presented URLs",
+    required: false
+  },
   presented_url_domain: {
     env: "PRESENTED_URL_DOMAIN",
     description: "Override the domain of presented URLs",
