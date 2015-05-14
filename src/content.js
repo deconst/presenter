@@ -2,6 +2,7 @@
 
 var
   request = require('request'),
+  url = require('url'),
   urljoin = require('url-join'),
   async = require('async'),
   handlebars = require('handlebars'),
@@ -138,8 +139,27 @@ function related(content_doc, callback) {
             request(mapping_url, function (err, res, body) {
               if (err) return callback(err);
 
-              var doc = JSON.parse(body);
-              result.url = doc['presented-url'];
+              var
+                doc = JSON.parse(body),
+                u = doc['presented-url'],
+                domain = config.presented_url_domain(),
+                proto = config.presented_url_proto();
+
+              if (domain || proto) {
+                var parsed = url.parse(u);
+
+                if (domain) {
+                  parsed.host = domain;
+                }
+
+                if (proto) {
+                  parsed.protocol = proto;
+                }
+
+                u = url.format(parsed);
+              }
+
+              result.url = u;
 
               callback(null, result);
             });
