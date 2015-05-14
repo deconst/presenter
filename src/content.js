@@ -264,6 +264,8 @@ module.exports = function (req, res) {
     content_doc.has_next_or_previous =
       !!(content_doc.envelope.next || content_doc.envelope.previous);
 
+    logger.debug("Rendering final content document:", content_doc);
+
     var html = content_doc.layout(content_doc);
 
     res.send(html);
