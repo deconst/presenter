@@ -29,6 +29,16 @@ var configuration = {
     description: "Override the domain of presented URLs",
     required: false
   },
+  public_url_proto: {
+    env: "PUBLIC_URL_PROTO",
+    description: "Override the protocol of outgoing URLs",
+    required: false
+  },
+  public_url_domain: {
+    env: "PUBLIC_URL_DOMAIN",
+    description: "Override the domain of outgoing URLs",
+    required: false
+  },
   log_level: {
     env: "PRESENTER_LOG_LEVEL",
     description: "Log level for the presenter.",
