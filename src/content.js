@@ -2,9 +2,11 @@
 
 var
   request = require('request'),
+  url = require('url'),
   urljoin = require('url-join'),
   async = require('async'),
   handlebars = require('handlebars'),
+  _ = require('lodash'),
   config = require('./config'),
   logger = require('./logging').logger;
 
@@ -20,11 +22,13 @@ var page500 = "<!DOCTYPE html>" +
   "</body>" +
   "</html>";
 
-// Derive the presented URL for a specific request, honoring the presented_url_domain setting if
-// one is provided.
+// Derive the presented URL for a specific request, honoring the presented_url_domain and
+// presented_url_proto settings if provided.
 function presented_url(req) {
+  var proto = config.presented_url_proto() || req.protocol;
   var domain = config.presented_url_domain() || req.hostname;
-  return "https://" + domain + req.path;
+
+  return proto + "://" + domain + req.path;
 }
 
 // Create an Error object with the provided message and a custom attribute that remembers the
@@ -90,6 +94,98 @@ function content(content_id, callback) {
   });
 }
 
+// Now that a content document is available, perform post-processing calls in parallel.
+function postprocess(presented_url, content_doc, callback) {
+  async.parallel([
+    async.apply(related, content_doc),
+    async.apply(layout, presented_url, content_doc)
+  ], function (err, output) {
+    if (err) return callback(err);
+
+    var output_doc = {
+      envelope: content_doc.envelope,
+      assets: content_doc.assets,
+      results: output[0],
+      layout: output[1]
+    };
+
+    callback(null, output_doc);
+  });
+}
+
+// If the content document contains any query results, resolve their content IDs to presented URLs.
+function related(content_doc, callback) {
+  if (! content_doc.results) {
+    return callback(null, {});
+  }
+
+  var resultSetNames = _.keys(content_doc.results);
+
+  async.map(
+    resultSetNames,
+    function (resultSetName, callback) {
+      async.map(
+        content_doc.results[resultSetName],
+        function (result, callback) {
+          if (result.contentID) {
+            // Query the mapping service to discover the URL that will map to this result's
+            // content ID.
+            var mapping_url = urljoin(config.mapping_service_url(),
+              'url',
+              encodeURIComponent(result.contentID)
+            );
+
+            logger.debug("Mapping service request: [" + mapping_url + "]");
+
+            request(mapping_url, function (err, res, body) {
+              if (err) return callback(err);
+
+              var
+                doc = JSON.parse(body),
+                u = doc['presented-url'],
+                domain = config.public_url_domain(),
+                proto = config.public_url_proto();
+
+              if (domain || proto) {
+                var parsed = url.parse(u);
+
+                if (domain) {
+                  parsed.host = domain;
+                }
+
+                if (proto) {
+                  parsed.protocol = proto;
+                }
+
+                u = url.format(parsed);
+              }
+
+              result.url = u;
+
+              callback(null, result);
+            });
+          } else {
+            callback(null, result);
+          }
+        },
+        callback
+      );
+    },
+    function (err, resultSets) {
+      if (err) return callback(err);
+
+      var transformed = {};
+      for (var i = 0; i < resultSetNames.length; i++) {
+        var name = resultSetNames[i];
+
+        transformed[name] = resultSets[i];
+      }
+
+      callback(null, transformed);
+    }
+  );
+}
+
 // Call the layout service to decide which layout to apply to this presented URL.
 function layout(presented_url, content_doc, callback) {
   var
@@ -112,10 +208,7 @@ function layout(presented_url, content_doc, callback) {
 
     var layout = handlebars.compile(body);
 
-    callback(null, {
-      content_doc: content_doc,
-      layout: layout
-    });
+    callback(null, layout);
   });
 }
 
@@ -149,8 +242,8 @@ module.exports = function (req, res) {
   async.waterfall([
     async.apply(mapping, presented),
     content,
-    async.apply(layout, presented)
-  ], function (err, result) {
+    async.apply(postprocess, presented)
+  ], function (err, content_doc) {
     if (err) {
       var code = err.statusCode || 500;
       var message = err.statusMessage || "Error";
@@ -167,13 +260,14 @@ module.exports = function (req, res) {
     }
 
     // Apply final transformations and additions to the content document before rendering.
-    var content_doc = result.content_doc;
 
     content_doc.presented_url = presented;
     content_doc.has_next_or_previous =
       !!(content_doc.envelope.next || content_doc.envelope.previous);
 
-    var html = result.layout(content_doc);
+    logger.debug("Rendering final content document:", content_doc);
+
+    var html = content_doc.layout(content_doc);
 
     res.send(html);
   });
