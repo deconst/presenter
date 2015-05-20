@@ -104,21 +104,25 @@ function content(content_obj, callback) {
 
 // Now that a content document is available, perform post-processing calls in parallel.
 function postprocess(presented_url, content_doc, callback) {
-  async.parallel([
-    async.apply(related, content_doc),
-    async.apply(layout, presented_url, content_doc)
-  ], function (err, output) {
-    if (err) return callback(err);
+  if (content_doc["proxy-to"]) {
+    callback(null, content_doc)
+  } else {
+    async.parallel([
+      async.apply(related, content_doc),
+      async.apply(layout, presented_url, content_doc)
+    ], function (err, output) {
+      if (err) return callback(err);
 
-    var output_doc = {
-      envelope: content_doc.envelope,
-      assets: content_doc.assets,
-      results: output[0],
-      layout: output[1]
-    };
+      var output_doc = {
+        envelope: content_doc.envelope,
+        assets: content_doc.assets,
+        results: output[0],
+        layout: output[1]
+      };
 
-    callback(null, output_doc);
-  });
+      callback(null, output_doc);
+    });
+  }
 }
 
 // If the content document contains any query results, resolve their content IDs to presented URLs.
@@ -196,32 +200,28 @@ function related(content_doc, callback) {
 
 // Call the layout service to decide which layout to apply to this presented URL.
 function layout(presented_url, content_doc, callback) {
-  if (content_obj["proxy-to"]) {
-    callback(null, content_obj)
-  } else {
-    var
-      layout_key = content_doc.envelope.layout_key || "default",
-      encoded_presented = encodeURIComponent(presented_url),
-      layout_url = urljoin(config.layout_service_url(), encoded_presented, layout_key);
+  var
+    layout_key = content_doc.envelope.layout_key || "default",
+    encoded_presented = encodeURIComponent(presented_url),
+    layout_url = urljoin(config.layout_service_url(), encoded_presented, layout_key);
 
-    logger.debug("Layout service request: [" + layout_url + "]");
+  logger.debug("Layout service request: [" + layout_url + "]");
 
-    request(layout_url, function (error, res, body) {
-      if (error) {
-        callback(error);
-        return;
-      }
+  request(layout_url, function (error, res, body) {
+    if (error) {
+      callback(error);
+      return;
+    }
 
-      if (res.statusCode !== 200) {
-        callback(response_error(res, "No layout found for presented URL [" + presented_url + "]"));
-        return;
-      }
+    if (res.statusCode !== 200) {
+      callback(response_error(res, "No layout found for presented URL [" + presented_url + "]"));
+      return;
+    }
 
-      var layout = handlebars.compile(body);
+    var layout = handlebars.compile(body);
 
-      callback(null, layout);
-    });
-  }
+    callback(null, layout);
+  });
 }
 
 // If a 404 or 500 occurs anywhere in the pipeline, return a custom error page.
