@@ -63,17 +63,20 @@ function mapping(presented, callback) {
     }
 
     var doc = JSON.parse(body);
-    content_id = doc["content-id"];
-
-    logger.debug("Mapping service response: success => [" + content_id + "]");
-    callback(null, content_id);
+    logger.debug("Mapping service response: success => [" + doc + "]");
+    callback(null, doc);
   });
 }
 
 // Call the content service to acquire the document containing the metadata envelope and any
 // associated attributes at this content ID.
-function content(content_id, callback) {
-  var content_url = urljoin(config.content_service_url(), 'content', encodeURIComponent(content_id));
+function content(content_obj, callback) {
+  var content_url;
+  if (content_obj["proxy-to"]) {
+    content_url = content_obj["proxy-to"];
+  } else {
+    content_url = urljoin(config.content_service_url(), 'content', encodeURIComponent(content_obj["content-id"]));
+  }
   logger.debug("Content service request: [" + content_url + "]");
 
   request(content_url, function (error, res, body) {
@@ -89,7 +92,12 @@ function content(content_id, callback) {
 
     logger.debug("Content service request: successful.");
 
-    content_doc = JSON.parse(body);
+    var content_doc;
+    if (content_obj["proxy-to"]) {
+      content_doc = {"proxy-to": true, "body": body};
+    } else {
+      content_doc = JSON.parse(body);
+    }
     callback(null, content_doc);
   });
 }
@@ -188,28 +196,32 @@ function related(content_doc, callback) {
 
 // Call the layout service to decide which layout to apply to this presented URL.
 function layout(presented_url, content_doc, callback) {
-  var
-    layout_key = content_doc.envelope.layout_key || "default",
-    encoded_presented = encodeURIComponent(presented_url),
-    layout_url = urljoin(config.layout_service_url(), encoded_presented, layout_key);
+  if (content_obj["proxy-to"]) {
+    callback(null, content_obj)
+  } else {
+    var
+      layout_key = content_doc.envelope.layout_key || "default",
+      encoded_presented = encodeURIComponent(presented_url),
+      layout_url = urljoin(config.layout_service_url(), encoded_presented, layout_key);
 
-  logger.debug("Layout service request: [" + layout_url + "]");
+    logger.debug("Layout service request: [" + layout_url + "]");
 
-  request(layout_url, function (error, res, body) {
-    if (error) {
-      callback(error);
-      return;
-    }
+    request(layout_url, function (error, res, body) {
+      if (error) {
+        callback(error);
+        return;
+      }
 
-    if (res.statusCode !== 200) {
-      callback(response_error(res, "No layout found for presented URL [" + presented_url + "]"));
-      return;
-    }
+      if (res.statusCode !== 200) {
+        callback(response_error(res, "No layout found for presented URL [" + presented_url + "]"));
+        return;
+      }
 
-    var layout = handlebars.compile(body);
+      var layout = handlebars.compile(body);
 
-    callback(null, layout);
-  });
+      callback(null, layout);
+    });
+  }
 }
 
 // If a 404 or 500 occurs anywhere in the pipeline, return a custom error page.
@@ -259,16 +271,19 @@ module.exports = function (req, res) {
       return;
     }
 
-    // Apply final transformations and additions to the content document before rendering.
-
-    content_doc.presented_url = presented;
-    content_doc.has_next_or_previous =
+    if (result["proxy-to"]) {
+      res.pipe(result["body"]);
+    } else {
+      // Apply final transformations and additions to the content document before rendering.
+      content_doc.presented_url = presented;
+      content_doc.has_next_or_previous =
       !!(content_doc.envelope.next || content_doc.envelope.previous);
 
-    logger.debug("Rendering final content document:", content_doc);
+      logger.debug("Rendering final content document:", content_doc);
 
-    var html = content_doc.layout(content_doc);
+      var html = content_doc.layout(content_doc);
 
-    res.send(html);
+      res.send(html);
+    }
   });
 };
