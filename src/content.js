@@ -105,7 +105,7 @@ function content(content_obj, callback) {
 // Now that a content document is available, perform post-processing calls in parallel.
 function postprocess(presented_url, content_doc, callback) {
   if (content_doc["proxy-to"]) {
-    callback(null, content_doc)
+    callback(null, content_doc);
   } else {
     async.parallel([
       async.apply(related, content_doc),
@@ -272,7 +272,7 @@ module.exports = function (req, res) {
     }
 
     if (result["proxy-to"]) {
-      res.pipe(result["body"]);
+      res.pipe(result.body);
     } else {
       // Apply final transformations and additions to the content document before rendering.
       content_doc.presented_url = presented;
