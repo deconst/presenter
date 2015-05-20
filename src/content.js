@@ -271,8 +271,8 @@ module.exports = function (req, res) {
       return;
     }
 
-    if (result["proxy-to"]) {
-      res.pipe(result.body);
+    if (content_doc["proxy-to"]) {
+      res.pipe(content_doc.body);
     } else {
       // Apply final transformations and additions to the content document before rendering.
       content_doc.presented_url = presented;
