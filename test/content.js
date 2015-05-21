@@ -34,7 +34,8 @@ describe("/*", function () {
       .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
       .reply(200, {
         assets: [],
-        envelope: { body: "the page content" }
+        envelope: { body: "the page content" },
+        "content-id": true
       });
 
     var layout = nock("http://layout")
@@ -46,6 +47,21 @@ describe("/*", function () {
       .expect(200)
       .expect("Content-Type", /html/)
       .expect("Rendered the page content with a layout", done);
+  });
+
+  it("handles static content", function (done) {
+    var mapping = nock("http://mapping")
+    .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fstatic")
+    .reply(200, { "proxy-to": "https://deconst.horse/static" });
+
+    var content = nock("https://deconst.horse")
+    .get("/static")
+    .reply(200, "static content");
+
+    request(server.create())
+    .get("/foo/bar/static")
+    .expect(200)
+    .expect("static content", done);
   });
 
   it("collects presented URLs for related content", function (done) {
@@ -68,7 +84,8 @@ describe("/*", function () {
             { contentID: "https://github.com/deconst/fake/one" },
             { contentID: "https://github.com/deconst/fake/two" },
             { contentID: "https://github.com/deconst/fake/three" }
-        ] }
+        ] },
+        "content-id": true
       });
 
     var layout = nock("http://layout")
@@ -116,7 +133,8 @@ describe("/*", function () {
             { contentID: "https://github.com/deconst/fake/one" },
             { contentID: "https://github.com/deconst/fake/two" },
             { contentID: "https://github.com/deconst/fake/three" }
-        ] }
+        ] },
+        "content-id": true
       });
 
     var layout = nock("http://layout")

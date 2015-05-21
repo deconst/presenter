@@ -46,6 +46,11 @@ function response_error(res, message) {
   return err;
 }
 
+function content_error(obj, loc) {
+  var err = new Error("Unknown content ID type [" + JSON.stringify(obj) + "] in " + loc + ".");
+  return err;
+}
+
 // Call the mapping service to identify the content ID that's mapped to the presented URL.
 function mapping(presented, callback) {
   var mapping_url = urljoin(config.mapping_service_url(), 'at', encodeURIComponent(presented));
@@ -63,17 +68,22 @@ function mapping(presented, callback) {
     }
 
     var doc = JSON.parse(body);
-    content_id = doc["content-id"];
-
-    logger.debug("Mapping service response: success => [" + content_id + "]");
-    callback(null, content_id);
+    logger.debug("Mapping service response: success => [" + doc + "]");
+    callback(null, doc);
   });
 }
 
 // Call the content service to acquire the document containing the metadata envelope and any
 // associated attributes at this content ID.
-function content(content_id, callback) {
-  var content_url = urljoin(config.content_service_url(), 'content', encodeURIComponent(content_id));
+function content(content_obj, callback) {
+  var content_url;
+  if (content_obj["proxy-to"]) {
+    content_url = content_obj["proxy-to"];
+  } else if (content_obj["content-id"]) {
+    content_url = urljoin(config.content_service_url(), 'content', encodeURIComponent(content_obj["content-id"]));
+  } else {
+    callback(content_error(content_obj, "content [1]"), {});
+  }
   logger.debug("Content service request: [" + content_url + "]");
 
   request(content_url, function (error, res, body) {
@@ -89,28 +99,42 @@ function content(content_id, callback) {
 
     logger.debug("Content service request: successful.");
 
-    content_doc = JSON.parse(body);
+    var content_doc;
+    if (content_obj["proxy-to"]) {
+      content_doc = {"proxy-to": true, "body": body};
+    } else if (content_obj["content-id"]) {
+      content_doc = JSON.parse(body);
+      content_doc["content-id"] = true;
+    } else {
+      callback(content_error(content_obj, "content [2]"), {});
+    }
     callback(null, content_doc);
   });
 }
 
 // Now that a content document is available, perform post-processing calls in parallel.
 function postprocess(presented_url, content_doc, callback) {
-  async.parallel([
-    async.apply(related, content_doc),
-    async.apply(layout, presented_url, content_doc)
-  ], function (err, output) {
-    if (err) return callback(err);
+  if (content_doc["proxy-to"]) {
+    callback(null, content_doc);
+  } else if (content_doc["content-id"]) {
+    async.parallel([
+      async.apply(related, content_doc),
+      async.apply(layout, presented_url, content_doc)
+    ], function (err, output) {
+      if (err) return callback(err);
 
-    var output_doc = {
-      envelope: content_doc.envelope,
-      assets: content_doc.assets,
-      results: output[0],
-      layout: output[1]
-    };
+      var output_doc = {
+        envelope: content_doc.envelope,
+        assets: content_doc.assets,
+        results: output[0],
+        layout: output[1]
+      };
 
-    callback(null, output_doc);
-  });
+      callback(null, output_doc);
+    });
+  } else {
+    callback(content_error(content_doc, "postprocess"), {});
+  }
 }
 
 // If the content document contains any query results, resolve their content IDs to presented URLs.
@@ -259,16 +283,19 @@ module.exports = function (req, res) {
       return;
     }
 
-    // Apply final transformations and additions to the content document before rendering.
-
-    content_doc.presented_url = presented;
-    content_doc.has_next_or_previous =
+    if (content_doc["proxy-to"]) {
+      res.send(content_doc.body);
+    } else {
+      // Apply final transformations and additions to the content document before rendering.
+      content_doc.presented_url = presented;
+      content_doc.has_next_or_previous =
       !!(content_doc.envelope.next || content_doc.envelope.previous);
 
-    logger.debug("Rendering final content document:", content_doc);
+      logger.debug("Rendering final content document:", content_doc);
 
-    var html = content_doc.layout(content_doc);
+      var html = content_doc.layout(content_doc);
 
-    res.send(html);
+      res.send(html);
+    }
   });
 };
