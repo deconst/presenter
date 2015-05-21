@@ -81,7 +81,7 @@ describe("/*", function () {
       .get("/foo/bar/baz")
       .expect(404)
       .expect("The 404 page", done);
-  })
+  });
 
   it("collects presented URLs for related content", function (done) {
     var mapping = nock("http://mapping")
