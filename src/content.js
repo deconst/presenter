@@ -74,8 +74,11 @@ function content(content_obj, callback) {
   var content_url;
   if (content_obj["proxy-to"]) {
     content_url = content_obj["proxy-to"];
-  } else {
+  } else if (content_obj["content-id"]) {
     content_url = urljoin(config.content_service_url(), 'content', encodeURIComponent(content_obj["content-id"]));
+  } else {
+    var err = new Error("Unknown content ID type [" + content_obj + "] in content.");
+    callback(err, {});
   }
   logger.debug("Content service request: [" + content_url + "]");
 
@@ -95,8 +98,11 @@ function content(content_obj, callback) {
     var content_doc;
     if (content_obj["proxy-to"]) {
       content_doc = {"proxy-to": true, "body": body};
-    } else {
+    } else if (content_obj["content-id"]) {
       content_doc = JSON.parse(body);
+    } else {
+      var err = new Error("Unknown content ID type [" + content_obj + "] in content.");
+      callback(err, {});
     }
     callback(null, content_doc);
   });
@@ -106,7 +112,7 @@ function content(content_obj, callback) {
 function postprocess(presented_url, content_doc, callback) {
   if (content_doc["proxy-to"]) {
     callback(null, content_doc);
-  } else {
+  } else if (content_obj["content-id"]) {
     async.parallel([
       async.apply(related, content_doc),
       async.apply(layout, presented_url, content_doc)
@@ -122,6 +128,9 @@ function postprocess(presented_url, content_doc, callback) {
 
       callback(null, output_doc);
     });
+  } else {
+    var err = new Error("Unknown content ID type [" + content_doc + "] in postprocess.");
+    callback(err, {});
   }
 }
 
