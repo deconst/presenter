@@ -64,6 +64,25 @@ describe("/*", function () {
     .expect("static content", done);
   });
 
+  it("returns a 404 when the content ID cannot be found", function (done) {
+    var mapping = nock("http://mapping")
+      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+      .reply(200, { "content-id": "https://github.com/deconst/fake" });
+
+    var content = nock("http://content")
+      .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
+      .reply(404);
+
+    var layout = nock("http://layout")
+      .get("/error/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz/404")
+      .reply(200, "The 404 page");
+
+    request(server.create())
+      .get("/foo/bar/baz")
+      .expect(404)
+      .expect("The 404 page", done);
+  })
+
   it("collects presented URLs for related content", function (done) {
     var mapping = nock("http://mapping")
       .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
