@@ -76,11 +76,13 @@ function mapping(presented, callback) {
 // Call the content service to acquire the document containing the metadata envelope and any
 // associated attributes at this content ID.
 function content(content_obj, callback) {
-  var content_url;
+  var content_url, content_desc;
   if (content_obj["proxy-to"]) {
     content_url = content_obj["proxy-to"];
+    content_desc = "proxy target [" + content_url + "]";
   } else if (content_obj["content-id"]) {
     content_url = urljoin(config.content_service_url(), 'content', encodeURIComponent(content_obj["content-id"]));
+    content_desc = "content ID [" + content_obj["content-id"] + "]";
   } else {
     callback(content_error(content_obj, "content [1]"), {});
   }
@@ -93,7 +95,7 @@ function content(content_obj, callback) {
     }
 
     if (res.statusCode !== 200) {
-      callback(response_error(res, "No content found for content ID [" + content_id + "]"));
+      callback(response_error(res, "No content found for " + content_desc));
       return;
     }
 
