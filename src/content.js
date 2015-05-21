@@ -46,6 +46,11 @@ function response_error(res, message) {
   return err;
 }
 
+function content_error(obj, loc) {
+  var err = new Error("Unknown content ID type [" + JSON.stringify(obj) + "] in " + loc + ".");
+  return err;
+}
+
 // Call the mapping service to identify the content ID that's mapped to the presented URL.
 function mapping(presented, callback) {
   var mapping_url = urljoin(config.mapping_service_url(), 'at', encodeURIComponent(presented));
@@ -77,8 +82,7 @@ function content(content_obj, callback) {
   } else if (content_obj["content-id"]) {
     content_url = urljoin(config.content_service_url(), 'content', encodeURIComponent(content_obj["content-id"]));
   } else {
-    var err = new Error("Unknown content ID type [" + content_obj + "] in content.");
-    callback(err, {});
+    callback(content_error(content_obj, "content [1]"), {});
   }
   logger.debug("Content service request: [" + content_url + "]");
 
@@ -100,9 +104,9 @@ function content(content_obj, callback) {
       content_doc = {"proxy-to": true, "body": body};
     } else if (content_obj["content-id"]) {
       content_doc = JSON.parse(body);
+      content_doc["content-id"] = true;
     } else {
-      var err = new Error("Unknown content ID type [" + content_obj + "] in content.");
-      callback(err, {});
+      callback(content_error(content_obj, "content [2]"), {});
     }
     callback(null, content_doc);
   });
@@ -112,7 +116,7 @@ function content(content_obj, callback) {
 function postprocess(presented_url, content_doc, callback) {
   if (content_doc["proxy-to"]) {
     callback(null, content_doc);
-  } else if (content_obj["content-id"]) {
+  } else if (content_doc["content-id"]) {
     async.parallel([
       async.apply(related, content_doc),
       async.apply(layout, presented_url, content_doc)
@@ -129,8 +133,7 @@ function postprocess(presented_url, content_doc, callback) {
       callback(null, output_doc);
     });
   } else {
-    var err = new Error("Unknown content ID type [" + content_doc + "] in postprocess.");
-    callback(err, {});
+    callback(content_error(content_doc, "postprocess"), {});
   }
 }
 
@@ -281,7 +284,7 @@ module.exports = function (req, res) {
     }
 
     if (content_doc["proxy-to"]) {
-      res.pipe(content_doc.body);
+      res.send(content_doc.body);
     } else {
       // Apply final transformations and additions to the content document before rendering.
       content_doc.presented_url = presented;
