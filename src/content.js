@@ -8,7 +8,8 @@ var
   handlebars = require('handlebars'),
   _ = require('lodash'),
   config = require('./config'),
-  logger = require('./logging').logger;
+  logger = require('./logging').logger,
+  helpers = require('./helpers');
 
 var page500 = "<!DOCTYPE html>" +
   "<html>" +
@@ -21,6 +22,8 @@ var page500 = "<!DOCTYPE html>" +
     "<p>It looks like you asked for a page that we don't have!</p>" +
   "</body>" +
   "</html>";
+
+helpers.register();
 
 // Derive the presented URL for a specific request, honoring the presented_url_domain and
 // presented_url_proto settings if provided.
