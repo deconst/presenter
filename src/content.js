@@ -88,7 +88,7 @@ function content(target, callback) {
         logger.warn("Status code [" + res.statusCode +
           "] received from upstream service [" + proxy_url + "].");
       }
-    })
+    });
 
     var content_doc = {
       "proxy-to": true,
