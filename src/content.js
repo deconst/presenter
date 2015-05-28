@@ -11,6 +11,7 @@ var
   logger = require('./logging').logger,
   helpers = require('./helpers');
 
+// The page to render if an error page layout isn't defined.
 var page500 = "<!DOCTYPE html>" +
   "<html>" +
   "<head>" +
@@ -22,6 +23,9 @@ var page500 = "<!DOCTYPE html>" +
     "<p>It looks like you asked for a page that we don't have!</p>" +
   "</body>" +
   "</html>";
+
+// The layout to use if no layout_key is requested by the metadata envelope.
+var nullLayout = handlebars.compile("{{{ envelope.body }}}");
 
 helpers.register();
 
@@ -229,8 +233,15 @@ function related(content_doc, callback) {
 
 // Call the layout service to decide which layout to apply to this presented URL.
 function layout(presented_url, content_doc, callback) {
+  var layout_key = content_doc.envelope.layout_key;
+
+  if (!layout_key) {
+    logger.debug("No layout key requested. Using null layout.");
+
+    return callback(null, nullLayout);
+  }
+
   var
-    layout_key = content_doc.envelope.layout_key || "default",
     encoded_presented = encodeURIComponent(presented_url),
     layout_url = urljoin(config.layout_service_url(), encoded_presented, layout_key);
 

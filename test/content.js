@@ -36,8 +36,7 @@ describe("/*", function () {
         .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
         .reply(200, {
           assets: [],
-          envelope: { body: "the page content" },
-          "content-id": true
+          envelope: { layout_key: "default", body: "the page content" }
         });
 
       var layout = nock("http://layout")
@@ -49,6 +48,45 @@ describe("/*", function () {
         .expect(200)
         .expect("Content-Type", /html/)
         .expect("Rendered the page content with a layout", done);
+    });
+
+    it("supports a null layout_key", function (done) {
+      var mapping = nock("http://mapping")
+        .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+        .reply(200, { "content-id": "https://github.com/deconst/fake" });
+
+      var content = nock("http://content")
+        .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
+        .reply(200, {
+          assets: [],
+          envelope: { layout_key: null, body: "only this" }
+        });
+
+      request(server.create())
+        .get("/foo/bar/baz")
+        .expect(200)
+        .expect("Content-Type", /html/)
+        .expect("only this", done);
+    });
+
+    it("supports a missing layout_key", function (done) {
+      var mapping = nock("http://mapping")
+        .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+        .reply(200, { "content-id": "https://github.com/deconst/fake" });
+
+      var content = nock("http://content")
+        .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
+        .reply(200, {
+          assets: [],
+          envelope: { body: "only this" },
+          "content-id": true
+        });
+
+      request(server.create())
+        .get("/foo/bar/baz")
+        .expect(200)
+        .expect("Content-Type", /html/)
+        .expect("only this", done);
     });
 
     it("returns a 404 when the content ID cannot be found", function (done) {
@@ -80,10 +118,10 @@ describe("/*", function () {
         .reply(200, {
           assets: [],
           envelope: {
+            layout_key: "default",
             body: "success",
             publish_date: "Fri, 15 May 2015 18:32:45 GMT"
           },
-          "content-id": true
         });
 
       var layout = nock("http://layout")
@@ -170,7 +208,10 @@ describe("/*", function () {
         .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
         .reply(200, {
           assets: [],
-          envelope: { body: "the page content" },
+          envelope: {
+            layout_key: "default",
+            body: "the page content"
+          },
           results: { sample: [
               { contentID: "https://github.com/deconst/fake/one" },
               { contentID: "https://github.com/deconst/fake/two" },
@@ -219,7 +260,10 @@ describe("/*", function () {
         .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
         .reply(200, {
           assets: [],
-          envelope: { body: "the page content" },
+          envelope: {
+            layout_key: "default",
+            body: "the page content"
+          },
           results: { sample: [
               { contentID: "https://github.com/deconst/fake/one" },
               { contentID: "https://github.com/deconst/fake/two" },
