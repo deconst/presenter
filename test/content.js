@@ -89,7 +89,7 @@ describe("/*", function () {
         .expect("only this", done);
     });
 
-    it.only("respects a content-type from the envelope", function (done) {
+    it("respects a content-type from the envelope", function (done) {
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
         .reply(200, { "content-id": "https://github.com/deconst/fake" });
