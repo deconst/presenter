@@ -89,6 +89,28 @@ describe("/*", function () {
         .expect("only this", done);
     });
 
+    it("respects a content-type from the envelope", function (done) {
+      var mapping = nock("http://mapping")
+        .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+        .reply(200, { "content-id": "https://github.com/deconst/fake" });
+
+      var content = nock("http://content")
+        .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
+        .reply(200, {
+          assets: [],
+          envelope: {
+            body: "yup",
+            content_type: "text/plain"
+          }
+        });
+
+      request(server.create())
+        .get("/foo/bar/baz")
+        .expect(200)
+        .expect("Content-Type", /text\/plain/)
+        .expect("yup", done);
+    });
+
     it("returns a 404 when the content ID cannot be found", function (done) {
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
