@@ -107,7 +107,7 @@ describe("/*", function () {
       request(server.create())
         .get("/foo/bar/baz")
         .expect(200)
-        .expect("Content-Type", "text/plain")
+        .expect("Content-Type", /text\/plain/)
         .expect("yup", done);
     });
 
