@@ -46,9 +46,8 @@ function response_error(res, message) {
   return err;
 }
 
-function content_error(obj, loc) {
-  var err = new Error("Unknown content ID type [" + JSON.stringify(obj) + "] in " + loc + ".");
-  return err;
+function content_error(target, caller) {
+  return new Error("Unknown content ID type [" + JSON.stringify(target) + "] in " + caller + ".");
 }
 
 // Call the mapping service to identify the content ID that's mapped to the presented URL.
@@ -68,50 +67,63 @@ function mapping(presented, callback) {
     }
 
     var doc = JSON.parse(body);
-    logger.debug("Mapping service response: success => [" + doc + "]");
+    logger.debug("Mapping service response: success", doc);
     callback(null, doc);
   });
 }
 
 // Call the content service to acquire the document containing the metadata envelope and any
 // associated attributes at this content ID.
-function content(content_obj, callback) {
-  var content_url, content_desc;
-  if (content_obj["proxy-to"]) {
-    content_url = content_obj["proxy-to"];
-    content_desc = "proxy target [" + content_url + "]";
-  } else if (content_obj["content-id"]) {
-    content_url = urljoin(config.content_service_url(), 'content', encodeURIComponent(content_obj["content-id"]));
-    content_desc = "content ID [" + content_obj["content-id"] + "]";
-  } else {
-    callback(content_error(content_obj, "content [1]"), {});
-  }
-  logger.debug("Content service request: [" + content_url + "]");
+function content(target, callback) {
+  if (target["proxy-to"]) {
+    var proxy_url = target["proxy-to"];
 
-  request(content_url, function (error, res, body) {
-    if (error) {
-      callback(error);
-      return;
-    }
+    logger.debug("Proxy request: [" + proxy_url + "].");
 
-    if (res.statusCode !== 200) {
-      callback(response_error(res, "No content found for " + content_desc));
-      return;
-    }
+    var proxy_res = request(proxy_url);
 
-    logger.debug("Content service request: successful.");
+    proxy_res.on("response", function (res) {
+      if (res.statusCode < 200 || res.statusCode >= 400) {
+        // Log the error request, but still pass it through.
+        logger.warn("Status code [" + res.statusCode +
+          "] received from upstream service [" + proxy_url + "].");
+      }
+    })
 
-    var content_doc;
-    if (content_obj["proxy-to"]) {
-      content_doc = {"proxy-to": true, "body": body};
-    } else if (content_obj["content-id"]) {
-      content_doc = JSON.parse(body);
-      content_doc["content-id"] = true;
-    } else {
-      callback(content_error(content_obj, "content [2]"), {});
-    }
+    var content_doc = {
+      "proxy-to": true,
+      response: proxy_res
+    };
     callback(null, content_doc);
-  });
+  } else if (target["content-id"]) {
+    var content_url = urljoin(
+      config.content_service_url(), 'content', encodeURIComponent(target["content-id"]));
+
+    logger.debug("Content service request: [" + content_url + "].");
+
+    request(content_url, function (err, res, body) {
+      if (err) return callback(err);
+
+      if (res.statusCode === 404) {
+        callback(response_error(res, "No content found for content at ID [" + target["content-id"] + "]"));
+        return;
+      }
+
+      if (res.statusCode !== 200) {
+        callback(response_error(res, "Error querying content service."));
+        return;
+      }
+
+      logger.debug("Content service request: successful.");
+
+      var content_doc = JSON.parse(body);
+      content_doc["content-id"] = true;
+
+      callback(null, content_doc);
+    });
+  } else {
+    callback(content_error(target, "content"));
+  }
 }
 
 // Now that a content document is available, perform post-processing calls in parallel.
@@ -286,7 +298,7 @@ module.exports = function (req, res) {
     }
 
     if (content_doc["proxy-to"]) {
-      res.send(content_doc.body);
+      content_doc.response.pipe(res);
     } else {
       // Apply final transformations and additions to the content document before rendering.
       content_doc.presented_url = presented;
