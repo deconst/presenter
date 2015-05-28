@@ -51,6 +51,45 @@ describe("/*", function () {
         .expect("Rendered the page content with a layout", done);
     });
 
+    it("supports a null layout_key", function (done) {
+      var mapping = nock("http://mapping")
+        .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+        .reply(200, { "content-id": "https://github.com/deconst/fake" });
+
+      var content = nock("http://content")
+        .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
+        .reply(200, {
+          assets: [],
+          envelope: { layout_key: null, body: "only this" }
+        });
+
+      request(server.create())
+        .get("/foo/bar/baz")
+        .expect(200)
+        .expect("Content-Type", /html/)
+        .expect("only this", done);
+    });
+
+    it("supports a missing layout_key", function (done) {
+      var mapping = nock("http://mapping")
+        .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+        .reply(200, { "content-id": "https://github.com/deconst/fake" });
+
+      var content = nock("http://content")
+        .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
+        .reply(200, {
+          assets: [],
+          envelope: { body: "only this" },
+          "content-id": true
+        });
+
+      request(server.create())
+        .get("/foo/bar/baz")
+        .expect(200)
+        .expect("Content-Type", /html/)
+        .expect("only this", done);
+    });
+
     it("returns a 404 when the content ID cannot be found", function (done) {
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
