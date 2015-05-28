@@ -317,9 +317,13 @@ module.exports = function (req, res) {
       // Apply final transformations and additions to the content document before rendering.
       content_doc.presented_url = presented;
       content_doc.has_next_or_previous =
-      !!(content_doc.envelope.next || content_doc.envelope.previous);
+        !!(content_doc.envelope.next || content_doc.envelope.previous);
 
       logger.debug("Rendering final content document:", content_doc);
+
+      if (content_doc.envelope.content_type) {
+        res.set("Content-Type", content_doc.envelope.content_type);
+      }
 
       var html = content_doc.layout(content_doc);
 
