@@ -36,8 +36,7 @@ describe("/*", function () {
         .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
         .reply(200, {
           assets: [],
-          envelope: { body: "the page content" },
-          "content-id": true
+          envelope: { layout_key: "default", body: "the page content" }
         });
 
       var layout = nock("http://layout")
@@ -119,10 +118,10 @@ describe("/*", function () {
         .reply(200, {
           assets: [],
           envelope: {
+            layout_key: "default",
             body: "success",
             publish_date: "Fri, 15 May 2015 18:32:45 GMT"
           },
-          "content-id": true
         });
 
       var layout = nock("http://layout")
@@ -209,7 +208,10 @@ describe("/*", function () {
         .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
         .reply(200, {
           assets: [],
-          envelope: { body: "the page content" },
+          envelope: {
+            layout_key: "default",
+            body: "the page content"
+          },
           results: { sample: [
               { contentID: "https://github.com/deconst/fake/one" },
               { contentID: "https://github.com/deconst/fake/two" },
@@ -258,7 +260,10 @@ describe("/*", function () {
         .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
         .reply(200, {
           assets: [],
-          envelope: { body: "the page content" },
+          envelope: {
+            layout_key: "default",
+            body: "the page content"
+          },
           results: { sample: [
               { contentID: "https://github.com/deconst/fake/one" },
               { contentID: "https://github.com/deconst/fake/two" },
