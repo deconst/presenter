@@ -70,6 +70,33 @@ describe("/*", function () {
         .expect("The 404 page", done);
     });
 
+    it("allows templates to use handlebars helpers", function (done) {
+      var mapping = nock("http://mapping")
+        .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+        .reply(200, { "content-id": "https://github.com/deconst/fake" });
+
+      var content = nock("http://content")
+        .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
+        .reply(200, {
+          assets: [],
+          envelope: {
+            body: "success",
+            publish_date: "Fri, 15 May 2015 18:32:45 GMT"
+          },
+          "content-id": true
+        });
+
+      var layout = nock("http://layout")
+        .get("/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz/default")
+        .reply(200, "Body [{{{ envelope.body }}}] Date [{{formatDate envelope.publish_date 'YYYY-MM-DD' }}]");
+
+      request(server.create())
+        .get("/foo/bar/baz")
+        .expect(200)
+        .expect("Content-Type", /html/)
+        .expect("Body [success] Date [2015-05-15]", done);
+    });
+
   });
 
   describe("proxied services", function () {
