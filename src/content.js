@@ -1,6 +1,8 @@
 // Handler to assemble a specific piece of static content.
 
 var
+  fs = require('fs'),
+  path = require('path'),
   request = require('request'),
   url = require('url'),
   urljoin = require('url-join'),
@@ -11,18 +13,11 @@ var
   logger = require('./logging').logger,
   helpers = require('./helpers');
 
-// The page to render if an error page layout isn't defined.
-var page500 = "<!DOCTYPE html>" +
-  "<html>" +
-  "<head>" +
-    "<meta charset=\"utf-8\">" +
-    "<title>Rendered by Deconst</title>" +
-  "</head>" +
-  "<body>" +
-    "<h1>Whoops</h1>" +
-    "<p>It looks like you asked for a page that we don't have!</p>" +
-  "</body>" +
-  "</html>";
+// The pages to render if an error page layout isn't defined for a specific status code.
+var
+  staticRoot = path.join(__dirname, '..', 'static'),
+  page404 = fs.readFileSync(path.join(staticRoot, "404.html")).toString('utf-8'),
+  page500 = fs.readFileSync(path.join(staticRoot, "500.html")).toString('utf-8');
 
 // The layout to use if no layout_key is requested by the metadata envelope.
 var nullLayout = handlebars.compile("{{{ envelope.body }}}");
@@ -277,12 +272,24 @@ function error_layout(presented_url, status_code, callback) {
       return;
     }
 
+    if (res.statusCode === 404) {
+      logger.warn("No error layout found for status code [" + status_code + "].");
+
+      if (status_code === 404) {
+        callback(null, page404);
+      } else {
+        callback(null, page500);
+      }
+
+      return;
+    }
+
     if (res.statusCode !== 200) {
       callback(response_error(res, "No error layout page for url [" + layout_url + "]"));
       return;
     }
 
-    callback(null, handlebars.compile(body)());
+    callback(null, body);
   });
 }
 

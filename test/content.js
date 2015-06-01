@@ -130,6 +130,42 @@ describe("/*", function () {
         .expect("The 404 page", done);
     });
 
+    it("returns a 404 even when no 404 layout is found", function (done) {
+      var mapping = nock("http://mapping")
+        .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+        .reply(200, { "content-id": "https://github.com/deconst/fake" });
+
+      var content = nock("http://content")
+        .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
+        .reply(404);
+
+      var layout = nock("http://layout")
+        .get("/error/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz/404")
+        .reply(404);
+
+      request(server.create())
+        .get("/foo/bar/baz")
+        .expect(404, done);
+    });
+
+    it("passes other failing status codes through", function (done) {
+      var mapping = nock("http://mapping")
+        .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+        .reply(200, { "content-id": "https://github.com/deconst/fake" });
+
+      var content = nock("http://content")
+        .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
+        .reply(409);
+
+      var layout = nock("http://layout")
+        .get("/error/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz/409")
+        .reply(404);
+
+      request(server.create())
+        .get("/foo/bar/baz")
+        .expect(409, done);
+    });
+
     it("allows templates to use handlebars helpers", function (done) {
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
