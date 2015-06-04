@@ -30,7 +30,7 @@ describe("/*", function () {
     it("assembles a page", function (done) {
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
-        .reply(200, { "content-id": "https://github.com/deconst/fake" });
+        .reply(200, { contentID: "https://github.com/deconst/fake" });
 
       var content = nock("http://content")
         .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
@@ -53,7 +53,7 @@ describe("/*", function () {
     it("supports a null layout_key", function (done) {
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
-        .reply(200, { "content-id": "https://github.com/deconst/fake" });
+        .reply(200, { contentID: "https://github.com/deconst/fake" });
 
       var content = nock("http://content")
         .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
@@ -72,14 +72,14 @@ describe("/*", function () {
     it("supports a missing layout_key", function (done) {
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
-        .reply(200, { "content-id": "https://github.com/deconst/fake" });
+        .reply(200, { contentID: "https://github.com/deconst/fake" });
 
       var content = nock("http://content")
         .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
         .reply(200, {
           assets: [],
           envelope: { body: "only this" },
-          "content-id": true
+          contentID: true
         });
 
       request(server.create())
@@ -92,7 +92,7 @@ describe("/*", function () {
     it("respects a content-type from the envelope", function (done) {
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
-        .reply(200, { "content-id": "https://github.com/deconst/fake" });
+        .reply(200, { contentID: "https://github.com/deconst/fake" });
 
       var content = nock("http://content")
         .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
@@ -114,7 +114,7 @@ describe("/*", function () {
     it("returns a 404 when the content ID cannot be found", function (done) {
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
-        .reply(200, { "content-id": "https://github.com/deconst/fake" });
+        .reply(200, { contentID: "https://github.com/deconst/fake" });
 
       var content = nock("http://content")
         .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
@@ -133,7 +133,7 @@ describe("/*", function () {
     it("returns a 404 even when no 404 layout is found", function (done) {
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
-        .reply(200, { "content-id": "https://github.com/deconst/fake" });
+        .reply(200, { contentID: "https://github.com/deconst/fake" });
 
       var content = nock("http://content")
         .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
@@ -151,7 +151,7 @@ describe("/*", function () {
     it("passes other failing status codes through", function (done) {
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
-        .reply(200, { "content-id": "https://github.com/deconst/fake" });
+        .reply(200, { contentID: "https://github.com/deconst/fake" });
 
       var content = nock("http://content")
         .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
@@ -169,7 +169,7 @@ describe("/*", function () {
     it("allows templates to use handlebars helpers", function (done) {
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
-        .reply(200, { "content-id": "https://github.com/deconst/fake" });
+        .reply(200, { contentID: "https://github.com/deconst/fake" });
 
       var content = nock("http://content")
         .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
@@ -200,7 +200,7 @@ describe("/*", function () {
     it("handles proxied content", function (done) {
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fstatic")
-        .reply(200, { "proxy-to": "https://deconst.horse/static" });
+        .reply(200, { proxyTo: "https://deconst.horse/static" });
 
       var content = nock("https://deconst.horse")
         .get("/static")
@@ -215,7 +215,7 @@ describe("/*", function () {
     it("preserves headers from the upstream service", function (done) {
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fstatic")
-        .reply(200, { "proxy-to": "https://upstream.horse/service" });
+        .reply(200, { proxyTo: "https://upstream.horse/service" });
 
       var content = nock("https://upstream.horse")
         .get("/service")
@@ -235,7 +235,7 @@ describe("/*", function () {
     it("preserves response status from the upstream service", function (done) {
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fstatic")
-        .reply(200, { "proxy-to": "https://upstream.horse/service" });
+        .reply(200, { proxyTo: "https://upstream.horse/service" });
 
       var content = nock("https://upstream.horse")
         .get("/service")
@@ -254,13 +254,13 @@ describe("/*", function () {
     it("collects presented URLs for related content", function (done) {
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
-        .reply(200, { "content-id": "https://github.com/deconst/fake" })
+        .reply(200, { contentID: "https://github.com/deconst/fake" })
         .get("/url/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Fone")
-        .reply(200, { "presented-url": "https://deconst.horse/one" })
+        .reply(200, { presentedURL: "https://deconst.horse/one" })
         .get("/url/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Ftwo")
-        .reply(200, { "presented-url": "https://deconst.horse/two" })
+        .reply(200, { presentedURL: "https://deconst.horse/two" })
         .get("/url/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Fthree")
-        .reply(200, { "presented-url": "https://deconst.horse/three" });
+        .reply(200, { presentedURL: "https://deconst.horse/three" });
 
       var content = nock("http://content")
         .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
@@ -275,7 +275,7 @@ describe("/*", function () {
               { contentID: "https://github.com/deconst/fake/two" },
               { contentID: "https://github.com/deconst/fake/three" }
           ] },
-          "content-id": true
+          contentID: true
         });
 
       var layout = nock("http://layout")
@@ -306,13 +306,13 @@ describe("/*", function () {
 
       var mapping = nock("http://mapping")
         .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
-        .reply(200, { "content-id": "https://github.com/deconst/fake" })
+        .reply(200, { contentID: "https://github.com/deconst/fake" })
         .get("/url/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Fone")
-        .reply(200, { "presented-url": "https://other.wtf/one" })
+        .reply(200, { presentedURL: "https://other.wtf/one" })
         .get("/url/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Ftwo")
-        .reply(200, { "presented-url": "https://other.wtf/two" })
+        .reply(200, { presentedURL: "https://other.wtf/two" })
         .get("/url/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Fthree")
-        .reply(200, { "presented-url": "https://other.wtf/three" });
+        .reply(200, { presentedURL: "https://other.wtf/three" });
 
       var content = nock("http://content")
         .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
@@ -327,7 +327,7 @@ describe("/*", function () {
               { contentID: "https://github.com/deconst/fake/two" },
               { contentID: "https://github.com/deconst/fake/three" }
           ] },
-          "content-id": true
+          contentID: true
         });
 
       var layout = nock("http://layout")

@@ -77,8 +77,8 @@ function mapping(presented, callback) {
 // Call the content service to acquire the document containing the metadata envelope and any
 // associated attributes at this content ID.
 function content(target, callback) {
-  if (target["proxy-to"]) {
-    var proxy_url = target["proxy-to"];
+  if (target.proxyTo) {
+    var proxy_url = target.proxyTo;
 
     logger.debug("Proxy request: [" + proxy_url + "].");
 
@@ -92,14 +92,11 @@ function content(target, callback) {
       }
     });
 
-    var content_doc = {
-      "proxy-to": true,
-      response: proxy_res
-    };
+    var content_doc = { proxyTo: true, response: proxy_res };
     callback(null, content_doc);
-  } else if (target["content-id"]) {
+  } else if (target.contentID) {
     var content_url = urljoin(
-      config.content_service_url(), 'content', encodeURIComponent(target["content-id"]));
+      config.content_service_url(), 'content', encodeURIComponent(target.contentID));
 
     logger.debug("Content service request: [" + content_url + "].");
 
@@ -107,7 +104,7 @@ function content(target, callback) {
       if (err) return callback(err);
 
       if (res.statusCode === 404) {
-        callback(response_error(res, "No content found for content at ID [" + target["content-id"] + "]"));
+        callback(response_error(res, "No content found for content at ID [" + target.contentID + "]"));
         return;
       }
 
@@ -119,7 +116,7 @@ function content(target, callback) {
       logger.debug("Content service request: successful.");
 
       var content_doc = JSON.parse(body);
-      content_doc["content-id"] = true;
+      content_doc.contentID = true;
 
       callback(null, content_doc);
     });
@@ -130,9 +127,9 @@ function content(target, callback) {
 
 // Now that a content document is available, perform post-processing calls in parallel.
 function postprocess(presented_url, content_doc, callback) {
-  if (content_doc["proxy-to"]) {
+  if (content_doc.proxyTo) {
     callback(null, content_doc);
-  } else if (content_doc["content-id"]) {
+  } else if (content_doc.contentID) {
     async.parallel([
       async.apply(related, content_doc),
       async.apply(layout, presented_url, content_doc)
@@ -182,7 +179,7 @@ function related(content_doc, callback) {
 
               var
                 doc = JSON.parse(body),
-                u = doc['presented-url'],
+                u = doc.presentedURL,
                 domain = config.public_url_domain(),
                 proto = config.public_url_proto();
 
@@ -318,7 +315,7 @@ module.exports = function (req, res) {
       return;
     }
 
-    if (content_doc["proxy-to"]) {
+    if (content_doc.proxyTo) {
       content_doc.response.pipe(res);
     } else {
       // Apply final transformations and additions to the content document before rendering.
