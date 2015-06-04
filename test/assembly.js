@@ -183,4 +183,60 @@ describe("page assembly", function () {
       .expect("Body [success] Date [2015-05-15]", done);
   });
 
+  it("prepends the mount point prefix to absolute next and previous urls", function (done) {
+    var mapping = nock("http://mapping")
+      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+      .reply(200, { prefix: "/foo/", contentID: "https://github.com/deconst/fake" });
+
+    var content = nock("http://content")
+      .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
+      .reply(200, {
+        assets: [],
+        envelope: {
+          layout_key: "default",
+          body: "the page content",
+          next: { title: "the next one", url: "/next" },
+          previous: { title: "the last one", url: "/previous" }
+        }
+      });
+
+    var layout = nock("http://layout")
+      .get("/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz/default")
+      .reply(200, "Next [{{ envelope.next.url }}] Previous [{{ envelope.previous.url }}]");
+
+    request(server.create())
+      .get("/foo/bar/baz")
+      .expect(200)
+      .expect("Content-Type", /html/)
+      .expect("Next [/foo/next] Previous [/foo/previous]", done);
+  });
+
+  it("leaves relative next and previous urls alone", function (done) {
+    var mapping = nock("http://mapping")
+      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+      .reply(200, { prefix: "/foo/", contentID: "https://github.com/deconst/fake" });
+
+    var content = nock("http://content")
+      .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
+      .reply(200, {
+        assets: [],
+        envelope: {
+          layout_key: "default",
+          body: "the page content",
+          next: { title: "the next one", url: "../next/" },
+          previous: { title: "the last one", url: "../previous/" }
+        }
+      });
+
+    var layout = nock("http://layout")
+      .get("/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz/default")
+      .reply(200, "Next [{{ envelope.next.url }}] Previous [{{ envelope.previous.url }}]");
+
+    request(server.create())
+      .get("/foo/bar/baz")
+      .expect(200)
+      .expect("Content-Type", /html/)
+      .expect("Next [../next/] Previous [../previous/]", done);
+  });
+
 });
