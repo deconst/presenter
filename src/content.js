@@ -68,9 +68,9 @@ function mapping(presented, callback) {
       return;
     }
 
-    var doc = JSON.parse(body);
-    logger.debug("Mapping service response: success", doc);
-    callback(null, doc);
+    var target = JSON.parse(body);
+    logger.debug("Mapping service response: success", target);
+    callback(null, target);
   });
 }
 
@@ -117,6 +117,7 @@ function content(target, callback) {
 
       var content_doc = JSON.parse(body);
       content_doc.contentID = true;
+      content_doc.prefix = target.prefix;
 
       callback(null, content_doc);
     });
@@ -139,8 +140,9 @@ function postprocess(presented_url, content_doc, callback) {
       var output_doc = {
         envelope: content_doc.envelope,
         assets: content_doc.assets,
+        prefix: content_doc.prefix,
         results: output[0],
-        layout: output[1]
+        layout: output[1],
       };
 
       callback(null, output_doc);
@@ -322,6 +324,17 @@ module.exports = function (req, res) {
       content_doc.presented_url = presented;
       content_doc.has_next_or_previous =
         !!(content_doc.envelope.next || content_doc.envelope.previous);
+
+      // Normalize "next" and "previous" URLs that are absolute to the document root.
+      var
+        n = content_doc.envelope.next,
+        p = content_doc.envelope.previous;
+      if (n && n.url[0] === '/') {
+        n.url = urljoin(content_doc.prefix, n.url);
+      }
+      if (p && p.url[0] === '/') {
+        p.url = urljoin(content_doc.prefix, p.url);
+      }
 
       logger.debug("Rendering final content document:", content_doc);
 
