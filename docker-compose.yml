@@ -44,3 +44,6 @@ presenter:
     PRESENTER_LOG_LEVEL: DEBUG
   ports:
   - "80:8080"
+  volumes:
+  - ".:/usr/src/app"
+  command: script/dev
