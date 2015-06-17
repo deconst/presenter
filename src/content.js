@@ -151,6 +151,14 @@ function globals(presentedUrl, contentDoc, callback) {
             return callback(null, {});
         }
 
+        // much shame
+        var relativeUrls = /href=("|')(..\/)?([^\/].*?)("|')/g;
+        output.envelope.body =
+            output.envelope.body.replace(
+                relativeUrls,
+                'href=$1' + contentDoc.prefix + '$3$4'
+            );
+
         return callback(null, {
             toc: output.envelope.body
         });
