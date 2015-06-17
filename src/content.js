@@ -126,6 +126,37 @@ function content(target, callback) {
   }
 }
 
+function globals(presentedUrl, contentDoc, callback) {
+    // Fetch globals. Right now the only global is a per-prefix ToC, so this
+    // function is super-simple.
+    if(typeof contentDoc.prefix === 'undefined') {
+        return callback(null, {});
+    }
+
+    var tocUrl = presentedUrl.substring(
+        0,
+        presentedUrl.indexOf(
+            contentDoc.prefix,
+            presentedUrl.indexOf('://') + 3
+        ) + contentDoc.prefix.length
+    ) + '_toc';
+
+    async.waterfall([
+        async.apply(mapping, tocUrl),
+        content
+    ], function (err, output) {
+        if(err) {
+            // this is technically optional, so return a null-ish object if the
+            // ToC wasn't found
+            return callback(null, {});
+        }
+
+        return callback(null, {
+            toc: output.envelope.body
+        });
+    });
+}
+
 // Now that a content document is available, perform post-processing calls in parallel.
 function postprocess(presented_url, content_doc, callback) {
   if (content_doc.proxyTo) {
@@ -133,7 +164,8 @@ function postprocess(presented_url, content_doc, callback) {
   } else if (content_doc.contentID) {
     async.parallel([
       async.apply(related, content_doc),
-      async.apply(layout, presented_url, content_doc)
+      async.apply(layout, presented_url, content_doc),
+      async.apply(globals, presented_url, content_doc)
     ], function (err, output) {
       if (err) return callback(err);
 
@@ -143,6 +175,7 @@ function postprocess(presented_url, content_doc, callback) {
         prefix: content_doc.prefix,
         results: output[0],
         layout: output[1],
+        globals: output[2]
       };
 
       callback(null, output_doc);
