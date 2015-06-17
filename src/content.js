@@ -129,6 +129,10 @@ function content(target, callback) {
 function globals(presentedUrl, contentDoc, callback) {
     // Fetch globals. Right now the only global is a per-prefix ToC, so this
     // function is super-simple.
+    if(typeof contentDoc.prefix === 'undefined') {
+        return callback(null, {});
+    }
+
     var tocUrl = presentedUrl.substring(
         0,
         presentedUrl.indexOf(
