@@ -333,6 +333,18 @@ function error_layout(presented_url, status_code, callback) {
   });
 }
 
+var forceTrailingSlash = function (req, res) {
+    var trailingSlash = /\/$/;
+    var fileExtension = /.+?\..+?$/;
+    var parsedUrl = url.parse(req.url, true);
+
+    if(trailingSlash.test(parsedUrl.pathname) || fileExtension.test(parsedUrl.pathname)) {
+        return true;
+    }
+
+    res.redirect(301, parsedUrl.pathname + '/' + parsedUrl.search);
+};
+
 module.exports = function (req, res) {
   var presented = presented_url(req);
 
@@ -361,6 +373,9 @@ module.exports = function (req, res) {
     if (content_doc.proxyTo) {
       content_doc.response.pipe(res);
     } else {
+        if(!forceTrailingSlash(req, res)) {
+            return;
+        }
       // Apply final transformations and additions to the content document before rendering.
       content_doc.presented_url = presented;
       content_doc.has_next_or_previous =

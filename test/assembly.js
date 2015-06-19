@@ -17,7 +17,7 @@ describe("page assembly", function () {
     before.configure();
   });
 
-  it("assembles a page", function (done) {
+  it("forces a trailing slash", function (done) {
     var mapping = nock("http://mapping")
       .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
       .reply(200, { contentID: "https://github.com/deconst/fake" });
@@ -34,6 +34,27 @@ describe("page assembly", function () {
       .reply(200, "Rendered {{{ envelope.body }}} with a layout");
 
     request(server.create())
+      .get("/foo/bar/baz")
+      .expect(301, done);
+  });
+
+  it("assembles a page", function (done) {
+    var mapping = nock("http://mapping")
+      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F")
+      .reply(200, { contentID: "https://github.com/deconst/fake" });
+
+    var content = nock("http://content")
+      .get("/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake")
+      .reply(200, {
+        assets: [],
+        envelope: { layout_key: "default", body: "the page content" }
+      });
+
+    var layout = nock("http://layout")
+      .get("/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F/default")
+      .reply(200, "Rendered {{{ envelope.body }}} with a layout");
+
+    request(server.create())
       .get("/foo/bar/baz/")
       .expect(200)
       .expect("Content-Type", /html/)
@@ -42,7 +63,7 @@ describe("page assembly", function () {
 
   it("supports a null layout_key", function (done) {
     var mapping = nock("http://mapping")
-      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F")
       .reply(200, { contentID: "https://github.com/deconst/fake" });
 
     var content = nock("http://content")
@@ -61,7 +82,7 @@ describe("page assembly", function () {
 
   it("supports a missing layout_key", function (done) {
     var mapping = nock("http://mapping")
-      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F")
       .reply(200, { contentID: "https://github.com/deconst/fake" });
 
     var content = nock("http://content")
@@ -81,7 +102,7 @@ describe("page assembly", function () {
 
   it("respects a content-type from the envelope", function (done) {
     var mapping = nock("http://mapping")
-      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F")
       .reply(200, { contentID: "https://github.com/deconst/fake" });
 
     var content = nock("http://content")
@@ -103,7 +124,7 @@ describe("page assembly", function () {
 
   it("returns a 404 when the content ID cannot be found", function (done) {
     var mapping = nock("http://mapping")
-      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F")
       .reply(200, { contentID: "https://github.com/deconst/fake" });
 
     var content = nock("http://content")
@@ -111,7 +132,7 @@ describe("page assembly", function () {
       .reply(404);
 
     var layout = nock("http://layout")
-      .get("/error/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz/404")
+      .get("/error/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F/404")
       .reply(200, "The 404 page");
 
     request(server.create())
@@ -122,7 +143,7 @@ describe("page assembly", function () {
 
   it("returns a 404 even when no 404 layout is found", function (done) {
     var mapping = nock("http://mapping")
-      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F")
       .reply(200, { contentID: "https://github.com/deconst/fake" });
 
     var content = nock("http://content")
@@ -130,7 +151,7 @@ describe("page assembly", function () {
       .reply(404);
 
     var layout = nock("http://layout")
-      .get("/error/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz/404")
+      .get("/error/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F/404")
       .reply(404);
 
     request(server.create())
@@ -140,7 +161,7 @@ describe("page assembly", function () {
 
   it("passes other failing status codes through", function (done) {
     var mapping = nock("http://mapping")
-      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F")
       .reply(200, { contentID: "https://github.com/deconst/fake" });
 
     var content = nock("http://content")
@@ -148,7 +169,7 @@ describe("page assembly", function () {
       .reply(409);
 
     var layout = nock("http://layout")
-      .get("/error/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz/409")
+      .get("/error/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F/409")
       .reply(404);
 
     request(server.create())
@@ -158,7 +179,7 @@ describe("page assembly", function () {
 
   it("allows templates to use handlebars helpers", function (done) {
     var mapping = nock("http://mapping")
-      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F")
       .reply(200, { contentID: "https://github.com/deconst/fake" });
 
     var content = nock("http://content")
@@ -173,7 +194,7 @@ describe("page assembly", function () {
       });
 
     var layout = nock("http://layout")
-      .get("/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz/default")
+      .get("/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F/default")
       .reply(200, "Body [{{{ envelope.body }}}] Date [{{formatDate envelope.publish_date 'YYYY-MM-DD' }}]");
 
     request(server.create())
@@ -185,7 +206,7 @@ describe("page assembly", function () {
 
   it("prepends the mount point prefix to absolute next and previous urls", function (done) {
     var mapping = nock("http://mapping")
-      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F")
       .reply(200, { prefix: "/foo/", contentID: "https://github.com/deconst/fake" });
 
     var content = nock("http://content")
@@ -201,7 +222,7 @@ describe("page assembly", function () {
       });
 
     var layout = nock("http://layout")
-      .get("/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz/default")
+      .get("/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F/default")
       .reply(200, "Next [{{ envelope.next.url }}] Previous [{{ envelope.previous.url }}]");
 
     request(server.create())
@@ -213,7 +234,7 @@ describe("page assembly", function () {
 
   it("leaves relative next and previous urls alone", function (done) {
     var mapping = nock("http://mapping")
-      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F")
       .reply(200, { prefix: "/foo/", contentID: "https://github.com/deconst/fake" });
 
     var content = nock("http://content")
@@ -229,7 +250,7 @@ describe("page assembly", function () {
       });
 
     var layout = nock("http://layout")
-      .get("/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz/default")
+      .get("/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F/default")
       .reply(200, "Next [{{ envelope.next.url }}] Previous [{{ envelope.previous.url }}]");
 
     request(server.create())

@@ -13,18 +13,6 @@ exports.create = function () {
 
   app.use(logging.requestLogger());
 
-  app.use(function (req, res, next) {
-      var trailingSlash = /\/$/;
-      var fileExtension = /.+?\..+?$/;
-      var parsedUrl = url.parse(req.url, true);
-
-      if(trailingSlash.test(parsedUrl.pathname) || fileExtension.test(parsedUrl.pathname)) {
-          return next();
-      }
-
-      res.redirect(301, parsedUrl.pathname + '/' + parsedUrl.search);
-  });
-
   routes.install(app);
 
   return app;
