@@ -34,7 +34,7 @@ describe("page assembly", function () {
       .reply(200, "Rendered {{{ envelope.body }}} with a layout");
 
     request(server.create())
-      .get("/foo/bar/baz")
+      .get("/foo/bar/baz/")
       .expect(200)
       .expect("Content-Type", /html/)
       .expect("Rendered the page content with a layout", done);
@@ -53,7 +53,7 @@ describe("page assembly", function () {
       });
 
     request(server.create())
-      .get("/foo/bar/baz")
+      .get("/foo/bar/baz/")
       .expect(200)
       .expect("Content-Type", /html/)
       .expect("only this", done);
@@ -73,7 +73,7 @@ describe("page assembly", function () {
       });
 
     request(server.create())
-      .get("/foo/bar/baz")
+      .get("/foo/bar/baz/")
       .expect(200)
       .expect("Content-Type", /html/)
       .expect("only this", done);
@@ -95,7 +95,7 @@ describe("page assembly", function () {
       });
 
     request(server.create())
-      .get("/foo/bar/baz")
+      .get("/foo/bar/baz/")
       .expect(200)
       .expect("Content-Type", /text\/plain/)
       .expect("yup", done);
@@ -115,7 +115,7 @@ describe("page assembly", function () {
       .reply(200, "The 404 page");
 
     request(server.create())
-      .get("/foo/bar/baz")
+      .get("/foo/bar/baz/")
       .expect(404)
       .expect("The 404 page", done);
   });
@@ -134,7 +134,7 @@ describe("page assembly", function () {
       .reply(404);
 
     request(server.create())
-      .get("/foo/bar/baz")
+      .get("/foo/bar/baz/")
       .expect(404, done);
   });
 
@@ -152,7 +152,7 @@ describe("page assembly", function () {
       .reply(404);
 
     request(server.create())
-      .get("/foo/bar/baz")
+      .get("/foo/bar/baz/")
       .expect(409, done);
   });
 
@@ -177,7 +177,7 @@ describe("page assembly", function () {
       .reply(200, "Body [{{{ envelope.body }}}] Date [{{formatDate envelope.publish_date 'YYYY-MM-DD' }}]");
 
     request(server.create())
-      .get("/foo/bar/baz")
+      .get("/foo/bar/baz/")
       .expect(200)
       .expect("Content-Type", /html/)
       .expect("Body [success] Date [2015-05-15]", done);
@@ -205,7 +205,7 @@ describe("page assembly", function () {
       .reply(200, "Next [{{ envelope.next.url }}] Previous [{{ envelope.previous.url }}]");
 
     request(server.create())
-      .get("/foo/bar/baz")
+      .get("/foo/bar/baz/")
       .expect(200)
       .expect("Content-Type", /html/)
       .expect("Next [/foo/next] Previous [/foo/previous]", done);
@@ -233,7 +233,7 @@ describe("page assembly", function () {
       .reply(200, "Next [{{ envelope.next.url }}] Previous [{{ envelope.previous.url }}]");
 
     request(server.create())
-      .get("/foo/bar/baz")
+      .get("/foo/bar/baz/")
       .expect(200)
       .expect("Content-Type", /html/)
       .expect("Next [../next/] Previous [../previous/]", done);
