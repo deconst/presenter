@@ -9,20 +9,18 @@ var
   async = require('async'),
   handlebars = require('handlebars'),
   _ = require('lodash'),
-  config = require('./config'),
-  logger = require('./logging').logger,
-  helpers = require('./helpers');
+  config = require('../config'),
+  logger = require('../logging').logger,
+  TemplateService = require('../services/template');
 
 // The pages to render if an error page layout isn't defined for a specific status code.
 var
-  staticRoot = path.join(__dirname, '..', 'static'),
+  staticRoot = path.join(__dirname, '../..', 'static'),
   page404 = fs.readFileSync(path.join(staticRoot, "404.html")).toString('utf-8'),
   page500 = fs.readFileSync(path.join(staticRoot, "500.html")).toString('utf-8');
 
 // The layout to use if no layout_key is requested by the metadata envelope.
 var nullLayout = handlebars.compile("{{{ envelope.body }}}");
-
-helpers.register();
 
 // Derive the presented URL for a specific request, honoring the presented_url_domain and
 // presented_url_proto settings if provided.
@@ -150,14 +148,6 @@ function globals(presentedUrl, contentDoc, callback) {
             // ToC wasn't found
             return callback(null, {});
         }
-
-        // much shame
-        var relativeUrls = /href=("|')(..\/)?([^\/].*?)("|')/g;
-        output.envelope.body =
-            output.envelope.body.replace(
-                relativeUrls,
-                'href=$1' + contentDoc.prefix + '$3$4'
-            );
 
         return callback(null, {
             toc: output.envelope.body
@@ -333,7 +323,7 @@ function error_layout(presented_url, status_code, callback) {
   });
 }
 
-module.exports = function (req, res) {
+function old_content (req, res) {
   var presented = presented_url(req);
 
   logger.verbose("Handling presented URL [" + presented + "].");
@@ -377,15 +367,40 @@ module.exports = function (req, res) {
         p.url = urljoin(content_doc.prefix, p.url);
       }
 
-      logger.debug("Rendering final content document:", content_doc);
+    //   logger.debug("Rendering final content document:", content_doc);
 
       if (content_doc.envelope.content_type) {
         res.set("Content-Type", content_doc.envelope.content_type);
       }
 
-      var html = content_doc.layout(content_doc);
+    //   var html = content_doc.layout(content_doc);
+
+      var html = TemplateService.render(content_doc.envelope.layout_key, {
+          deconst: {
+              content: content_doc
+          }
+      });
+
+      logger.debug(content_doc);
 
       res.send(html);
     }
   });
+}
+
+var TemplateService = require('../services/template');
+var TemplateRoutingService = require('../services/template-routing');
+var ContentRoutingService = require('../services/content-routing');
+
+module.exports = function (req, res) {
+    var contentId = ContentRoutingService.getContentId();
+
+    content({contentID: contentId}, function (err, result) {
+
+        res.send(TemplateService.render(TemplateRoutingService.getRoute(), {
+            deconst: {
+                content: result
+            }
+        }));
+    });
 };
