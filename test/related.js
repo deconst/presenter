@@ -20,7 +20,7 @@ describe("related content", function () {
 
   it("collects presented URLs for related content", function (done) {
     var mapping = nock("http://mapping")
-      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F")
       .reply(200, { contentID: "https://github.com/deconst/fake" })
       .get("/url/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Fone")
       .reply(200, { presentedURL: "https://deconst.horse/one" })
@@ -46,14 +46,14 @@ describe("related content", function () {
       });
 
     var layout = nock("http://layout")
-      .get("/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz/default")
+      .get("/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F/default")
       .reply(200, "URLs: {{#each results.sample}}<{{url}}>{{/each}}");
 
     var rendered = "URLs: <https://deconst.horse/one>" +
       "<https://deconst.horse/two><https://deconst.horse/three>";
 
     request(server.create())
-      .get("/foo/bar/baz")
+      .get("/foo/bar/baz/")
       .expect(200)
       .expect("Content-Type", /html/)
       .expect(rendered, done);
@@ -72,7 +72,7 @@ describe("related content", function () {
     });
 
     var mapping = nock("http://mapping")
-      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz")
+      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F")
       .reply(200, { contentID: "https://github.com/deconst/fake" })
       .get("/url/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Fone")
       .reply(200, { presentedURL: "https://other.wtf/one" })
@@ -98,14 +98,14 @@ describe("related content", function () {
       });
 
     var layout = nock("http://layout")
-      .get("/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz/default")
+      .get("/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fbaz%2F/default")
       .reply(200, "URLs: {{#each results.sample}}<{{url}}>{{/each}}");
 
     var rendered = "URLs: <http://localhost/one>" +
       "<http://localhost/two><http://localhost/three>";
 
     request(server.create())
-      .get("/foo/bar/baz")
+      .get("/foo/bar/baz/")
       .expect(200)
       .expect("Content-Type", /html/)
       .expect(rendered, done);
