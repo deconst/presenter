@@ -35,6 +35,22 @@ var ContentRoutingService = {
         }
 
         return url.resolve(contentStoreBase, afterPrefix).replace(/\/$/, '');
+    },
+    getContentPrefix: function (urlPath) {
+        urlPath = urlPath || RequestHelper.request.path;
+        var content = this._readContent(SITE_KEY);
+
+        var prefixMatch = null;
+
+        for(var prefix in content) {
+            if(urlPath.indexOf(prefix) !== -1) {
+                prefixMatch = prefix;
+            }
+        }
+
+        return prefixMatch;
+
+        // return url.resolve(contentStoreBase, afterPrefix).replace(/\/$/, '');
     }
 };
 
