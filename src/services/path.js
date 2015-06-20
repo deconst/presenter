@@ -7,6 +7,9 @@ var PathService = {
     getControlRepoPath: function () {
         return path.resolve(process.env.CONTROL_REPO_PATH);
     },
+    getDefaultTemplatesPath: function () {
+        return path.resolve('./static');
+    },
     getTemplatesPath: function () {
         return path.resolve(this.getControlRepoPath(), TEMPLATE_PATH);
     },

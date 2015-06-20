@@ -22,7 +22,9 @@ var TemplateService = {
     _findTemplate: function (templatePath) {
         templatePath = templatePath || 'index';
         var templateDir = services.path.getTemplatesPath();
+        var defaultTemplateDir = services.path.getDefaultTemplatesPath();
         var templateBase = path.resolve(templateDir, templatePath);
+        var defaultTemplateBase = path.resolve(defaultTemplateDir, templatePath);
 
         var matches = globby.sync([
             templateBase,
@@ -30,13 +32,18 @@ var TemplateService = {
             templateBase + '.htm',
             templateBase + '/index.html',
             templateBase + '/index.htm',
+            defaultTemplateBase,
+            defaultTemplateBase + '.html',
+            defaultTemplateBase + '.htm',
+            defaultTemplateBase + '/index.html',
+            defaultTemplateBase + '/index.htm',
         ]);
 
         if(matches.length === 0) {
-            return path.resolve('./static/404.html');
+            return '404.html';
         }
 
-        return matches[0];
+        return matches[0].replace(templateDir + '/', '').replace(defaultTemplateDir + '/', '');
     }
 };
 

@@ -14,7 +14,8 @@ var
   TemplateService = require('../services/template'),
   TemplateRoutingService = require('../services/template-routing'),
   ContentRoutingService = require('../services/content-routing'),
-  UrlService = require('../services/url');
+  UrlService = require('../services/url'),
+  HttpErrorHelper = require('../helpers/http-error');
 
 // Create an Error object with the provided message and a custom attribute that remembers the
 // (presumably non-200) status code of the associated HTTP response.
@@ -160,6 +161,15 @@ function related(content_doc, callback) {
   );
 }
 
+var handleError = function (error) {
+    logger.error(error);
+    if(error.statusCode) {
+        return HttpErrorHelper.emit(error.statusCode.toString(), error);
+    }
+
+    return HttpErrorHelper.emit('500', error);
+};
+
 module.exports = function (req, res) {
     var contentId = ContentRoutingService.getContentId();
     var prefix = ContentRoutingService.getContentPrefix();
@@ -188,6 +198,9 @@ module.exports = function (req, res) {
             });
         },
     }, function (err, output) {
+        if(err) {
+            return handleError(err);
+        }
         if(output.toc) {
             output.content.globals = {
                 toc: output.toc

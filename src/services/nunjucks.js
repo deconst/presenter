@@ -5,10 +5,10 @@ var services = {
 };
 
 var env = new nunjucks.Environment(
-    new nunjucks.FileSystemLoader(services.path.getTemplatesPath()),
-    {
-
-    }
+    new nunjucks.FileSystemLoader([
+        services.path.getTemplatesPath(),
+        services.path.getDefaultTemplatesPath()
+    ], {watch: false})
 );
 
 env.addFilter('date', nunjucksDate);
