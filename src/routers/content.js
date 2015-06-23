@@ -40,24 +40,7 @@ return new Error("Unknown content ID type [" + JSON.stringify(target) + "] in " 
 // Call the content service to acquire the document containing the metadata envelope and any
 // associated attributes at this content ID.
 function content(target, callback) {
-  if (target.proxyTo) {
-    var proxy_url = target.proxyTo;
-
-    logger.debug("Proxy request: [" + proxy_url + "].");
-
-    var proxy_res = request(proxy_url);
-
-    proxy_res.on("response", function (res) {
-      if (res.statusCode < 200 || res.statusCode >= 400) {
-        // Log the error request, but still pass it through.
-        logger.warn("Status code [" + res.statusCode +
-          "] received from upstream service [" + proxy_url + "].");
-      }
-    });
-
-    var content_doc = { proxyTo: true, response: proxy_res };
-    callback(null, content_doc);
-  } else if (target.contentID) {
+  if (target.contentID) {
     var content_url = urljoin(
       config.content_service_url(), 'content', encodeURIComponent(target.contentID));
 

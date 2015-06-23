@@ -1,7 +1,6 @@
 var url = require('url');
 var ContentRoutingService = require('./services/content/routing');
 var logger = require('./logging').logger;
-var proxy = require('express-http-proxy');
 var request = require('request');
 
 
