@@ -18,6 +18,15 @@ var ContentRoutingService = {
 
         return content.content;
     },
+    _readProxies: function (site) {
+        var content =
+            JSON.parse(fs.readFileSync(
+                path.resolve(PathService.getConfigPath(), CONTENT_FILE),
+                'utf-8'
+            ))[site];
+
+        return content.proxy;
+    },
     getContentId: function (urlPath) {
         urlPath = urlPath || RequestHelper.request.path;
         var content = this._readContent(SITE_KEY);
@@ -66,6 +75,9 @@ var ContentRoutingService = {
         }
 
         return UrlService.getSiteUrl(url.resolve(urlBase, afterPrefix));
+    },
+    getProxies: function () {
+        return this._readProxies(SITE_KEY);
     }
 };
 

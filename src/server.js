@@ -5,6 +5,7 @@
 var
   express = require('express'),
   logging = require('./logging'),
+  proxies = require('./proxies'),
   routes = require('./routers'),
   path = require('path'),
   pathService = require('./services/path');
@@ -17,6 +18,7 @@ exports.create = function () {
   app.use(logging.requestLogger());
   app.use('/assets', express.static(staticPath));
 
+  proxies(app);
   routes.install(app);
 
   return app;
