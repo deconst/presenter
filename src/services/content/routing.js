@@ -3,6 +3,7 @@ var path = require('path');
 var url = require('url');
 var RequestHelper = require('../../helpers/request');
 var PathService = require('../path');
+var UrlService = require('../url');
 
 var CONTENT_FILE = 'content.json';
 var SITE_KEY = 'developer.rackspace.com';
@@ -49,6 +50,22 @@ var ContentRoutingService = {
         }
 
         return prefixMatch;
+    },
+    getPresentedUrl: function (contentId) {
+        var content = this._readContent(SITE_KEY),
+            urlBase = null,
+            afterPrefix = null;
+
+        // contentId = contentId.replace(/\/$/, '');
+
+        for(var prefix in content) {
+            if(contentId.indexOf(content[prefix].replace(/\/$/, '')) !== -1) {
+                urlBase = prefix;
+                afterPrefix = contentId.replace(content[prefix], '');
+            }
+        }
+
+        return UrlService.getSiteUrl(url.resolve(urlBase, afterPrefix));
     }
 };
 

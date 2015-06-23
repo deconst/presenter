@@ -212,14 +212,14 @@ module.exports = function (req, res) {
         ContentFilterService.add(function (content, next) {
             // Match nunjucks-like "{{ to('') }}" directives that are used to defer rendering of presented URLs
             // until presenter-time.
-            var urlDirectiveRx = /\{\{\s*to\('[^']+'\)\s*\}\}/g;
+            var urlDirectiveRx = /\{\{\s*to\('([^']+)'\)\s*\}\}/g;
 
             if (content.contentID) {
                 // Replace any "{{ to() }}" directives with
                 content.envelope.body = content.envelope.body.replace(
                     urlDirectiveRx,
                     function (match, contentID) {
-                        return ContentRoutingService.getPresentedURL(contentID);
+                        return ContentRoutingService.getPresentedUrl(contentID);
                     }
                 );
             }
@@ -231,11 +231,11 @@ module.exports = function (req, res) {
             // Locate the URLs for the content IDs of any next and previous links included in the
             // document.
             if (content.next && content.next.contentID && ! content.next.url) {
-                content.next.url = ContentRoutingService.getPresentedURL(content.next.contentID);
+                content.next.url = ContentRoutingService.getPresentedUrl(content.next.contentID);
             }
 
             if (content.previous && content.previous.contentID && ! content.previous.url) {
-                content.previous.url = ContentRoutingService.getPresentedURL(content.previous.contentID);
+                content.previous.url = ContentRoutingService.getPresentedUrl(content.previous.contentID);
             }
 
             return next();
