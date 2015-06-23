@@ -1,8 +1,8 @@
 var fs = require('fs');
 var path = require('path');
 var url = require('url');
-var RequestHelper = require('../helpers/request');
-var PathService = require('../services/path');
+var RequestHelper = require('../../helpers/request');
+var PathService = require('../path');
 
 var CONTENT_FILE = 'content.json';
 var SITE_KEY = 'developer.rackspace.com';
@@ -49,8 +49,6 @@ var ContentRoutingService = {
         }
 
         return prefixMatch;
-
-        // return url.resolve(contentStoreBase, afterPrefix).replace(/\/$/, '');
     }
 };
 

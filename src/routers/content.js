@@ -13,7 +13,8 @@ var
   logger = require('../logging').logger,
   TemplateService = require('../services/template'),
   TemplateRoutingService = require('../services/template-routing'),
-  ContentRoutingService = require('../services/content-routing'),
+  ContentRoutingService = require('../services/content/routing'),
+  ContentFilterService = require('../services/content/filter'),
   UrlService = require('../services/url'),
   HttpErrorHelper = require('../helpers/http-error');
 
@@ -207,10 +208,49 @@ module.exports = function (req, res) {
             };
         }
 
-        res.send(TemplateService.render(TemplateRoutingService.getRoute(), {
-            deconst: {
-                content: output.content
+        // There are much nicer places to register these filters, but this will work for right now.
+        ContentFilterService.add(function (content, next) {
+            // Match nunjucks-like "{{ to('') }}" directives that are used to defer rendering of presented URLs
+            // until presenter-time.
+            var urlDirectiveRx = /\{\{\s*to\('[^']+'\)\s*\}\}/g;
+
+            if (content.contentID) {
+                // Replace any "{{ to() }}" directives with
+                content.envelope.body = content.envelope.body.replace(
+                    urlDirectiveRx,
+                    function (match, contentID) {
+                        return ContentRoutingService.getPresentedURL(contentID);
+                    }
+                );
             }
-        }));
+
+            return next();
+        });
+
+        ContentFilterService.add(function (content, next) {
+            // Locate the URLs for the content IDs of any next and previous links included in the
+            // document.
+            if (content.next && content.next.contentID && ! content.next.url) {
+                content.next.url = ContentRoutingService.getPresentedURL(content.next.contentID);
+            }
+
+            if (content.previous && content.previous.contentID && ! content.previous.url) {
+                content.previous.url = ContentRoutingService.getPresentedURL(content.previous.contentID);
+            }
+
+            return next();
+        });
+
+        ContentFilterService.filter(output.content, function (error, filteredContent) {
+            if(error) {
+                return HttpErrorHelper.emit('500');
+            }
+
+            res.send(TemplateService.render(TemplateRoutingService.getRoute(), {
+                deconst: {
+                    content: filteredContent
+                }
+            }));
+        });
     });
 };
