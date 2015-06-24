@@ -13,8 +13,9 @@ var PathService = {
     getTemplatesPath: function () {
         return path.resolve(this.getControlRepoPath(), TEMPLATE_PATH);
     },
-    getConfigPath: function () {
-        return path.resolve(this.getControlRepoPath(), CONFIG_PATH);
+    getConfigPath: function (configPath) {
+        configPath = configPath || '';
+        return path.resolve(this.getControlRepoPath(), CONFIG_PATH, configPath);
     }
 };
 

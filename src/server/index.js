@@ -6,9 +6,10 @@ var
   express = require('express'),
   logging = require('./logging'),
   proxies = require('./proxies'),
-  routes = require('./routers'),
+  rewrites = require('./rewrites'),
+  routes = require('../routers'),
   path = require('path'),
-  pathService = require('./services/path');
+  pathService = require('../services/path');
 
 exports.create = function () {
   var app = express();
@@ -19,6 +20,7 @@ exports.create = function () {
   app.use('/assets', express.static(staticPath));
 
   proxies(app);
+  rewrites(app);
   routes.install(app);
 
   return app;

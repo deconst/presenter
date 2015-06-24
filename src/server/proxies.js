@@ -1,5 +1,5 @@
 var url = require('url');
-var ContentRoutingService = require('./services/content/routing');
+var ContentRoutingService = require('../services/content/routing');
 var logger = require('./logging').logger;
 var request = require('request');
 

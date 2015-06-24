@@ -10,7 +10,7 @@ var
   handlebars = require('handlebars'),
   _ = require('lodash'),
   config = require('../config'),
-  logger = require('../logging').logger,
+  logger = require('../server/logging').logger,
   TemplateService = require('../services/template'),
   TemplateRoutingService = require('../services/template-routing'),
   ContentRoutingService = require('../services/content/routing'),
@@ -231,6 +231,7 @@ module.exports = function (req, res) {
 
             res.send(TemplateService.render(TemplateRoutingService.getRoute(), {
                 deconst: {
+                    env: process.env,
                     content: filteredContent
                 }
             }));
