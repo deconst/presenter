@@ -1,6 +1,6 @@
 var path = require('path');
+var RequestHelper = require('../helpers/request');
 
-var TEMPLATE_PATH = 'layouts/drc';
 var CONFIG_PATH = 'config';
 
 var PathService = {
@@ -11,7 +11,8 @@ var PathService = {
         return path.resolve('./static');
     },
     getTemplatesPath: function () {
-        return path.resolve(this.getControlRepoPath(), TEMPLATE_PATH);
+        var templatePath = 'templates/' + RequestHelper.host;
+        return path.resolve(this.getControlRepoPath(), templatePath);
     },
     getConfigPath: function (configPath) {
         configPath = configPath || '';
