@@ -13,137 +13,11 @@ var
   logger = require('../server/logging').logger,
   TemplateService = require('../services/template'),
   TemplateRoutingService = require('../services/template-routing'),
+  ContentService = require('../services/content'),
   ContentRoutingService = require('../services/content/routing'),
   ContentFilterService = require('../services/content/filter'),
   UrlService = require('../services/url'),
   HttpErrorHelper = require('../helpers/http-error');
-
-// Create an Error object with the provided message and a custom attribute that remembers the
-// (presumably non-200) status code of the associated HTTP response.
-function response_error(res, message) {
-var err = new Error(message);
-err.statusCode = res.statusCode;
-
-if (err.statusCode === 404) {
-  err.statusMessage = "Required resource not found";
-} else {
-  err.statusMessage = "Upstream server error";
-}
-
-return err;
-}
-
-function content_error(target, caller) {
-return new Error("Unknown content ID type [" + JSON.stringify(target) + "] in " + caller + ".");
-}
-
-// Call the content service to acquire the document containing the metadata envelope and any
-// associated attributes at this content ID.
-function content(target, callback) {
-  if (target.contentID) {
-    var content_url = urljoin(
-      config.content_service_url(), 'content', encodeURIComponent(target.contentID));
-
-    logger.debug("Content service request: [" + content_url + "].");
-
-    request(content_url, function (err, res, body) {
-      if (err) return callback(err);
-
-      if (res.statusCode === 404) {
-        callback(response_error(res, "No content found for content at ID [" + target.contentID + "]"));
-        return;
-      }
-
-      if (res.statusCode !== 200) {
-        callback(response_error(res, "Error querying content service."));
-        return;
-      }
-
-      logger.debug("Content service request: successful.");
-
-      var content_doc = JSON.parse(body);
-      content_doc.contentID = true;
-      content_doc.prefix = target.prefix;
-
-      callback(null, content_doc);
-    });
-  } else {
-    callback(content_error(target, "content"));
-  }
-}
-
-// If the content document contains any query results, resolve their content IDs to presented URLs.
-function related(content_doc, callback) {
-  if (! content_doc.results) {
-    return callback(null, {});
-  }
-
-  var resultSetNames = _.keys(content_doc.results);
-
-  async.map(
-    resultSetNames,
-    function (resultSetName, callback) {
-      async.map(
-        content_doc.results[resultSetName],
-        function (result, callback) {
-          if (result.contentID) {
-            // Query the mapping service to discover the URL that will map to this result's
-            // content ID.
-            var mapping_url = urljoin(config.mapping_service_url(),
-              'url',
-              encodeURIComponent(result.contentID)
-            );
-
-            logger.debug("Mapping service request: [" + mapping_url + "]");
-
-            request(mapping_url, function (err, res, body) {
-              if (err) return callback(err);
-
-              var
-                doc = JSON.parse(body),
-                u = doc.presentedURL,
-                domain = config.public_url_domain(),
-                proto = config.public_url_proto();
-
-              if (domain || proto) {
-                var parsed = url.parse(u);
-
-                if (domain) {
-                  parsed.host = domain;
-                }
-
-                if (proto) {
-                  parsed.protocol = proto;
-                }
-
-                u = url.format(parsed);
-              }
-
-              result.url = u;
-
-              callback(null, result);
-            });
-          } else {
-            callback(null, result);
-          }
-        },
-        callback
-      );
-    },
-    function (err, resultSets) {
-      if (err) return callback(err);
-
-      var transformed = {};
-      for (var i = 0; i < resultSetNames.length; i++) {
-        var name = resultSetNames[i];
-
-        transformed[name] = resultSets[i];
-      }
-
-      callback(null, transformed);
-    }
-  );
-}
 
 var handleError = function (error) {
     logger.error(error);
@@ -163,11 +37,11 @@ module.exports = function (req, res) {
 
     async.parallel({
         content: function (callback) {
-            content({contentID: contentId}, callback);
+            ContentService.get(contentId, {}, callback);
         },
         toc: function (callback) {
-            content({contentID: tocId}, function (err, toc) {
-                if(err) {
+            ContentService.get(tocId, {ignoreErrors: true}, function (err, toc) {
+                if(!toc) {
                     return callback(null, null);
                 }
 
@@ -197,7 +71,7 @@ module.exports = function (req, res) {
             // until presenter-time.
             var urlDirectiveRx = /\{\{\s*to\('([^']+)'\)\s*\}\}/g;
 
-            if (content.contentID) {
+            if (content.contentID && content.envelope) {
                 // Replace any "{{ to() }}" directives with
                 content.envelope.body = content.envelope.body.replace(
                     urlDirectiveRx,
