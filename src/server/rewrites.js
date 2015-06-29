@@ -1,6 +1,7 @@
 var fs = require('fs');
 var logger = require('./logging').logger;
 var PathService = require('../services/path');
+var RequestHelper = require('../helpers/request');
 
 
 /**
@@ -8,13 +9,12 @@ var PathService = require('../services/path');
  *       abstracted into something like `ConfigService.readConfigFile(fileName)`
  */
 var REWRITES_FILE = 'rewrites.json';
-var SITE_KEY = 'developer.rackspace.com';
 
 try {
     var rewrites = JSON.parse(fs.readFileSync(
         PathService.getConfigPath(REWRITES_FILE),
         'utf-8'
-    ))[SITE_KEY];
+    ))[RequestHelper.host];
 
     logger.debug('Reading rewrites from %s', PathService.getConfigPath(REWRITES_FILE));
 }

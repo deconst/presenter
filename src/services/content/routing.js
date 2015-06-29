@@ -6,7 +6,6 @@ var PathService = require('../path');
 var UrlService = require('../url');
 
 var CONTENT_FILE = 'content.json';
-var SITE_KEY = 'developer.rackspace.com';
 
 var ContentRoutingService = {
     _readContent: function (site) {
@@ -29,7 +28,7 @@ var ContentRoutingService = {
     },
     getContentId: function (urlPath) {
         urlPath = urlPath || RequestHelper.request.path;
-        var content = this._readContent(SITE_KEY);
+        var content = this._readContent(RequestHelper.host);
 
         var contentStoreBase = null, afterPrefix = null;
 
@@ -48,7 +47,7 @@ var ContentRoutingService = {
     },
     getContentPrefix: function (urlPath) {
         urlPath = urlPath || RequestHelper.request.path;
-        var content = this._readContent(SITE_KEY);
+        var content = this._readContent(RequestHelper.host);
 
         var prefixMatch = null;
 
@@ -61,7 +60,7 @@ var ContentRoutingService = {
         return prefixMatch;
     },
     getPresentedUrl: function (contentId) {
-        var content = this._readContent(SITE_KEY),
+        var content = this._readContent(RequestHelper.host),
             urlBase = null,
             afterPrefix = null;
 
@@ -77,7 +76,7 @@ var ContentRoutingService = {
         return UrlService.getSiteUrl(url.resolve(urlBase, afterPrefix));
     },
     getProxies: function () {
-        return this._readProxies(SITE_KEY);
+        return this._readProxies(RequestHelper.host);
     }
 };
 

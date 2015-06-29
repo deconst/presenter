@@ -5,7 +5,6 @@ var RequestHelper = require('../helpers/request');
 var PathService = require('../services/path');
 
 var ROUTES_FILE = 'routes.json';
-var SITE_KEY = 'developer.rackspace.com';
 
 var TemplateRoutingService = {
     _readRoutes: function (site) {
@@ -19,7 +18,7 @@ var TemplateRoutingService = {
     },
     getRoute: function (urlPath) {
         urlPath = urlPath || RequestHelper.request.path;
-        var routes = this._readRoutes(SITE_KEY);
+        var routes = this._readRoutes(RequestHelper.host);
 
         var bestMatch = null;
 
