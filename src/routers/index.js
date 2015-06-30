@@ -14,14 +14,5 @@ exports.install = function (app) {
     });
 
     app.get('/version', version);
-    app.get('/test', function (req, res) {
-        var TemplateService = require('../services/template');
-        var TemplateRoutingService = require('../services/template-routing');
-        var ContentRoutingService = require('../services/content-routing');
-
-        console.log(ContentRoutingService.getContentId());
-
-        res.send(TemplateService.render(TemplateRoutingService.getRoute(), {foo: 'bar'}));
-    });
     app.get('/*', content);
 };

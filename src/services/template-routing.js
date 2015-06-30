@@ -1,10 +1,11 @@
 var fs = require('fs');
 var path = require('path');
 var url = require('url');
+var config = require('../config');
 var RequestHelper = require('../helpers/request');
 var PathService = require('../services/path');
 
-var ROUTES_FILE = 'routes.json';
+var ROUTES_FILE = config.control_routes_file();
 
 var TemplateRoutingService = {
     _readRoutes: function (site) {

@@ -1,29 +1,29 @@
 var fs = require('fs');
+var config = require('../config');
 var logger = require('./logging').logger;
 var PathService = require('../services/path');
 var RequestHelper = require('../helpers/request');
 
-
-/**
- * @todo This same logic of reading JSON files is in a few places. It should be
- *       abstracted into something like `ConfigService.readConfigFile(fileName)`
- */
-var REWRITES_FILE = 'rewrites.json';
-
-try {
-    var rewrites = JSON.parse(fs.readFileSync(
-        PathService.getConfigPath(REWRITES_FILE),
-        'utf-8'
-    ))[RequestHelper.host];
-
-    logger.debug('Reading rewrites from %s', PathService.getConfigPath(REWRITES_FILE));
-}
-catch (e) {
-    logger.warn('No valid JSON file found at %s', PathService.getConfigPath(REWRITES_FILE));
-    var rewrites = [];
-}
-
 module.exports = function (app) {
+    /**
+     * @todo This same logic of reading JSON files is in a few places. It should be
+     *       abstracted into something like `ConfigService.readConfigFile(fileName)`
+     */
+    var REWRITES_FILE = config.control_rewrites_file();
+
+    try {
+        var rewrites = JSON.parse(fs.readFileSync(
+            PathService.getConfigPath(REWRITES_FILE),
+            'utf-8'
+        ))[RequestHelper.host];
+
+        logger.debug('Reading rewrites from %s', PathService.getConfigPath(REWRITES_FILE));
+    }
+    catch (e) {
+        logger.warn('No valid JSON file found at %s', PathService.getConfigPath(REWRITES_FILE));
+        var rewrites = [];
+    }
+
     app.use(function (req, res, next) {
         var stopProcessing = false;
 

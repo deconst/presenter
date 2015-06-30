@@ -1,0 +1,15 @@
+{
+    "deconst.horse": {
+        "content": {
+            "/": "https://github.com/deconst/fake/"
+        },
+        "proxy": {
+            "/proxy": "http://deconst.dog"
+        }
+    },
+    "deconst.dog": {
+        "content": {
+            "/": "https://github.com/deconst-dog/fake/"
+        }
+    }
+}

@@ -8,9 +8,9 @@ var ContentService = {
         if(!id) {
             logger.error('No content found for content at ID [' + id + ']');
 
-            // without a contentID, this is considered a bad request.
+            // without a contentID, this is like a 404
             return callback({
-              statusCode: '405'
+              statusCode: '404'
             });
         }
 
@@ -33,9 +33,17 @@ var ContentService = {
             }
 
             if(res.statusCode >= 400) {
+                var messageBody;
+                try {
+                    messageBody = JSON.parse(body);
+                }
+                catch (e) {
+                    messageBody = 'Not Found';
+                }
+
                 return callback({
                     statusCode: res.statusCode,
-                    message: JSON.parse(body)
+                    message: messageBody
                 });
             }
 

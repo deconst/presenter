@@ -1,11 +1,12 @@
 var path = require('path');
+var config = require('../config');
 var RequestHelper = require('../helpers/request');
 
 var CONFIG_PATH = 'config';
 
 var PathService = {
     getControlRepoPath: function () {
-        return path.resolve(process.env.CONTROL_REPO_PATH);
+        return path.resolve(config.control_repo_path());
     },
     getDefaultTemplatesPath: function () {
         return path.resolve('./static');
