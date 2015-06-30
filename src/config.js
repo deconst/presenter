@@ -24,21 +24,9 @@ var configuration = {
         def: 'routes.json',
         required: true
     },
-    mapping_service_url: {
-        env: "MAPPING_SERVICE_URL",
-        description: "URL of the mapping service",
-        normalize: normalize_url,
-        required: true
-    },
     content_service_url: {
         env: "CONTENT_SERVICE_URL",
         description: "URL of the content service",
-        normalize: normalize_url,
-        required: true
-    },
-    layout_service_url: {
-        env: "LAYOUT_SERVICE_URL",
-        description: "URL of the layout service",
         normalize: normalize_url,
         required: true
     },
