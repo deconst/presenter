@@ -70,4 +70,21 @@ describe('[control-repo] the app', function () {
             .get('/')
             .expect(200, done);
     });
+
+    it('404 on umnatched domains/hostnames', function (done) {
+        config.set({
+            PRESENTED_URL_DOMAIN: 'fake-site.dev'
+        });
+
+        var content = nock('http://content')
+            .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
+            .reply(200, {
+              assets: [],
+              envelope: {body: 'the page content'}
+            });
+
+        request(server.create())
+            .get('/')
+            .expect(404, done);
+    });
 });

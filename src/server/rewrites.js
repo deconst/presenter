@@ -9,20 +9,24 @@ module.exports = function (app) {
      * @todo This same logic of reading JSON files is in a few places. It should be
      *       abstracted into something like `ConfigService.readConfigFile(fileName)`
      */
-    var REWRITES_FILE = config.control_rewrites_file();
+    var rewritesFile, rewritesFileData, rewrites;
+    rewritesFile = config.control_rewrites_file();
+
 
     try {
-        var rewrites = JSON.parse(fs.readFileSync(
-            PathService.getConfigPath(REWRITES_FILE),
+        rewritesFileData = JSON.parse(fs.readFileSync(
+            PathService.getConfigPath(rewritesFile),
             'utf-8'
-        ))[RequestHelper.host];
+        ));
 
-        logger.debug('Reading rewrites from %s', PathService.getConfigPath(REWRITES_FILE));
+        logger.debug('Reading rewrites from %s', PathService.getConfigPath(rewritesFile));
     }
     catch (e) {
-        logger.warn('No valid JSON file found at %s', PathService.getConfigPath(REWRITES_FILE));
-        var rewrites = [];
+        logger.warn('No valid JSON file found at %s', PathService.getConfigPath(rewritesFile));
+        var rewritesFileData = [];
     }
+
+    rewrites = rewritesFileData[RequestHelper.host] || [];
 
     app.use(function (req, res, next) {
         var stopProcessing = false;

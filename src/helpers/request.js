@@ -1,3 +1,5 @@
+var config = require('../config');
+
 var RequestHelper = {
     _request: null,
     get request() {
@@ -7,10 +9,10 @@ var RequestHelper = {
         this._request = data;
     },
     get host() {
-        return process.env.PRESENTED_URL_DOMAIN || this._request.get('Host');
+        return config.presented_url_domain() || this._request.get('Host');
     },
     get protocol() {
-        return process.env.PRESENTED_URL_PROTO || this._request.protocol;
+        return config.presented_url_proto() || this._request.protocol;
     }
 };
 
