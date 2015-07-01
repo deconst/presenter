@@ -3,9 +3,8 @@
 var config = require("../src/config");
 
 settings = {
-  MAPPING_SERVICE_URL: "http://mapping",
+  CONTROL_REPO_PATH: './test/test-control',
   CONTENT_SERVICE_URL: "http://content",
-  LAYOUT_SERVICE_URL: "http://layout",
   PRESENTED_URL_DOMAIN: "deconst.horse"
 };
 

@@ -1,0 +1,7 @@
+{
+    "deconst.horse": {
+        "routes": {
+            "/": "default"
+        }
+    }
+}

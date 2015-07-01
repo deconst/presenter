@@ -1,51 +1,62 @@
 // Handle application configuration.
 
 var configuration = {
-  mapping_service_url: {
-    env: "MAPPING_SERVICE_URL",
-    description: "URL of the mapping service",
-    normalize: normalize_url,
-    required: true
-  },
-  content_service_url: {
-    env: "CONTENT_SERVICE_URL",
-    description: "URL of the content service",
-    normalize: normalize_url,
-    required: true
-  },
-  layout_service_url: {
-    env: "LAYOUT_SERVICE_URL",
-    description: "URL of the layout service",
-    normalize: normalize_url,
-    required: true
-  },
-  presented_url_proto: {
-    env: "PRESENTED_URL_PROTO",
-    description: "Override the protocol of presented URLs",
-    required: false
-  },
-  presented_url_domain: {
-    env: "PRESENTED_URL_DOMAIN",
-    description: "Override the domain of presented URLs",
-    required: false
-  },
-  public_url_proto: {
-    env: "PUBLIC_URL_PROTO",
-    description: "Override the protocol of outgoing URLs",
-    required: false
-  },
-  public_url_domain: {
-    env: "PUBLIC_URL_DOMAIN",
-    description: "Override the domain of outgoing URLs",
-    required: false
-  },
-  log_level: {
-    env: "PRESENTER_LOG_LEVEL",
-    description: "Log level for the presenter.",
-    normalize: normalize_lower,
-    def: "info",
-    required: false
-  }
+    control_repo_path: {
+        env: "CONTROL_REPO_PATH",
+        description: "Filesystem path to the control repo",
+        required: true
+    },
+    control_content_file: {
+        env: "CONTROL_CONTENT_FILE",
+        description: "basename of the control repo's content config file",
+        def: 'content.json',
+        required: true
+    },
+    control_rewrites_file: {
+        env: "CONTROL_REWRITES_FILE",
+        description: "basename of the control repo's rewrites config file",
+        def: 'rewrites.json',
+        required: false
+    },
+    control_routes_file: {
+        env: "CONTROL_ROUTES_FILE",
+        description: "basename of the control repo's routes config file",
+        def: 'routes.json',
+        required: true
+    },
+    content_service_url: {
+        env: "CONTENT_SERVICE_URL",
+        description: "URL of the content service",
+        normalize: normalize_url,
+        required: true
+    },
+    presented_url_proto: {
+        env: "PRESENTED_URL_PROTO",
+        description: "Override the protocol of presented URLs",
+        required: false
+    },
+    presented_url_domain: {
+        env: "PRESENTED_URL_DOMAIN",
+        description: "Override the domain of presented URLs",
+        required: false
+    },
+    public_url_proto: {
+        env: "PUBLIC_URL_PROTO",
+        description: "Override the protocol of outgoing URLs",
+        required: false
+    },
+    public_url_domain: {
+        env: "PUBLIC_URL_DOMAIN",
+        description: "Override the domain of outgoing URLs",
+        required: false
+    },
+    log_level: {
+        env: "PRESENTER_LOG_LEVEL",
+        description: "Log level for the presenter.",
+        normalize: normalize_lower,
+        def: "info",
+        required: false
+    }
 };
 
 // Normalize a URL by ensuring that it ends with a trailing slash.
@@ -104,6 +115,12 @@ exports.configure = function (env) {
 
     throw new Error("Inadequate configuration");
   }
+};
+
+exports.set = function (options) {
+    for(var name in options) {
+        configuration[normalize_lower(name)].value = options[name];
+    }
 };
 
 // Export "getter" functions with the same name as each configuration option.

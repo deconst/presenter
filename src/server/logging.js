@@ -1,6 +1,6 @@
 var
   winston = require('winston'),
-  config = require('./config');
+  config = require('../config');
 
 exports.logger = new winston.Logger({
   levels: {

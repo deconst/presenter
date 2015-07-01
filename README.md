@@ -26,10 +26,6 @@ docker-compose build && docker-compose up -d
 
 Set the following environment variables:
 
- * `MAPPING_SERVICE_URL`: **Required**. URL of the mapping service.
-
- * `CONTENT_SERVICE_URL`: **Required**. URL of the content service.
-
- * `LAYOUT_SERVICE_URL`: **Required**. URL of the layout service.
-
- * `PRESENTED_URL_DOMAIN`: Use a constant instead of the `Host:` value as the domain of the presented URL. Useful for development in environments without DNS.
+    * `CONTROL_REPO_PATH`: **Required**. Filesystem path to the control repo this presenter uses for its configuration.
+    * `CONTENT_SERVICE_URL`: **Required**. URL of the content service.
+    * `PRESENTED_URL_DOMAIN`: Use a constant instead of the `Host:` value as the domain of the presented URL. Useful for development in environments without DNS.

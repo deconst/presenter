@@ -1,8 +1,9 @@
 // Unit tests for proxied services.
 
-var before = require("./helpers/before");
+var before = require("./helpers/before"),
+    config = require('../src/config');
 
-before.configure();
+config.configure(before.settings);
 
 var
   request = require("supertest"),
@@ -14,57 +15,55 @@ nock.enableNetConnect("127.0.0.1");
 describe("proxied services", function () {
 
   beforeEach(function () {
-    before.configure();
+    config.configure(before.settings);
   });
 
   it("handles proxied content", function (done) {
-    var mapping = nock("http://mapping")
-      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fstatic")
-      .reply(200, { proxyTo: "https://deconst.horse/static" });
-
-    var content = nock("https://deconst.horse")
-      .get("/static")
+    var content = nock("http://deconst.dog")
+      .get("/")
       .reply(200, "static content");
 
     request(server.create())
-      .get("/foo/bar/static")
+      .get("/proxy")
       .expect(200)
       .expect("static content", done);
   });
 
-  it("preserves headers from the upstream service", function (done) {
-    var mapping = nock("http://mapping")
-      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fstatic")
-      .reply(200, { proxyTo: "https://upstream.horse/service" });
+  it("handles proxied content in subdirectories", function (done) {
+    var content = nock("http://deconst.dog")
+      .get("/foo")
+      .reply(200, "foo content");
 
-    var content = nock("https://upstream.horse")
-      .get("/service")
-      .reply(200, "static content", {
+    request(server.create())
+      .get("/proxy/foo")
+      .expect(200)
+      .expect("foo content", done);
+  });
+
+  it("preserves headers from the upstream service", function (done) {
+    var content = nock("http://deconst.dog")
+      .get("/foo")
+      .reply(200, "foo content", {
         "Content-Type": "text/plain",
         "X-Some-Header": "neeeeigh"
       });
 
     request(server.create())
-      .get("/foo/bar/static")
+      .get("/proxy/foo")
       .expect(200)
       .expect("Content-Type", "text/plain")
       .expect("X-Some-Header", "neeeeigh")
-      .expect("static content", done);
+      .expect("foo content", done);
   });
 
   it("preserves response status from the upstream service", function (done) {
-    var mapping = nock("http://mapping")
-      .get("/at/https%3A%2F%2Fdeconst.horse%2Ffoo%2Fbar%2Fstatic")
-      .reply(200, { proxyTo: "https://upstream.horse/service" });
-
-    var content = nock("https://upstream.horse")
-      .get("/service")
+    var content = nock("http://deconst.dog")
+      .get("/foo")
       .reply(409, "NOPE");
 
     request(server.create())
-      .get("/foo/bar/static")
+      .get("/proxy/foo")
       .expect(409)
       .expect("NOPE", done);
   });
-
 });

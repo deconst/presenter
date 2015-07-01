@@ -10,7 +10,7 @@ var config = require('./src/config');
 config.configure(process.env);
 
 var
-  logger = require('./src/logging').logger,
+  logger = require('./src/server/logging').logger,
   app = require('./src/server').create();
 
 var server = app.listen(8080, function() {
