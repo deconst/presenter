@@ -12,20 +12,19 @@ To develop locally, you'll need to install:
  * [Docker](https://docs.docker.com/installation/#installation) to build and launch the container.
  * [docker-compose](https://docs.docker.com/compose/install/) to manage the container's configuration.
 
-Then, you can build and run the service with:
+Then, you should copy `env.example` and save it as `env`. Open the file in your favorite text editor, and follow the included instructions to add values to each environment variable. They're all required.
+
+Once you've filled in all the environment variables, use `source` to add them to your current Bash environment:
 
 ```bash
-# See below for service configuration.
-export RACKSPACE_USERNAME=...
-export RACKSPACE_APIKEY=...
+source ./env
+```
+And _now_ you're ready to actually run the app! Just build the images and start the stack:
 
+```bash
 docker-compose build && docker-compose up -d
 ```
 
-## Configuration
+The app will run in the background until you run `docker-compose stop`. You can also run `docker-compose logs` to see what the app is doing.
 
-Set the following environment variables:
-
-    * `CONTROL_REPO_PATH`: **Required**. Filesystem path to the control repo this presenter uses for its configuration.
-    * `CONTENT_SERVICE_URL`: **Required**. URL of the content service.
-    * `PRESENTED_URL_DOMAIN`: Use a constant instead of the `Host:` value as the domain of the presented URL. Useful for development in environments without DNS.
+The presenter portion of the app runs under [nodemon](http://nodemon.io/), so the presenter will be restarted automatically every time you save a file that's part of its source code. Certain changes (like adding a dependency to `package.json`) will require you to rebuild and restart the container.
