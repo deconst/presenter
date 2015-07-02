@@ -32,6 +32,20 @@ describe('page assembly', function () {
         .expect(/the page content/, done);
   });
 
+  it('ignores empty URL segments', function (done) {
+    var content = nock('http://content')
+        .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Ffoo')
+        .reply(200, {
+          assets: [],
+          envelope: { body: 'the page content' }
+        });
+
+      request(server.create())
+          .get('/////foo')
+          .expect(200)
+          .expect(/the page content/, done);
+  });
+
   it('returns the user-defined 404 template', function (done) {
     var content = nock('http://content')
       .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
