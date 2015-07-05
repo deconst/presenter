@@ -28,6 +28,40 @@ var handleError = function (error) {
     return HttpErrorHelper.emit('500', error);
 };
 
+// Register content filters.
+
+ContentFilterService.add(function (content, next) {
+    // Match nunjucks-like "{{ to('') }}" directives that are used to defer rendering of presented URLs
+    // until presenter-time.
+    var urlDirectiveRx = /\{\{\s*to\('([^']+)'\)\s*\}\}/g;
+
+    if (content.contentID && content.envelope) {
+        // Replace any "{{ to() }}" directives with the appropriate presented URL.
+        content.envelope.body = content.envelope.body.replace(
+            urlDirectiveRx,
+            function (match, contentID) {
+                return ContentRoutingService.getPresentedUrl(contentID);
+            }
+        );
+    }
+
+    return next();
+});
+
+ContentFilterService.add(function (content, next) {
+    // Locate the URLs for the content IDs of any next and previous links included in the
+    // document.
+    if (content.next && content.next.contentID && ! content.next.url) {
+        content.next.url = ContentRoutingService.getPresentedUrl(content.next.contentID);
+    }
+
+    if (content.previous && content.previous.contentID && ! content.previous.url) {
+        content.previous.url = ContentRoutingService.getPresentedUrl(content.previous.contentID);
+    }
+
+    return next();
+});
+
 module.exports = function (req, res) {
     var contentId = ContentRoutingService.getContentId();
     var prefix = ContentRoutingService.getContentPrefix();
@@ -64,39 +98,6 @@ module.exports = function (req, res) {
                 toc: output.toc
             };
         }
-
-        // There are much nicer places to register these filters, but this will work for right now.
-        ContentFilterService.add(function (content, next) {
-            // Match nunjucks-like "{{ to('') }}" directives that are used to defer rendering of presented URLs
-            // until presenter-time.
-            var urlDirectiveRx = /\{\{\s*to\('([^']+)'\)\s*\}\}/g;
-
-            if (content.contentID && content.envelope) {
-                // Replace any "{{ to() }}" directives with
-                content.envelope.body = content.envelope.body.replace(
-                    urlDirectiveRx,
-                    function (match, contentID) {
-                        return ContentRoutingService.getPresentedUrl(contentID);
-                    }
-                );
-            }
-
-            return next();
-        });
-
-        ContentFilterService.add(function (content, next) {
-            // Locate the URLs for the content IDs of any next and previous links included in the
-            // document.
-            if (content.next && content.next.contentID && ! content.next.url) {
-                content.next.url = ContentRoutingService.getPresentedUrl(content.next.contentID);
-            }
-
-            if (content.previous && content.previous.contentID && ! content.previous.url) {
-                content.previous.url = ContentRoutingService.getPresentedUrl(content.previous.contentID);
-            }
-
-            return next();
-        });
 
         ContentFilterService.filter(output.content, function (error, filteredContent) {
             if(error) {
