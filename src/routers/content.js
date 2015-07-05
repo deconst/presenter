@@ -21,7 +21,8 @@ var
 
 var handleError = function (error) {
     logger.error(error);
-    if(error.statusCode.toString() === '404') {
+
+    if(error.statusCode && error.statusCode.toString() === '404') {
         return HttpErrorHelper.emit(error.statusCode.toString(), error);
     }
 
