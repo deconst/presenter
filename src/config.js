@@ -56,6 +56,11 @@ var configuration = {
         normalize: normalize_lower,
         def: "info",
         required: false
+    },
+    presenter_diagnostics: {
+        env: "PRESENTER_DIAGNOSTICS",
+        description: "Enable diagnostic tooling within the presenter.",
+        required: false
     }
 };
 
