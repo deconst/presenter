@@ -39,27 +39,27 @@ module.exports = function (app) {
                     return;
                 }
 
+                var parsedUrl = url.parse(req.url, true);
                 var isRewrite = rule.rewrite || false;
                 var status = rule.status || 301;
                 var fromPattern = new RegExp(rule.from, 'g');
 
-                if(!req.url.match(fromPattern)) {
+                // If the pathname doesn't match the "from" pattern, get the
+                // heck outta here!
+                if(!parsedUrl.pathname.match(fromPattern)) {
                     return;
                 }
 
                 // If the incoming URL's pathname matches the pattern, replace
                 // it with the rule's "to" pattern
-                var parsedUrl = url.parse(req.url, true);
                 parsedUrl.pathname = parsedUrl.pathname.replace(fromPattern, rule.to);
-
                 req.url = url.format(parsedUrl);
 
                 // Stop processing and redirect if this isn't a rewrite
                 if(!isRewrite) {
                     logger.debug('Redirecting to %s', req.url);
                     stopProcessing = true;
-                    res.redirect(status, req.url);
-                    // res.end();
+                    return res.redirect(status, req.url);
                 }
 
                 logger.debug('Rewriting URL to %s', req.url);
