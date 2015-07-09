@@ -4,6 +4,7 @@ var globby = require('globby');
 var path = require('path');
 var logger = require('../server/logging').logger;
 var services = {
+    content: require('./content'),
     nunjucks: require('./nunjucks'),
     path: require('./path'),
 };
@@ -13,20 +14,20 @@ var HttpErrorHelper = require('../helpers/http-error');
 var TemplateService = {
     render: function (templatePath, data) {
         var templateFile = this._findTemplate(templatePath);
-        var templateData = this._bootstrapContext(data);
 
-        try {
-            var output = services.nunjucks.render(templateFile, templateData);
-            ResponseHelper.send(output);
-        }
-        catch (e) {
-            logger.error(e);
-            this.render('500');
-        }
-
+        this._bootstrapContext(data, (function (templateData){
+            try {
+                var output = services.nunjucks.render(templateFile, templateData);
+                ResponseHelper.send(output);
+            }
+            catch (e) {
+                logger.error(e);
+                this.render('500');
+            }
+        }).bind(this));
     },
-    _bootstrapContext: function (content) {
-        return {
+    _bootstrapContext: function (content, callback) {
+        var context = {
             deconst: {
                 env: process.env,
                 content: content || {},
@@ -35,6 +36,13 @@ var TemplateService = {
                 response: require('../helpers/response')
             }
         };
+
+        services.content.getAssets(function (err, data) {
+            context.deconst.assets = data;
+            callback(context);
+        });
+
+
     },
     _findTemplate: function (templatePath) {
         templatePath = templatePath || 'index';
