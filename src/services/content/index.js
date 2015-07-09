@@ -51,6 +51,33 @@ var ContentService = {
 
             callback(null, JSON.parse(body));
         });
+    },
+    getAssets: function (callback) {
+        logger.debug("Content service request: requesting assets.");
+        var assetUrl = urljoin(config.content_service_url(), 'assets');
+
+        request(assetUrl, function (err, res, body) {
+            if(err) {
+                return callback(err);
+            }
+
+            if(res.statusCode >= 400) {
+                var messageBody;
+                try {
+                    messageBody = JSON.parse(body);
+                }
+                catch (e) {
+                    messageBody = 'Not Found';
+                }
+
+                return callback({
+                    statusCode: res.statusCode,
+                    message: messageBody
+                });
+            }
+
+            callback(null, JSON.parse(body));
+        });
     }
 };
 
