@@ -105,12 +105,7 @@ module.exports = function (req, res) {
                 return HttpErrorHelper.emit('500');
             }
 
-            res.send(TemplateService.render(TemplateRoutingService.getRoute(), {
-                deconst: {
-                    env: process.env,
-                    content: filteredContent
-                }
-            }));
+            TemplateService.render(TemplateRoutingService.getRoute(), filteredContent);
         });
     });
 };

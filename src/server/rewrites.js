@@ -4,6 +4,7 @@ var config = require('../config');
 var logger = require('./logging').logger;
 var PathService = require('../services/path');
 var RequestHelper = require('../helpers/request');
+var ResponseHelper = require('../helpers/response');
 
 module.exports = function (app) {
     var userRewrites = function () {
@@ -59,7 +60,7 @@ module.exports = function (app) {
                 if(!isRewrite) {
                     logger.debug('Redirecting to %s', req.url);
                     stopProcessing = true;
-                    return res.redirect(status, req.url);
+                    return ResponseHelper.redirect(status, req.url);
                 }
 
                 logger.debug('Rewriting URL to %s', req.url);

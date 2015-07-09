@@ -8,7 +8,7 @@ var env = new nunjucks.Environment(
     new nunjucks.FileSystemLoader([
         services.path.getTemplatesPath(),
         services.path.getDefaultTemplatesPath()
-    ], {watch: false})
+    ], {watch: true})
 );
 
 env.addFilter('date', nunjucksDate);
