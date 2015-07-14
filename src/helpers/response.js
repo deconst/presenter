@@ -5,6 +5,7 @@ var ResponseHelper = {
     },
     set response(data) {
         this._response = data;
+        this._response.statusSent = false;
     },
     redirect: function () {
         // Noop if headers were already sent
@@ -26,7 +27,14 @@ var ResponseHelper = {
         this.response.send.apply(this.response, arguments);
     },
     status: function () {
+        if(this.response.statusSent) {
+            return;
+        }
+
         this.response.status.apply(this.response, arguments);
+
+        // mischief managed
+        this.response.statusSent = true;
     }
 };
 
