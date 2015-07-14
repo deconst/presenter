@@ -30,4 +30,15 @@ HttpErrorHelper.on('500', function (error) {
     TemplateService.render('500');
 });
 
+HttpErrorHelper.on('503', function (error) {
+    error = error || {};
+
+    if(!error.statusCode) {
+        error.statusCode = 503;
+    }
+
+    ResponseHelper.status(error.statusCode);
+    TemplateService.render('500');
+});
+
 module.exports = HttpErrorHelper;
