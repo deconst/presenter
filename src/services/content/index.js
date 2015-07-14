@@ -3,6 +3,8 @@ var request = require('request'),
     logger = require('../../server/logging').logger,
     urljoin = require('url-join');
 
+var INFRA_ERRORS = ['ENOTFOUND','ETIMEDOUT','ECONNREFUSED'];
+
 var ContentService = {
     get: function (id, options, callback) {
         if(!id) {
@@ -27,6 +29,13 @@ var ContentService = {
                 if(options.ignoreErrors === true) {
                     // This error should not be considered fatal
                     return callback(null, null);
+                }
+
+                if(err && err.code && INFRA_ERRORS.indexOf(err.code) !== -1) {
+                    return callback({
+                        statusCode: 503,
+                        message: err.code
+                    });
                 }
 
                 return callback(err);
