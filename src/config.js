@@ -57,6 +57,13 @@ var configuration = {
         def: "info",
         required: false
     },
+    log_colorize: {
+        env: "PRESENTER_LOG_COLOR",
+        description: "Set to 'true' to enable colorized log output.",
+        normalize: normalize_bool,
+        def: "false",
+        required: false,
+    },
     presenter_diagnostics: {
         env: "PRESENTER_DIAGNOSTICS",
         description: "Enable diagnostic tooling within the presenter.",
@@ -75,6 +82,18 @@ function normalize_url(url) {
 // Normalize a string by ensuring that it's lowercase.
 function normalize_lower(str) {
   return str.toLowerCase();
+}
+
+function normalize_bool(str) {
+    var lower = str.toLowerCase();
+    if (lower === "true") {
+        return true;
+    }
+    if (lower === "false") {
+        return false;
+    }
+
+    throw new Error("Invalid boolean setting: '" + str + "'");
 }
 
 // Create a getter function for the named setting.
