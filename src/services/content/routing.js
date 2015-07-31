@@ -39,8 +39,8 @@ var ContentRoutingService = {
 
         return contentConfig[site].proxy;
     },
-    getContentId: function (context) {
-        var urlPath = context.request.path;
+    getContentId: function (context, urlPath) {
+        urlPath = urlPath || context.request.path;
         var content = this._readContent(context.host());
 
         var contentStoreBase = null, afterPrefix = null;
