@@ -20,7 +20,7 @@ Context.prototype.send = function (body) {
 };
 
 Context.prototype.handleError = function (err) {
-    var code = 500;
+    var code = err.statusCode || 500;
     if (err.statusCode && err.statusCode.toString() === "404") {
         code = 404;
     }
