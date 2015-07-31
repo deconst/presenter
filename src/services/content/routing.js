@@ -4,7 +4,6 @@ var url = require('url');
 var config = require('../../config');
 var logger = require('../../server/logging').logger;
 var HttpErrorHelper = require('../../helpers/http-error');
-var RequestHelper = require('../../helpers/request');
 var PathService = require('../path');
 var UrlService = require('../url');
 
@@ -52,9 +51,9 @@ var ContentRoutingService = {
 
         return contentConfig[site].proxy;
     },
-    getContentId: function (urlPath) {
-        urlPath = urlPath || RequestHelper.request.path;
-        var content = this._readContent(RequestHelper.host);
+    getContentId: function (context) {
+        var urlPath = context.request.path;
+        var content = this._readContent(context.host());
 
         var contentStoreBase = null, afterPrefix = null;
 
@@ -71,9 +70,9 @@ var ContentRoutingService = {
 
         return url.resolve(contentStoreBase, afterPrefix).replace(/\/$/, '');
     },
-    getContentPrefix: function (urlPath) {
-        urlPath = urlPath || RequestHelper.request.path;
-        var content = this._readContent(RequestHelper.host);
+    getContentPrefix: function (context) {
+        var urlPath = context.request.path;
+        var content = this._readContent(context.host());
 
         var prefixMatch = null;
 
@@ -85,9 +84,9 @@ var ContentRoutingService = {
 
         return prefixMatch;
     },
-    getPresentedUrl: function (contentId) {
+    getPresentedUrl: function (context, contentId) {
         var
-            content = this._readContent(RequestHelper.host),
+            content = this._readContent(context.host()),
             urlBase = null,
             afterPrefix = null;
 
@@ -98,10 +97,10 @@ var ContentRoutingService = {
             }
         }
 
-        return UrlService.getSiteUrl(url.resolve(urlBase, afterPrefix));
+        return UrlService.getSiteUrl(context, url.resolve(urlBase, afterPrefix));
     },
-    getProxies: function () {
-        return this._readProxies(RequestHelper.host);
+    getProxies: function (context) {
+        return this._readProxies(context.host());
     }
 };
 
