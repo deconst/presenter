@@ -9,19 +9,19 @@ var UrlService = require('../url');
 var CONTENT_FILE = config.control_content_file();
 
 var ContentRoutingService = {
-    _readContent: function (site) {
-        var contentConfig;
-
+    _readContentConfig: function () {
         try {
-            contentConfig =
-                JSON.parse(fs.readFileSync(
-                    path.resolve(PathService.getConfigPath(), CONTENT_FILE),
-                    'utf-8'
-                ));
+            return JSON.parse(fs.readFileSync(
+                path.resolve(PathService.getConfigPath(), CONTENT_FILE),
+                'utf-8'
+            ));
         } catch(e) {
             logger.error('Unable to read ' + path.resolve(PathService.getConfigPath(), CONTENT_FILE));
             return {};
         }
+    },
+    _readContent: function (site) {
+        var contentConfig = this._readContentConfig();
 
         if (!contentConfig.hasOwnProperty(site) || !contentConfig[site].hasOwnProperty('content')) {
             logger.warn(CONTENT_FILE + ' has no content routes defined for this site.');
@@ -31,17 +31,7 @@ var ContentRoutingService = {
         return contentConfig[site].content;
     },
     _readProxies: function (site) {
-        var contentConfig;
-
-        try {
-            contentConfig =
-                JSON.parse(fs.readFileSync(
-                    path.resolve(PathService.getConfigPath(), CONTENT_FILE),
-                    'utf-8'
-                ));
-        } catch(e) {
-            contentConfig = {};
-        }
+        var contentConfig = this._readContentConfig();
 
         if (!contentConfig.hasOwnProperty(site) || !contentConfig[site].hasOwnProperty('proxy')) {
             return {};
@@ -99,6 +89,23 @@ var ContentRoutingService = {
     },
     getProxies: function (context) {
         return this._readProxies(context.host());
+    },
+    getAllProxies: function () {
+        var proxies = [];
+
+        var contentConfig = this._readContentConfig();
+
+        for (var site in contentConfig) {
+            var siteConfig = contentConfig[site];
+            if (siteConfig.hasOwnProperty("proxy")) {
+                proxies.push({
+                    site: site,
+                    proxy: siteConfig.proxy
+                });
+            }
+        }
+
+        return proxies;
     }
 };
 
