@@ -11,6 +11,7 @@ var
     _ = require('lodash'),
     config = require('../config'),
     logger = require('../server/logging').logger,
+    Context = require('../helpers/context'),
     TemplateService = require('../services/template'),
     TemplateRoutingService = require('../services/template-routing'),
     ContentService = require('../services/content'),
@@ -64,7 +65,7 @@ ContentFilterService.add(function (content, next) {
 });
 
 module.exports = function (req, res) {
-    var context = { request: req, response: res };
+    var context = new Context(req, res);
 
     var contentId = ContentRoutingService.getContentId();
     var prefix = ContentRoutingService.getContentPrefix();
