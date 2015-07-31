@@ -3,7 +3,6 @@ var path = require('path');
 var url = require('url');
 var config = require('../../config');
 var logger = require('../../server/logging').logger;
-var HttpErrorHelper = require('../../helpers/http-error');
 var PathService = require('../path');
 var UrlService = require('../url');
 
@@ -21,7 +20,6 @@ var ContentRoutingService = {
                 ));
         } catch(e) {
             logger.error('Unable to read ' + path.resolve(PathService.getConfigPath(), CONTENT_FILE));
-            HttpErrorHelper.emit(500);
             return {};
         }
 

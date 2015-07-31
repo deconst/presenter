@@ -8,19 +8,17 @@ var services = {
     nunjucks: require('./nunjucks'),
     path: require('./path'),
 };
-var HttpErrorHelper = require('../helpers/http-error');
 
 var TemplateService = {
-    render: function (context, templatePath, data) {
+    render: function (context, templatePath, data, callback) {
         var templateFile = this._findTemplate(templatePath);
 
         this._bootstrapContext(context, data, (function (templateData) {
             try {
                 var output = services.nunjucks.render(templateFile, templateData);
-                context.response.send(output);
+                callback(null, output);
             } catch (e) {
-                logger.error(e);
-                this.render('500');
+                callback(e, null);
             }
         }).bind(this));
     },

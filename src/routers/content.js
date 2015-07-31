@@ -17,22 +17,11 @@ var
     ContentService = require('../services/content'),
     ContentRoutingService = require('../services/content/routing'),
     ContentFilterService = require('../services/content/filter'),
-    UrlService = require('../services/url'),
-    HttpErrorHelper = require('../helpers/http-error');
-
-var handleError = function (error) {
-    logger.error(error);
-
-    if (error.statusCode && error.statusCode.toString() === '404') {
-        return HttpErrorHelper.emit(error.statusCode.toString(), error);
-    }
-
-    return HttpErrorHelper.emit('500', error);
-};
+    UrlService = require('../services/url');
 
 // Register content filters.
 
-ContentFilterService.add(function (content, next) {
+ContentFilterService.add(function (context, content, next) {
     // Match nunjucks-like "{{ to('') }}" directives that are used to defer rendering of presented URLs
     // until presenter-time.
     var urlDirectiveRx = /\{\{\s*to\('([^']+)'\)\s*\}\}/g;
@@ -42,7 +31,7 @@ ContentFilterService.add(function (content, next) {
         content.envelope.body = content.envelope.body.replace(
             urlDirectiveRx,
             function (match, contentID) {
-                return ContentRoutingService.getPresentedUrl(contentID);
+                return ContentRoutingService.getPresentedUrl(context, contentID);
             }
         );
     }
@@ -50,15 +39,15 @@ ContentFilterService.add(function (content, next) {
     return next();
 });
 
-ContentFilterService.add(function (content, next) {
+ContentFilterService.add(function (context, content, next) {
     // Locate the URLs for the content IDs of any next and previous links included in the
     // document.
     if (content.next && content.next.contentID && ! content.next.url) {
-        content.next.url = ContentRoutingService.getPresentedUrl(content.next.contentID);
+        content.next.url = ContentRoutingService.getPresentedUrl(context, content.next.contentID);
     }
 
     if (content.previous && content.previous.contentID && ! content.previous.url) {
-        content.previous.url = ContentRoutingService.getPresentedUrl(content.previous.contentID);
+        content.previous.url = ContentRoutingService.getPresentedUrl(context, content.previous.contentID);
     }
 
     return next();
@@ -95,20 +84,28 @@ module.exports = function (req, res) {
         },
     }, function (err, output) {
         if (err) {
-            return handleError(err);
+            return context.handleError(err);
         }
+
         if (output.toc) {
             output.content.globals = {
                 toc: output.toc
             };
         }
 
-        ContentFilterService.filter(output.content, function (error, filteredContent) {
-            if (error) {
-                return HttpErrorHelper.emit('500');
+        ContentFilterService.filter(output.content, function (err, filteredContent) {
+            if (err) {
+                return context.handleError(err);
             }
 
-            TemplateService.render(TemplateRoutingService.getRoute(), filteredContent);
+            var route = TemplateRoutingService.getRoute(context);
+            TemplateService.render(route, filteredContent, function (err, renderedContent) {
+                if (err) {
+                    return context.handleError(err);
+                }
+
+                context.send(renderedContent);
+            });
         });
     });
 };
