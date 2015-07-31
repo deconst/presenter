@@ -20,8 +20,6 @@ var
     HttpErrorHelper = require('../helpers/http-error');
 
 var handleError = function (error) {
-    logger.error(error);
-
     if(error.statusCode && error.statusCode.toString() === '404') {
         return HttpErrorHelper.emit(error.statusCode.toString(), error);
     }

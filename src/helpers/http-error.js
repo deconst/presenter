@@ -7,7 +7,6 @@ var TemplateService = require('../services/template');
 var EventEmitter = events.EventEmitter;
 var HttpErrorHelper = new EventEmitter();
 
-
 /**
  * @todo implement EventEmitter2 or similar to get wildcard event handlebars
  */

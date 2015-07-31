@@ -5,6 +5,7 @@ var ContentFilterService = {
     add: function (fn) {
         mware(fn);
     },
+
     filter: function (input, output) {
         message = input;
 
@@ -12,7 +13,6 @@ var ContentFilterService = {
             output(err, message);
             message = {};
         });
-
     }
 };
 
