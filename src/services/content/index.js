@@ -1,4 +1,5 @@
-var request = require('request'),
+var
+    request = require('request'),
     config = require('../../config'),
     logger = require('../../server/logging').logger,
     urljoin = require('url-join');
@@ -7,7 +8,7 @@ var INFRA_ERRORS = ['ENOTFOUND','ETIMEDOUT','ECONNREFUSED'];
 
 var ContentService = {
     get: function (id, options, callback) {
-        if(!id) {
+        if (!id) {
             logger.error('No content found for content at ID [' + id + ']');
 
             // without a contentID, this is like a 404
@@ -26,12 +27,12 @@ var ContentService = {
 
         request(contentUrl, function (err, res, body) {
             if (err) {
-                if(options.ignoreErrors === true) {
+                if (options.ignoreErrors === true) {
                     // This error should not be considered fatal
                     return callback(null, null);
                 }
 
-                if(err && err.code && INFRA_ERRORS.indexOf(err.code) !== -1) {
+                if (err && err.code && INFRA_ERRORS.indexOf(err.code) !== -1) {
                     return callback({
                         statusCode: 503,
                         message: err.code
@@ -41,12 +42,11 @@ var ContentService = {
                 return callback(err);
             }
 
-            if(res.statusCode >= 400) {
+            if (res.statusCode >= 400) {
                 var messageBody;
                 try {
                     messageBody = JSON.parse(body);
-                }
-                catch (e) {
+                } catch (e) {
                     messageBody = 'Not Found';
                 }
 
@@ -66,16 +66,15 @@ var ContentService = {
         var assetUrl = urljoin(config.content_service_url(), 'assets');
 
         request(assetUrl, function (err, res, body) {
-            if(err) {
+            if (err) {
                 return callback(err);
             }
 
-            if(res.statusCode >= 400) {
+            if (res.statusCode >= 400) {
                 var messageBody;
                 try {
                     messageBody = JSON.parse(body);
-                }
-                catch (e) {
+                } catch (e) {
                     messageBody = 'Not Found';
                 }
 

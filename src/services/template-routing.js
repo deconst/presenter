@@ -23,9 +23,9 @@ var TemplateRoutingService = {
 
         var bestMatch = null;
 
-        for(var pattern in routes) {
+        for (var pattern in routes) {
             var patternExpression = new RegExp(pattern);
-            if(patternExpression.test(urlPath)) {
+            if (patternExpression.test(urlPath)) {
                 bestMatch = routes[pattern];
             }
         }

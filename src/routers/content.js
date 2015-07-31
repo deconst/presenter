@@ -1,28 +1,28 @@
 // Handler to assemble a specific piece of static content.
 
 var
-  fs = require('fs'),
-  path = require('path'),
-  request = require('request'),
-  url = require('url'),
-  urljoin = require('url-join'),
-  async = require('async'),
-  handlebars = require('handlebars'),
-  _ = require('lodash'),
-  config = require('../config'),
-  logger = require('../server/logging').logger,
-  TemplateService = require('../services/template'),
-  TemplateRoutingService = require('../services/template-routing'),
-  ContentService = require('../services/content'),
-  ContentRoutingService = require('../services/content/routing'),
-  ContentFilterService = require('../services/content/filter'),
-  UrlService = require('../services/url'),
-  HttpErrorHelper = require('../helpers/http-error');
+    fs = require('fs'),
+    path = require('path'),
+    request = require('request'),
+    url = require('url'),
+    urljoin = require('url-join'),
+    async = require('async'),
+    handlebars = require('handlebars'),
+    _ = require('lodash'),
+    config = require('../config'),
+    logger = require('../server/logging').logger,
+    TemplateService = require('../services/template'),
+    TemplateRoutingService = require('../services/template-routing'),
+    ContentService = require('../services/content'),
+    ContentRoutingService = require('../services/content/routing'),
+    ContentFilterService = require('../services/content/filter'),
+    UrlService = require('../services/url'),
+    HttpErrorHelper = require('../helpers/http-error');
 
 var handleError = function (error) {
     logger.error(error);
 
-    if(error.statusCode && error.statusCode.toString() === '404') {
+    if (error.statusCode && error.statusCode.toString() === '404') {
         return HttpErrorHelper.emit(error.statusCode.toString(), error);
     }
 
@@ -64,6 +64,8 @@ ContentFilterService.add(function (content, next) {
 });
 
 module.exports = function (req, res) {
+    var context = { request: req, response: res };
+
     var contentId = ContentRoutingService.getContentId();
     var prefix = ContentRoutingService.getContentPrefix();
     var tocId = ContentRoutingService.getContentId(
@@ -76,7 +78,7 @@ module.exports = function (req, res) {
         },
         toc: function (callback) {
             ContentService.get(tocId, {ignoreErrors: true}, function (err, toc) {
-                if(!toc) {
+                if (!toc) {
                     return callback(null, null);
                 }
 
@@ -91,17 +93,17 @@ module.exports = function (req, res) {
             });
         },
     }, function (err, output) {
-        if(err) {
+        if (err) {
             return handleError(err);
         }
-        if(output.toc) {
+        if (output.toc) {
             output.content.globals = {
                 toc: output.toc
             };
         }
 
         ContentFilterService.filter(output.content, function (error, filteredContent) {
-            if(error) {
+            if (error) {
                 return HttpErrorHelper.emit('500');
             }
 

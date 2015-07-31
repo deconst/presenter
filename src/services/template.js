@@ -19,8 +19,7 @@ var TemplateService = {
             try {
                 var output = services.nunjucks.render(templateFile, templateData);
                 ResponseHelper.send(output);
-            }
-            catch (e) {
+            } catch (e) {
                 logger.error(e);
                 this.render('500');
             }
@@ -41,8 +40,6 @@ var TemplateService = {
             context.deconst.assets = data;
             callback(context);
         });
-
-
     },
     _findTemplate: function (templatePath) {
         templatePath = templatePath || 'index';
@@ -64,7 +61,7 @@ var TemplateService = {
             defaultTemplateBase + '/index.htm',
         ]);
 
-        if(matches.length === 0) {
+        if (matches.length === 0) {
             return '404.html';
         }
 
