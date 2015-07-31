@@ -12,7 +12,7 @@ Context.prototype.host = function () {
 };
 
 Context.prototype.protocol = function () {
-    return config.presented_url_proto() || this._request.protocol;
+    return config.presented_url_proto() || this.request.protocol;
 };
 
 Context.prototype.send = function (body) {
