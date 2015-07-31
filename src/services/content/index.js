@@ -7,7 +7,7 @@ var
 var INFRA_ERRORS = ['ENOTFOUND','ETIMEDOUT','ECONNREFUSED'];
 
 var ContentService = {
-    get: function (id, options, callback) {
+    get: function (context, id, options, callback) {
         if (!id) {
             // without a contentID, this is like a 404
             return callback({
@@ -27,6 +27,7 @@ var ContentService = {
 
         request(contentUrl, function (err, res, body) {
             var reqDuration = Date.now() - reqStart;
+            context.contentReqDuration = reqDuration;
 
             if (err) {
                 if (options.ignoreErrors === true) {
@@ -55,8 +56,7 @@ var ContentService = {
 
                 return callback({
                     statusCode: res.statusCode,
-                    message: messageBody,
-                    contentReqDuration: reqDuration
+                    message: messageBody
                 });
             }
 
@@ -68,7 +68,7 @@ var ContentService = {
             callback(null, JSON.parse(body));
         });
     },
-    getAssets: function (callback) {
+    getAssets: function (context, callback) {
         logger.debug("Content service request: requesting assets.");
         var assetUrl = urljoin(config.content_service_url(), 'assets');
 
@@ -76,6 +76,7 @@ var ContentService = {
 
         request(assetUrl, function (err, res, body) {
             var reqDuration = Date.now() - reqStart;
+            context.assetReqDuration = reqDuration;
 
             if (err) {
                 return callback(err);

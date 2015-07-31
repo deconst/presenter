@@ -28,7 +28,9 @@ var TemplateRoutingService = {
             }
         }
 
-        return bestMatch || 'index.html';
+        bestMatch = bestMatch || 'index.html';
+        context.templatePath = bestMatch;
+        return bestMatch;
     }
 };
 
