@@ -21,7 +21,11 @@ var
 
 // Register content filters.
 
-ContentFilterService.add(function (context, content, next) {
+ContentFilterService.add(function (input, next) {
+    var
+        context = input.context,
+        content = input.content;
+
     // Match nunjucks-like "{{ to('') }}" directives that are used to defer rendering of presented URLs
     // until presenter-time.
     var urlDirectiveRx = /\{\{\s*to\('([^']+)'\)\s*\}\}/g;
@@ -39,7 +43,11 @@ ContentFilterService.add(function (context, content, next) {
     return next();
 });
 
-ContentFilterService.add(function (context, content, next) {
+ContentFilterService.add(function (input, next) {
+    var
+        context = input.context,
+        content = input.content;
+
     // Locate the URLs for the content IDs of any next and previous links included in the
     // document.
     if (content.next && content.next.contentID && ! content.next.url) {
@@ -93,13 +101,20 @@ module.exports = function (req, res) {
             };
         }
 
-        ContentFilterService.filter(output.content, function (err, filteredContent) {
+        var input = {
+            context: context,
+            content: output.content
+        };
+
+        ContentFilterService.filter(input, function (err, filterResult) {
             if (err) {
                 return context.handleError(err);
             }
 
             var route = TemplateRoutingService.getRoute(context);
-            TemplateService.render(route, filteredContent, function (err, renderedContent) {
+            var filteredContent = filterResult.content;
+
+            TemplateService.render(context, route, filteredContent, function (err, renderedContent) {
                 if (err) {
                     return context.handleError(err);
                 }
