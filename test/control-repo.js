@@ -44,18 +44,20 @@ describe('[control-repo] the app', function () {
           .expect('site 404 page', done);
     });
 
-    it('returns 500 with a malformed content config file', function (done) {
+    it('returns a 404 with a malformed content config file', function (done) {
         mockfs({
-            'test-control': {
-                'config': {
-                    'content.json': '{notJson: "false"}'
-                }
+            'test/test-control/config': {
+                'content.json': '{notJson: "false"}'
+            },
+            'test/test-control/templates/deconst.horse': {
+                '404.html': 'site 404 page'
             }
         });
 
         request(server.create())
           .get('/')
-          .expect(500, done);
+          .expect(404)
+          .expect("site 404 page", done);
     });
 
     it('does not require a rewrites.json file', function (done) {
