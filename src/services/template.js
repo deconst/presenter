@@ -7,46 +7,37 @@ var services = {
     content: require('./content'),
     nunjucks: require('./nunjucks'),
     path: require('./path'),
+    url: require('./url')
 };
-var ResponseHelper = require('../helpers/response');
-var HttpErrorHelper = require('../helpers/http-error');
 
 var TemplateService = {
-    render: function (templatePath, data) {
-        var templateFile = this._findTemplate(templatePath);
+    render: function (context, templatePath, data, callback) {
+        var templateFile = this._findTemplate(context, templatePath);
 
-        this._bootstrapContext(data, (function (templateData){
-            try {
-                var output = services.nunjucks.render(templateFile, templateData);
-                ResponseHelper.send(output);
-            }
-            catch (e) {
-                logger.error(e);
-                this.render('500');
-            }
-        }).bind(this));
+        this._bootstrapContext(context, data, function (templateData) {
+            var env = services.nunjucks.getEnvironment(context);
+            env.render(templateFile, templateData, callback);
+        });
     },
-    _bootstrapContext: function (content, callback) {
-        var context = {
+    _bootstrapContext: function (context, content, callback) {
+        var ctx = {
             deconst: {
                 env: process.env,
                 content: content || {},
-                url: require('./url'),
-                request: require('../helpers/request'),
-                response: require('../helpers/response')
+                url: services.url,
+                request: context.request,
+                response: context.response
             }
         };
 
         services.content.getAssets(function (err, data) {
-            context.deconst.assets = data;
-            callback(context);
+            ctx.deconst.assets = data;
+            callback(ctx);
         });
-
-
     },
-    _findTemplate: function (templatePath) {
+    _findTemplate: function (context, templatePath) {
         templatePath = templatePath || 'index';
-        var templateDir = services.path.getTemplatesPath();
+        var templateDir = services.path.getTemplatesPath(context);
         var defaultTemplateDir = services.path.getDefaultTemplatesPath();
         var templateBase = path.resolve(templateDir, templatePath);
         var defaultTemplateBase = path.resolve(defaultTemplateDir, templatePath);
@@ -64,8 +55,12 @@ var TemplateService = {
             defaultTemplateBase + '/index.htm',
         ]);
 
-        if(matches.length === 0) {
-            return '404.html';
+        if (matches.length === 0 && templatePath !== "404.html") {
+            return this._findTemplate(context, "404.html");
+        }
+
+        if (matches.length === 0) {
+            throw new Error("Unable to find static 404 handler");
         }
 
         return matches[0].replace(templateDir + '/', '').replace(defaultTemplateDir + '/', '');

@@ -2,7 +2,6 @@ var fs = require('fs');
 var path = require('path');
 var url = require('url');
 var config = require('../config');
-var RequestHelper = require('../helpers/request');
 var PathService = require('../services/path');
 
 var ROUTES_FILE = config.control_routes_file();
@@ -17,15 +16,14 @@ var TemplateRoutingService = {
 
         return routes.routes;
     },
-    getRoute: function (urlPath) {
-        urlPath = urlPath || RequestHelper.request.path;
-        var routes = this._readRoutes(RequestHelper.host);
-
+    getRoute: function (context) {
+        var urlPath = context.request.path;
+        var routes = this._readRoutes(context.host());
         var bestMatch = null;
 
-        for(var pattern in routes) {
+        for (var pattern in routes) {
             var patternExpression = new RegExp(pattern);
-            if(patternExpression.test(urlPath)) {
+            if (patternExpression.test(urlPath)) {
                 bestMatch = routes[pattern];
             }
         }

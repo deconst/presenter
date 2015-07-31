@@ -12,7 +12,6 @@ var ContentFilterService = {
             output(err, message);
             message = {};
         });
-
     }
 };
 

@@ -8,22 +8,27 @@ var fs = require('fs'),
     request = require('supertest'),
     nock = require('nock'),
     mockfs = require('mock-fs'),
-    server = require("../src/server");
+    server = require("../src/server"),
+    PathService = require("../src/services/path"),
+    NunjucksService = require("../src/services/nunjucks");
 
 nock.enableNetConnect("127.0.0.1");
 
 describe('[control-repo] the app', function () {
     beforeEach(function () {
       config.configure(before.settings);
+      NunjucksService.clearEnvironments();
     });
 
     afterEach(function () {
         mockfs.restore();
     });
 
-    it('returns 500 with a nonexistent control repo', function (done) {
+    it('returns a 404 with a nonexistent control repo', function (done) {
         mockfs({
-            'test-control': {}
+            'test/test-control/templates/deconst.horse': {
+                '404.html': 'site 404 page'
+            },
         });
 
         var content = nock('http://content')
@@ -35,29 +40,30 @@ describe('[control-repo] the app', function () {
 
         request(server.create())
           .get('/')
-          .expect(500, done);
+          .expect(404)
+          .expect('site 404 page', done);
     });
 
-    it('returns 500 with a malformed content config file', function (done) {
+    it('returns a 404 with a malformed content config file', function (done) {
         mockfs({
-            'test-control': {
-                'config': {
-                    'content.json': '{notJson: "false"}'
-                }
+            'test/test-control/config': {
+                'content.json': '{notJson: "false"}'
+            },
+            'test/test-control/templates/deconst.horse': {
+                '404.html': 'site 404 page'
             }
         });
 
         request(server.create())
           .get('/')
-          .expect(500, done);
+          .expect(404)
+          .expect("site 404 page", done);
     });
 
     it('does not require a rewrites.json file', function (done) {
         config.set({
             CONTROL_REWRITES_FILE: 'foo.json'
         });
-
-        console.log(config.control_rewrites_file());
 
         var content = nock('http://content')
             .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')

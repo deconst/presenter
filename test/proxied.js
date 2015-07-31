@@ -1,7 +1,9 @@
 // Unit tests for proxied services.
 
-var before = require("./helpers/before"),
-    config = require('../src/config');
+var
+    before = require("./helpers/before"),
+    config = require('../src/config'),
+    NunjucksService = require("../src/services/nunjucks");
 
 config.configure(before.settings);
 
@@ -16,6 +18,7 @@ describe("proxied services", function () {
 
   beforeEach(function () {
     config.configure(before.settings);
+    NunjucksService.clearEnvironments();
   });
 
   it("handles proxied content", function (done) {
