@@ -7,29 +7,24 @@ var services = {
     content: require('./content'),
     nunjucks: require('./nunjucks'),
     path: require('./path'),
+    url: require('./url')
 };
 
 var TemplateService = {
     render: function (context, templatePath, data, callback) {
-        var templateFile = this._findTemplate(templatePath);
+        var templateFile = this._findTemplate(context, templatePath);
 
-        this._bootstrapContext(context, data, (function (templateData) {
+        this._bootstrapContext(context, data, function (templateData) {
             var env = services.nunjucks.getEnvironment(context);
-
-            try {
-                var output = env.render(templateFile, templateData);
-                callback(null, output);
-            } catch (e) {
-                callback(e, null);
-            }
-        }).bind(this));
+            env.render(templateFile, templateData, callback);
+        });
     },
     _bootstrapContext: function (context, content, callback) {
         var ctx = {
             deconst: {
                 env: process.env,
                 content: content || {},
-                url: require('./url'),
+                url: services.url,
                 request: context.request,
                 response: context.response
             }
@@ -60,8 +55,12 @@ var TemplateService = {
             defaultTemplateBase + '/index.htm',
         ]);
 
+        if (matches.length === 0 && templatePath !== "404.html") {
+            return this._findTemplate(context, "404.html");
+        }
+
         if (matches.length === 0) {
-            return '404.html';
+            throw new Error("Unable to find static 404 handler");
         }
 
         return matches[0].replace(templateDir + '/', '').replace(defaultTemplateDir + '/', '');

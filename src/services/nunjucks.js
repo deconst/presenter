@@ -7,10 +7,12 @@ var services = {
 var envs = {};
 
 function createEnvironment(context) {
-    var env = new nunjucks.FileSystemLoader([
-        services.path.getTemplatesPath(context),
-        services.path.getDefaultTemplatesPath()
-    ], { watch: true });
+    var env = new nunjucks.Environment(
+        new nunjucks.FileSystemLoader([
+            services.path.getTemplatesPath(context),
+            services.path.getDefaultTemplatesPath()
+        ], { watch: true })
+    );
 
     env.addFilter('date', nunjucksDate);
 

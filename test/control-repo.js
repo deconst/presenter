@@ -9,6 +9,7 @@ var fs = require('fs'),
     nock = require('nock'),
     mockfs = require('mock-fs'),
     server = require("../src/server");
+    PathService = require("../src/services/path");
 
 nock.enableNetConnect("127.0.0.1");
 
@@ -35,7 +36,8 @@ describe('[control-repo] the app', function () {
 
         request(server.create())
           .get('/')
-          .expect(500, done);
+          .expect(404)
+          .expect('system 404 page', done);
     });
 
     it('returns 500 with a malformed content config file', function (done) {
