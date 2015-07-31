@@ -70,12 +70,14 @@ module.exports = function (req, res) {
         UrlService.getSitePath(prefix + '_toc')
     );
 
+    context.contentId = contentId;
+
     async.parallel({
         content: function (callback) {
-            ContentService.get(contentId, {}, callback);
+            ContentService.get(context, contentId, {}, callback);
         },
         toc: function (callback) {
-            ContentService.get(tocId, {ignoreErrors: true}, function (err, toc) {
+            ContentService.get(context, tocId, {ignoreErrors: true}, function (err, toc) {
                 if (!toc) {
                     return callback(null, null);
                 }

@@ -23,5 +23,14 @@ exports.create = function () {
     rewrites(app);
     routes.install(app);
 
+    app.use(function (err, req, res, next) {
+        logging.logger.error({
+            stack: err.stack,
+            message: "Express.js error handler invoked"
+        });
+
+        res.status(500).send("Something went wrong.");
+    });
+
     return app;
 };

@@ -15,8 +15,13 @@ var TemplateService = {
         var templateFile = this._findTemplate(context, templatePath);
 
         this._bootstrapContext(context, data, function (templateData) {
+            var startTimestamp = Date.now();
             var env = services.nunjucks.getEnvironment(context);
-            env.render(templateFile, templateData, callback);
+            env.render(templateFile, templateData, function (err, result) {
+                context.templateRenderDuration = Date.now() - startTimestamp;
+
+                callback(err, result);
+            });
         });
     },
     _bootstrapContext: function (context, content, callback) {
@@ -30,7 +35,7 @@ var TemplateService = {
             }
         };
 
-        services.content.getAssets(function (err, data) {
+        services.content.getAssets(context, function (err, data) {
             ctx.deconst.assets = data;
             callback(ctx);
         });
