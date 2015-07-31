@@ -4,21 +4,43 @@ var services = {
     path: require('./path')
 };
 
-var env = new nunjucks.Environment(
-    new nunjucks.FileSystemLoader([
-        services.path.getTemplatesPath(),
-        services.path.getDefaultTemplatesPath()
-    ], {watch: true})
-);
+var envs = {};
 
-env.addFilter('date', nunjucksDate);
+function createEnvironment(context) {
+    var env = new nunjucks.Environment(
+        new nunjucks.FileSystemLoader([
+            services.path.getTemplatesPath(context),
+            services.path.getDefaultTemplatesPath()
+        ], { watch: true })
+    );
 
-env.addFilter('json', function (data) {
-    var string = JSON.stringify(data, null, 4);
-    string = string.replace(/</g,'&lt;').replace(/>/g, '&gt;');
+    env.addFilter('date', nunjucksDate);
 
-    return '<pre><code>' + string + '</code></pre>';
-});
+    env.addFilter('json', function (data) {
+        var string = JSON.stringify(data, null, 4);
+        string = string.replace(/</g,'&lt;').replace(/>/g, '&gt;');
 
+        return '<pre><code>' + string + '</code></pre>';
+    });
 
-module.exports = env;
+    return env;
+}
+
+var NunjucksService = {
+    clearEnvironments: function () {
+        envs = {};
+    },
+    getEnvironment: function (context) {
+        var host = context.host();
+
+        if (envs[host]) {
+            return envs[host];
+        }
+
+        var env = createEnvironment(context);
+        envs[host] = env;
+        return env;
+    }
+};
+
+module.exports = NunjucksService;
