@@ -22,9 +22,11 @@ describe('[control-repo] the app', function () {
         mockfs.restore();
     });
 
-    it('returns 500 with a nonexistent control repo', function (done) {
+    it('returns a 404 with a nonexistent control repo', function (done) {
         mockfs({
-            'test-control': {}
+            'test/test-control/templates/deconst.horse': {
+                '404.html': 'site 404 page'
+            },
         });
 
         var content = nock('http://content')
@@ -37,7 +39,7 @@ describe('[control-repo] the app', function () {
         request(server.create())
           .get('/')
           .expect(404)
-          .expect('system 404 page', done);
+          .expect('site 404 page', done);
     });
 
     it('returns 500 with a malformed content config file', function (done) {

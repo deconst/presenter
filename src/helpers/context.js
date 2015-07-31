@@ -25,9 +25,14 @@ Context.prototype.handleError = function (err) {
         code = 404;
     }
 
-    var responseBody = TemplateService.render(this, code.toString());
+    TemplateService.render(this, code.toString(), {}, function (err, responseBody) {
+        if (err) {
+            console.error("I couldn't render an error template. I'm freaking out!", err);
+            responseBody = "Er, I was going to render an error template, but I couldn't.";
+        }
 
-    this.response.status(code).send(responseBody);
+        this.response.status(code).send(responseBody);
+    }.bind(this));
 };
 
 module.exports = Context;

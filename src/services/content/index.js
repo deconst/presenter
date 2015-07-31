@@ -13,7 +13,7 @@ var ContentService = {
 
             // without a contentID, this is like a 404
             return callback({
-              statusCode: '404'
+              statusCode: 404
             });
         }
 
