@@ -8,14 +8,16 @@ var fs = require('fs'),
     request = require('supertest'),
     nock = require('nock'),
     mockfs = require('mock-fs'),
-    server = require("../src/server");
-    PathService = require("../src/services/path");
+    server = require("../src/server"),
+    PathService = require("../src/services/path"),
+    NunjucksService = require("../src/services/nunjucks");
 
 nock.enableNetConnect("127.0.0.1");
 
 describe('[control-repo] the app', function () {
     beforeEach(function () {
       config.configure(before.settings);
+      NunjucksService.clearEnvironments();
     });
 
     afterEach(function () {
@@ -60,8 +62,6 @@ describe('[control-repo] the app', function () {
         config.set({
             CONTROL_REWRITES_FILE: 'foo.json'
         });
-
-        console.log(config.control_rewrites_file());
 
         var content = nock('http://content')
             .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')

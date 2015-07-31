@@ -27,6 +27,9 @@ function createEnvironment(context) {
 }
 
 var NunjucksService = {
+    clearEnvironments: function () {
+        envs = {};
+    },
     getEnvironment: function (context) {
         var host = context.host();
 
