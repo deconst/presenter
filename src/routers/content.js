@@ -1,23 +1,23 @@
 // Handler to assemble a specific piece of static content.
 
 var
-  fs = require('fs'),
-  path = require('path'),
-  request = require('request'),
-  url = require('url'),
-  urljoin = require('url-join'),
-  async = require('async'),
-  handlebars = require('handlebars'),
-  _ = require('lodash'),
-  config = require('../config'),
-  logger = require('../server/logging').logger,
-  TemplateService = require('../services/template'),
-  TemplateRoutingService = require('../services/template-routing'),
-  ContentService = require('../services/content'),
-  ContentRoutingService = require('../services/content/routing'),
-  ContentFilterService = require('../services/content/filter'),
-  UrlService = require('../services/url'),
-  HttpErrorHelper = require('../helpers/http-error');
+    fs = require('fs'),
+    path = require('path'),
+    request = require('request'),
+    url = require('url'),
+    urljoin = require('url-join'),
+    async = require('async'),
+    handlebars = require('handlebars'),
+    _ = require('lodash'),
+    config = require('../config'),
+    logger = require('../server/logging').logger,
+    TemplateService = require('../services/template'),
+    TemplateRoutingService = require('../services/template-routing'),
+    ContentService = require('../services/content'),
+    ContentRoutingService = require('../services/content/routing'),
+    ContentFilterService = require('../services/content/filter'),
+    UrlService = require('../services/url'),
+    HttpErrorHelper = require('../helpers/http-error');
 
 var handleError = function (error) {
     logger.error(error);
