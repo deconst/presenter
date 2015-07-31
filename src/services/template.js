@@ -14,8 +14,10 @@ var TemplateService = {
         var templateFile = this._findTemplate(templatePath);
 
         this._bootstrapContext(context, data, (function (templateData) {
+            var env = services.nunjucks.getEnvironment(context);
+
             try {
-                var output = services.nunjucks.render(templateFile, templateData);
+                var output = env.render(templateFile, templateData);
                 callback(null, output);
             } catch (e) {
                 callback(e, null);
