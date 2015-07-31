@@ -40,9 +40,9 @@ var TemplateService = {
             callback(ctx);
         });
     },
-    _findTemplate: function (templatePath) {
+    _findTemplate: function (context, templatePath) {
         templatePath = templatePath || 'index';
-        var templateDir = services.path.getTemplatesPath();
+        var templateDir = services.path.getTemplatesPath(context);
         var defaultTemplateDir = services.path.getDefaultTemplatesPath();
         var templateBase = path.resolve(templateDir, templatePath);
         var defaultTemplateBase = path.resolve(defaultTemplateDir, templatePath);

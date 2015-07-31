@@ -20,5 +20,4 @@ env.addFilter('json', function (data) {
     return '<pre><code>' + string + '</code></pre>';
 });
 
-
 module.exports = env;
