@@ -64,9 +64,9 @@ ContentFilterService.add(function (input, next) {
 module.exports = function (req, res) {
     var context = new Context(req, res);
 
-    var contentId = ContentRoutingService.getContentId();
-    var prefix = ContentRoutingService.getContentPrefix();
-    var tocId = ContentRoutingService.getContentId(
+    var contentId = ContentRoutingService.getContentId(context);
+    var prefix = ContentRoutingService.getContentPrefix(context);
+    var tocId = ContentRoutingService.getContentId(context,
         UrlService.getSitePath(prefix + '_toc')
     );
 
