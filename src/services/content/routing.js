@@ -15,7 +15,7 @@ var ContentRoutingService = {
                 path.resolve(PathService.getConfigPath(), CONTENT_FILE),
                 'utf-8'
             ));
-        } catch(e) {
+        } catch (e) {
             logger.error('Unable to read ' + path.resolve(PathService.getConfigPath(), CONTENT_FILE));
             return {};
         }
