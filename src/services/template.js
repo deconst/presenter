@@ -8,37 +8,36 @@ var services = {
     nunjucks: require('./nunjucks'),
     path: require('./path'),
 };
-var ResponseHelper = require('../helpers/response');
 var HttpErrorHelper = require('../helpers/http-error');
 
 var TemplateService = {
-    render: function (templatePath, data) {
+    render: function (context, templatePath, data) {
         var templateFile = this._findTemplate(templatePath);
 
-        this._bootstrapContext(data, (function (templateData){
+        this._bootstrapContext(context, data, (function (templateData) {
             try {
                 var output = services.nunjucks.render(templateFile, templateData);
-                ResponseHelper.send(output);
+                context.response.send(output);
             } catch (e) {
                 logger.error(e);
                 this.render('500');
             }
         }).bind(this));
     },
-    _bootstrapContext: function (content, callback) {
-        var context = {
+    _bootstrapContext: function (context, content, callback) {
+        var ctx = {
             deconst: {
                 env: process.env,
                 content: content || {},
                 url: require('./url'),
-                request: require('../helpers/request'),
-                response: require('../helpers/response')
+                request: context.request,
+                response: context.response
             }
         };
 
         services.content.getAssets(function (err, data) {
-            context.deconst.assets = data;
-            callback(context);
+            ctx.deconst.assets = data;
+            callback(ctx);
         });
     },
     _findTemplate: function (templatePath) {
