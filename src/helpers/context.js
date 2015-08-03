@@ -18,26 +18,26 @@ function Context(req, resp) {
 
 Context.prototype._summarize = function (statusCode, message) {
     var summary = {
-        status_code: statusCode,
+        statusCode: statusCode,
         message: message,
-        request_url: this.request.url,
-        total_req_duration: Date.now() - this.startTimestamp
+        requestURL: this.request.url,
+        totalReqDuration: Date.now() - this.startTimestamp
     };
 
     if (this.contentId !== null) {
-        summary.content_id = this.contentId;
+        summary.contentID = this.contentId;
     }
 
     if (this.templatePath !== null) {
-        summary.template_path = this.templatePath;
+        summary.templatePath = this.templatePath;
     }
 
     if (this.contentReqDuration !== null) {
-        summary.content_req_duration = this.contentReqDuration;
+        summary.contentReqDuration = this.contentReqDuration;
     }
 
     if (this.templateRenderDuration !== null) {
-        summary.template_render_duration = this.templateRenderDuration;
+        summary.templateRenderDuration = this.templateRenderDuration;
     }
 
     return summary;
