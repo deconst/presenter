@@ -1,5 +1,6 @@
 var nunjucks = require('nunjucks');
 var nunjucksDate = require('nunjucks-date');
+var nunjucksFallback = require('./nunjucks-fallback');
 var services = {
     path: require('./path')
 };
@@ -15,6 +16,7 @@ function createEnvironment(context) {
     );
 
     env.addFilter('date', nunjucksDate);
+    env.addFilter('fallback', nunjucksFallback);
 
     env.addFilter('json', function (data) {
         var string = JSON.stringify(data, null, 4);

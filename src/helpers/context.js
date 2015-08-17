@@ -57,6 +57,7 @@ Context.prototype.send = function (body) {
 };
 
 Context.prototype.handleError = function (err) {
+    logger.debug(err);
     var code = err.statusCode || 500;
     var message = err.message;
     if (err.statusCode && err.statusCode.toString() === "404") {
