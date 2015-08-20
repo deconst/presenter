@@ -1,3 +1,5 @@
+var fs = require('fs');
+var path = require('path');
 var nunjucks = require('nunjucks');
 var nunjucksDate = require('nunjucks-date');
 var nunjucksFallback = require('./nunjucks-fallback');
@@ -25,8 +27,24 @@ function createEnvironment(context) {
         return '<pre><code>' + string + '</code></pre>';
     });
 
+    addPlugins(env, context);
+
     return env;
 }
+
+var addPlugins = function (env, context) {
+    var pluginPath = services.path.getPluginsPath(context);
+    fs.readdirSync(pluginPath).forEach(function (pluginDir) {
+        var plugin = require(path.join(pluginPath, pluginDir));
+
+        if(plugin.templateFilters.length > 0) {
+            plugin.templateFilters.forEach(function (filter) {
+                env.addFilter.apply(env, filter);
+            });
+        }
+
+    });
+};
 
 var NunjucksService = {
     clearEnvironments: function () {
