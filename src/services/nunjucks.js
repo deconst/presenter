@@ -35,6 +35,18 @@ function createEnvironment(context) {
 
 var addPlugins = function (env, context) {
     var pluginPath = services.path.getPluginsPath(context);
+    try {
+        fs.openSync(pluginPath, 'r');
+    }
+    catch(e) {
+        logger.warn('Unable to find plugins directory at: ' + pluginPath);
+        return;
+    }
+
+    if(!fs.statSync(pluginPath).isDirectory()) {
+        return;
+    }
+
     fs.readdirSync(pluginPath).forEach(function (pluginDir) {
         var plugin;
 
