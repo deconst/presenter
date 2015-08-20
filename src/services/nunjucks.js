@@ -1,5 +1,6 @@
 var fs = require('fs');
 var path = require('path');
+var logger = require('../server/logging').logger;
 var nunjucks = require('nunjucks');
 var nunjucksDate = require('nunjucks-date');
 var nunjucksFallback = require('./nunjucks-fallback');
@@ -35,10 +36,30 @@ function createEnvironment(context) {
 var addPlugins = function (env, context) {
     var pluginPath = services.path.getPluginsPath(context);
     fs.readdirSync(pluginPath).forEach(function (pluginDir) {
-        var plugin = require(path.join(pluginPath, pluginDir));
+        var plugin;
 
-        if(plugin.templateFilters.length > 0) {
+        try {
+            plugin = require(path.join(pluginPath, pluginDir));
+        }
+        catch(e) {
+            logger.error(e);
+            return;
+        }
+
+        if(plugin.templateFilters && plugin.templateFilters.length > 0) {
             plugin.templateFilters.forEach(function (filter) {
+                var originalFilter = filter[1].bind(env);
+
+                filter[1] = function (input) {
+                    try {
+                        return originalFilter.apply(env, arguments);
+                    }
+                    catch(e) {
+                        logger.error(e);
+                        return input;
+                    }
+                };
+
                 env.addFilter.apply(env, filter);
             });
         }
