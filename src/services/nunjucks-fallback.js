@@ -1,9 +1,9 @@
 module.exports = function () {
-    for(var key in arguments) {
-        if(arguments[key]) {
-            return arguments[key];
-        }
+  for (var key in arguments) {
+    if (arguments[key]) {
+      return arguments[key];
     }
+  }
 
-    return '';
+  return '';
 };
