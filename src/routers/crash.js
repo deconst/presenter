@@ -4,5 +4,5 @@
 // forth. It should only be installed in non-production environments.
 
 module.exports = function (req, res) {
-    throw new Error("AHHHHHHHHHHHH MOTHERLAND");
+  throw new Error('AHHHHHHHHHHHH MOTHERLAND');
 };
