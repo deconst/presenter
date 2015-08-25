@@ -2,13 +2,13 @@
  * Create and configure an Express server to host the application.
  */
 
-var express = require('express'),
-  logging = require('./logging'),
-  proxies = require('./proxies'),
-  rewrites = require('./rewrites'),
-  routes = require('../routers'),
-  path = require('path'),
-  pathService = require('../services/path');
+var express = require('express');
+var logging = require('./logging');
+var proxies = require('./proxies');
+var rewrites = require('./rewrites');
+var routes = require('../routers');
+var path = require('path');
+var pathService = require('../services/path');
 
 exports.create = function () {
   var app = express();

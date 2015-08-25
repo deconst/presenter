@@ -1,28 +1,19 @@
 // Handler to assemble a specific piece of static content.
 
-var fs = require('fs'),
-  path = require('path'),
-  request = require('request'),
-  url = require('url'),
-  urljoin = require('url-join'),
-  async = require('async'),
-  handlebars = require('handlebars'),
-  _ = require('lodash'),
-  config = require('../config'),
-  logger = require('../server/logging').logger,
-  Context = require('../helpers/context'),
-  TemplateService = require('../services/template'),
-  TemplateRoutingService = require('../services/template-routing'),
-  ContentService = require('../services/content'),
-  ContentRoutingService = require('../services/content/routing'),
-  ContentFilterService = require('../services/content/filter'),
-  UrlService = require('../services/url');
+var async = require('async');
+var Context = require('../helpers/context');
+var TemplateService = require('../services/template');
+var TemplateRoutingService = require('../services/template-routing');
+var ContentService = require('../services/content');
+var ContentRoutingService = require('../services/content/routing');
+var ContentFilterService = require('../services/content/filter');
+var UrlService = require('../services/url');
 
 // Register content filters.
 
 ContentFilterService.add(function (input, next) {
-  var context = input.context,
-    content = input.content;
+  var context = input.context;
+  var content = input.content;
 
   // Match nunjucks-like "{{ to('') }}" directives that are used to defer rendering of presented URLs
   // until presenter-time.
@@ -42,16 +33,16 @@ ContentFilterService.add(function (input, next) {
 });
 
 ContentFilterService.add(function (input, next) {
-  var context = input.context,
-    content = input.content;
+  var context = input.context;
+  var content = input.content;
 
   // Locate the URLs for the content IDs of any next and previous links included in the
   // document.
-  if (content.next && content.next.contentID && ! content.next.url) {
+  if (content.next && content.next.contentID && !content.next.url) {
     content.next.url = ContentRoutingService.getPresentedUrl(context, content.next.contentID);
   }
 
-  if (content.previous && content.previous.contentID && ! content.previous.url) {
+  if (content.previous && content.previous.contentID && !content.previous.url) {
     content.previous.url = ContentRoutingService.getPresentedUrl(context, content.previous.contentID);
   }
 
@@ -75,7 +66,7 @@ module.exports = function (req, res) {
     },
     toc: function (callback) {
       ContentService.get(context, tocId, {ignoreErrors: true}, function (err, toc) {
-        if (!toc) {
+        if (err || !toc) {
           return callback(null, null);
         }
 
@@ -88,7 +79,7 @@ module.exports = function (req, res) {
 
         return callback(null, toc.envelope.body);
       });
-    },
+    }
   }, function (err, output) {
     if (err) {
       return context.handleError(err);

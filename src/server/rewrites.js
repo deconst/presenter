@@ -22,7 +22,7 @@ module.exports = function (app) {
       logger.debug('Reading rewrites from %s', PathService.getConfigPath(rewritesFile));
     } catch (e) {
       logger.warn('No valid JSON file found at %s', PathService.getConfigPath(rewritesFile));
-      var rewritesFileData = [];
+      rewritesFileData = [];
     }
 
     app.use(function (req, res, next) {

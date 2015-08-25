@@ -9,8 +9,8 @@ var config = require('./src/config');
 
 config.configure(process.env);
 
-var logger = require('./src/server/logging').logger,
-  app = require('./src/server').create();
+var logger = require('./src/server/logging').logger;
+var app = require('./src/server').create();
 
 var server = app.listen(8080, function () {
   var host = server.address().address;

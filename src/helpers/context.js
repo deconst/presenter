@@ -1,6 +1,6 @@
-var logger = require('../server/logging').logger,
-  config = require('../config'),
-  TemplateService = require('../services/template');
+var logger = require('../server/logging').logger;
+var config = require('../config');
+var TemplateService = require('../services/template');
 
 function Context (req, resp) {
   this.request = req;
@@ -58,7 +58,6 @@ Context.prototype.send = function (body) {
 Context.prototype.handleError = function (err) {
   logger.debug(err);
   var code = err.statusCode || 500;
-  var message = err.message;
   if (err.statusCode && err.statusCode.toString() === '404') {
     code = 404;
   }

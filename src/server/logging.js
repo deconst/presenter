@@ -18,7 +18,7 @@ if (process.env.NODE_ENV === 'production') {
     level: config.log_level().toLowerCase(),
     prettyPrint: true,
     colorize: config.log_colorize(),
-    timestamp: true,
+    timestamp: true
   }));
 }
 

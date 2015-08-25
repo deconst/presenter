@@ -62,7 +62,7 @@ var configuration = {
     description: "Set to 'true' to enable colorized log output.",
     normalize: normalize_bool,
     def: 'false',
-    required: false,
+    required: false
   },
   presenter_diagnostics: {
     env: 'PRESENTER_DIAGNOSTICS',
@@ -112,7 +112,7 @@ exports.configure = function (env) {
     var setting = configuration[name];
     var value = env[setting.env];
 
-    if (! value && setting.def) {
+    if (!value && setting.def) {
       value = setting.def;
     }
 
@@ -123,7 +123,7 @@ exports.configure = function (env) {
     setting.value = value;
 
     // Missing or blank values from the environment are considered "unset."
-    if (! value && setting.required) {
+    if (!value && setting.required) {
       missing.push(setting);
     }
   }
