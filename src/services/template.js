@@ -1,8 +1,5 @@
-var async = require('async');
-var fs = require('fs');
 var globby = require('globby');
 var path = require('path');
-var logger = require('../server/logging').logger;
 var services = {
   content: require('./content'),
   nunjucks: require('./nunjucks'),
@@ -14,7 +11,11 @@ var TemplateService = {
   render: function (context, templatePath, data, callback) {
     var templateFile = this._findTemplate(context, templatePath);
 
-    this._bootstrapContext(context, data, function (templateData) {
+    this._bootstrapContext(context, data, function (err, templateData) {
+      if (err) {
+        return callback(err);
+      }
+
       var startTimestamp = Date.now();
       var env = services.nunjucks.getEnvironment(context);
       env.render(templateFile, templateData, function (err, result) {
@@ -36,8 +37,12 @@ var TemplateService = {
     };
 
     services.content.getAssets(context, function (err, data) {
-      ctx.deconst.assets = data;
-      callback(ctx);
+      if (err) {
+        ctx.deconst.assets = {};
+      } else {
+        ctx.deconst.assets = data;
+      }
+      callback(null, ctx);
     });
   },
   _findTemplate: function (context, templatePath) {
@@ -57,7 +62,7 @@ var TemplateService = {
       defaultTemplateBase + '.html',
       defaultTemplateBase + '.htm',
       defaultTemplateBase + '/index.html',
-      defaultTemplateBase + '/index.htm',
+      defaultTemplateBase + '/index.htm'
     ]);
 
     if (matches.length === 0 && templatePath !== '404.html') {

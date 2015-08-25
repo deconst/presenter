@@ -1,7 +1,7 @@
-var request = require('request'),
-  config = require('../../config'),
-  logger = require('../../server/logging').logger,
-  urljoin = require('url-join');
+var request = require('request');
+var config = require('../../config');
+var logger = require('../../server/logging').logger;
+var urljoin = require('url-join');
 
 var INFRA_ERRORS = ['ENOTFOUND', 'ETIMEDOUT', 'ECONNREFUSED'];
 

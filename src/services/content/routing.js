@@ -43,7 +43,8 @@ var ContentRoutingService = {
     urlPath = urlPath || context.request.path;
     var content = this._readContent(context.host());
 
-    var contentStoreBase = null, afterPrefix = null;
+    var contentStoreBase = null;
+    var afterPrefix = null;
 
     for (var prefix in content) {
       if (urlPath.indexOf(prefix) !== -1) {
@@ -73,9 +74,9 @@ var ContentRoutingService = {
     return prefixMatch;
   },
   getPresentedUrl: function (context, contentId) {
-    var content = this._readContent(context.host()),
-      urlBase = null,
-      afterPrefix = null;
+    var content = this._readContent(context.host());
+    var urlBase = null;
+    var afterPrefix = null;
 
     for (var prefix in content) {
       if (contentId.indexOf(content[prefix].replace(/\/$/, '')) !== -1) {

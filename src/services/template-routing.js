@@ -1,6 +1,5 @@
 var fs = require('fs');
 var path = require('path');
-var url = require('url');
 var config = require('../config');
 var PathService = require('../services/path');
 
