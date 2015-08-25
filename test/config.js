@@ -1,7 +1,8 @@
+/* globals it describe */
 // Unit tests for the configuration system.
 
-var expect = require('chai').expect,
-  config = require('../src/config');
+var expect = require('chai').expect;
+var config = require('../src/config');
 
 describe('config', function () {
   it('reads configuration values from the environment', function () {
@@ -32,7 +33,7 @@ describe('config', function () {
   it('defaults the log level', function () {
     config.configure({
       CONTROL_REPO_PATH: './test/test-control',
-      CONTENT_SERVICE_URL: 'https://content',
+      CONTENT_SERVICE_URL: 'https://content'
     });
 
     expect(config.log_level()).to.equal('info');
@@ -41,7 +42,7 @@ describe('config', function () {
   it('normalizes service URLs', function () {
     config.configure({
       CONTROL_REPO_PATH: './test/test-control',
-      CONTENT_SERVICE_URL: 'https://content/',
+      CONTENT_SERVICE_URL: 'https://content/'
     });
 
     expect(config.content_service_url()).to.equal('https://content');

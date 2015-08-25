@@ -1,8 +1,9 @@
+/* globals it describe */
 // Unit tests for the version endpoint.
 
 var config = require('../src/config');
 
-settings = {
+var settings = {
   CONTROL_REPO_PATH: './test/test-control',
   CONTENT_SERVICE_URL: 'http://content',
   PRESENTED_URL_DOMAIN: 'deconst.horse'
@@ -10,10 +11,10 @@ settings = {
 
 config.configure(settings);
 
-var request = require('supertest'),
-  expect = require('chai').expect,
-  server = require('../src/server'),
-  info = require('../package.json');
+var request = require('supertest');
+var expect = require('chai').expect;
+var server = require('../src/server');
+var info = require('../package.json');
 
 describe('/version', function () {
   it('reports the running application version', function (done) {

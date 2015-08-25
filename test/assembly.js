@@ -1,13 +1,14 @@
+/* globals it describe beforeEach */
 // Unit tests for page assembly.
 
-var before = require('./helpers/before'),
-  config = require('../src/config');
+var before = require('./helpers/before');
+var config = require('../src/config');
 
 config.configure(before.settings);
 
-var request = require('supertest'),
-  nock = require('nock'),
-  server = require('../src/server');
+var request = require('supertest');
+var nock = require('nock');
+var server = require('../src/server');
 
 nock.enableNetConnect('127.0.0.1');
 
@@ -17,7 +18,7 @@ describe('page assembly', function () {
   });
 
   it('assembles a page', function (done) {
-    var content = nock('http://content')
+    nock('http://content')
       .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
       .reply(200, {
         assets: [],
@@ -31,7 +32,7 @@ describe('page assembly', function () {
   });
 
   it('ignores empty URL segments', function (done) {
-    var content = nock('http://content')
+    nock('http://content')
       .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Ffoo')
       .reply(200, {
         assets: [],
@@ -45,7 +46,7 @@ describe('page assembly', function () {
   });
 
   it('returns the user-defined 404 template', function (done) {
-    var content = nock('http://content')
+    nock('http://content')
       .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
       .reply(404);
 
@@ -56,7 +57,7 @@ describe('page assembly', function () {
   });
 
   it('passes other failing status codes through', function (done) {
-    var content = nock('http://content')
+    nock('http://content')
       .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
       .reply(409);
 

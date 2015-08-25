@@ -1,16 +1,15 @@
-var before = require('./helpers/before'),
-  config = require('../src/config');
+/* globals it describe beforeEach afterEach */
+
+var before = require('./helpers/before');
+var config = require('../src/config');
 
 config.configure(before.settings);
 
-var fs = require('fs'),
-  path = require('path'),
-  request = require('supertest'),
-  nock = require('nock'),
-  mockfs = require('mock-fs'),
-  server = require('../src/server'),
-  PathService = require('../src/services/path'),
-  NunjucksService = require('../src/services/nunjucks');
+var request = require('supertest');
+var nock = require('nock');
+var mockfs = require('mock-fs');
+var server = require('../src/server');
+var NunjucksService = require('../src/services/nunjucks');
 
 nock.enableNetConnect('127.0.0.1');
 
@@ -28,10 +27,10 @@ describe('[control-repo] the app', function () {
     mockfs({
       'test/test-control/templates/deconst.horse': {
         '404.html': 'site 404 page'
-      },
+      }
     });
 
-    var content = nock('http://content')
+    nock('http://content')
       .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
       .reply(200, {
         assets: [],
@@ -65,7 +64,7 @@ describe('[control-repo] the app', function () {
       CONTROL_REWRITES_FILE: 'foo.json'
     });
 
-    var content = nock('http://content')
+    nock('http://content')
       .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
       .reply(200, {
         assets: [],
@@ -82,7 +81,7 @@ describe('[control-repo] the app', function () {
       PRESENTED_URL_DOMAIN: 'fake-site.dev'
     });
 
-    var content = nock('http://content')
+    nock('http://content')
       .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
       .reply(200, {
         assets: [],
