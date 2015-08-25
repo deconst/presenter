@@ -8,9 +8,8 @@
     "url": "https://github.com/deconst/presenter.git"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha",
-    "docker-build": "docker build -t presenter .",
-    "docker-run": "sh -c \"docker run -it --rm --name presenter-running -p 80:8080 -e MAPPING_SERVICE_URL=$MAPPING_SERVICE_URL -e CONTENT_SERVICE_URL=$CONTENT_SERVICE_URL presenter\"",
+    "test": "mocha && semistandard",
+    "format": "semistandard --format",
     "start": "node app.js"
   },
   "author": "Jon Perritt <jon.perritt@rackspace.com>",
@@ -35,6 +34,7 @@
     "chai": "^2.3.0",
     "mocha": "^2.2.4",
     "nock": "^1.7.1",
+    "semistandard": "^7.0.2",
     "supertest": "^0.15.0"
   }
 }
