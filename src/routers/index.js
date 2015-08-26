@@ -6,10 +6,10 @@ var crash = require('./crash');
 var config = require('../config');
 
 exports.install = function (app) {
-    if (config.presenter_diagnostics()) {
-        app.get('/crash', crash);
-    }
+  if (config.presenter_diagnostics()) {
+    app.get('/crash', crash);
+  }
 
-    app.get('/version', version);
-    app.get('/*', content);
+  app.get('/version', version);
+  app.get('/*', content);
 };
