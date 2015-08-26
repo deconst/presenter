@@ -58,7 +58,7 @@ module.exports = function (app) {
                 if (!isRewrite) {
                     logger.debug('Redirecting to %s', req.url);
                     stopProcessing = true;
-                    return res.redirect(status, req.url);
+                    return res.redirect(status, decodeURIComponent(req.url));
                 }
 
                 logger.debug('Rewriting URL from %s to %s', originalUrl, req.url);
