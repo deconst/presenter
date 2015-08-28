@@ -33,8 +33,6 @@ function createEnvironment (context, callback) {
   addPlugins(env, context, function (err, env) {
     callback(err, env);
   });
-
-
 }
 
 var addPlugins = function (env, context, callback) {
@@ -54,25 +52,24 @@ var addPlugins = function (env, context, callback) {
     var pluginDependencies = [];
 
     try {
-        var dependencyDict = JSON.parse(
-            fs.readFileSync(path.join(pluginPath, pluginDir, 'package.json'), 'utf-8')
-        ).dependencies;
+      var dependencyDict = JSON.parse(
+        fs.readFileSync(path.join(pluginPath, pluginDir, 'package.json'), 'utf-8')
+      ).dependencies;
 
-        for(var key in dependencyDict) {
-            pluginDependencies.push(key + '@' + dependencyDict[key]);
-        }
-    }
-    catch (e) {
-        pluginDependencies = [];
+      for (var key in dependencyDict) {
+        pluginDependencies.push(key + '@' + dependencyDict[key]);
+      }
+    } catch (e) {
+      pluginDependencies = [];
     }
 
     npm.load({}, function () {
-        logger.debug('Installing plugin dependencies for ' + pluginDir + ': ');
-        logger.debug(JSON.stringify(pluginDependencies));
+      logger.debug('Installing plugin dependencies for ' + pluginDir + ': ');
+      logger.debug(JSON.stringify(pluginDependencies));
 
-        npm.commands.install(path.join(pluginPath, pluginDir), pluginDependencies, function () {
-          callback(null, null);
-        });
+      npm.commands.install(path.join(pluginPath, pluginDir), pluginDependencies, function () {
+        callback(null, null);
+      });
     });
   }, function () {
     logger.debug('Loaded all plugin dependencies.');
@@ -107,8 +104,6 @@ var addPlugins = function (env, context, callback) {
 
     return callback(null, env);
   });
-
-
 };
 
 var NunjucksService = {
@@ -124,7 +119,7 @@ var NunjucksService = {
 
     createEnvironment(context, function (err, env) {
       envs[host] = env;
-      return callback(null, env);
+      return callback(err, env);
     });
   }
 };

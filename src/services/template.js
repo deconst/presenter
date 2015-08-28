@@ -1,5 +1,6 @@
 var globby = require('globby');
 var path = require('path');
+var logger = require('../server/logging').logger;
 var services = {
   content: require('./content'),
   nunjucks: require('./nunjucks'),
@@ -19,6 +20,10 @@ var TemplateService = {
       var startTimestamp = Date.now();
 
       services.nunjucks.getEnvironment(context, function (err, env) {
+        if (err) {
+          logger.error(err);
+        }
+
         env.render(templateFile, templateData, function (err, result) {
           context.templateRenderDuration = Date.now() - startTimestamp;
 
