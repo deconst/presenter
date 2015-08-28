@@ -63,7 +63,11 @@ var addPlugins = function (env, context, callback) {
       pluginDependencies = [];
     }
 
-    npm.load({}, function () {
+    npm.load({}, function (err) {
+      if (err) {
+        return callback(err, env);
+      }
+
       logger.debug('Installing plugin dependencies for ' + pluginDir + ': ');
       logger.debug(JSON.stringify(pluginDependencies));
 
