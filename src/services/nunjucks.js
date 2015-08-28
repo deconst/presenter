@@ -1,5 +1,7 @@
 var fs = require('fs');
 var path = require('path');
+var async = require('async');
+var npm = require('npm');
 var logger = require('../server/logging').logger;
 var nunjucks = require('nunjucks');
 var nunjucksDate = require('nunjucks-date');
@@ -10,7 +12,7 @@ var services = {
 
 var envs = {};
 
-function createEnvironment (context) {
+function createEnvironment (context, callback) {
   var env = new nunjucks.Environment(
     new nunjucks.FileSystemLoader([
       services.path.getTemplatesPath(context),
@@ -28,68 +30,102 @@ function createEnvironment (context) {
     return '<pre><code>' + string + '</code></pre>';
   });
 
-  addPlugins(env, context);
+  addPlugins(env, context, function (err, env) {
+    callback(err, env);
+  });
 
-  return env;
+
 }
 
-var addPlugins = function (env, context) {
+var addPlugins = function (env, context, callback) {
   var pluginPath = services.path.getPluginsPath(context);
   try {
     fs.openSync(pluginPath, 'r');
   } catch(e) {
     logger.warn('Unable to find plugins directory at: ' + pluginPath);
-    return;
+    return callback(null, env);
   }
 
   if (!fs.statSync(pluginPath).isDirectory()) {
-    return;
+    return callback(null, env);
   }
 
-  fs.readdirSync(pluginPath).forEach(function (pluginDir) {
-    var plugin;
+  async.eachSeries(fs.readdirSync(pluginPath), function (pluginDir, callback) {
+    var pluginDependencies = [];
 
     try {
-      plugin = require(path.join(pluginPath, pluginDir));
-    } catch(e) {
-      logger.error(e);
-      return;
+        var dependencyDict = JSON.parse(
+            fs.readFileSync(path.join(pluginPath, pluginDir, 'package.json'), 'utf-8')
+        ).dependencies;
+
+        for(var key in dependencyDict) {
+            pluginDependencies.push(key + '@' + dependencyDict[key]);
+        }
+    }
+    catch (e) {
+        pluginDependencies = [];
     }
 
-    if (plugin.templateFilters && plugin.templateFilters.length > 0) {
-      plugin.templateFilters.forEach(function (filter) {
-        var originalFilter = filter[1].bind(env);
+    npm.load({}, function () {
+        logger.debug('Installing plugin dependencies for ' + pluginDir + ': ');
+        logger.debug(JSON.stringify(pluginDependencies));
 
-        filter[1] = function (input) {
-          try {
-            return originalFilter.apply(env, arguments);
-          } catch(e) {
-            logger.error(e);
-            return input;
-          }
-        };
+        npm.commands.install(path.join(pluginPath, pluginDir), pluginDependencies, function () {
+          callback(null, null);
+        });
+    });
+  }, function () {
+    logger.debug('Loaded all plugin dependencies.');
 
-        env.addFilter.apply(env, filter);
-      });
-    }
+    fs.readdirSync(pluginPath).forEach(function (pluginDir) {
+      var plugin;
 
+      try {
+        plugin = require(path.join(pluginPath, pluginDir));
+      } catch(e) {
+        logger.error(e);
+        return;
+      }
+
+      if (plugin.templateFilters && plugin.templateFilters.length > 0) {
+        plugin.templateFilters.forEach(function (filter) {
+          var originalFilter = filter[1].bind(env);
+
+          filter[1] = function (input) {
+            try {
+              return originalFilter.apply(env, arguments);
+            } catch(e) {
+              logger.error(e);
+              return input;
+            }
+          };
+
+          env.addFilter.apply(env, filter);
+        });
+      }
+    });
+
+    return callback(null, env);
   });
+
+
 };
 
 var NunjucksService = {
   clearEnvironments: function () {
     envs = {};
   },
-  getEnvironment: function (context) {
+  getEnvironment: function (context, callback) {
     var host = context.host();
 
     if (envs[host]) {
-      return envs[host];
+      return callback(null, envs[host]);
     }
 
-    var env = createEnvironment(context);
-    envs[host] = env;
-    return env;
+    createEnvironment(context, function (err, env) {
+      envs[host] = env;
+      return callback(null, env);
+    });
   }
 };
 

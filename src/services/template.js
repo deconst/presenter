@@ -17,11 +17,13 @@ var TemplateService = {
       }
 
       var startTimestamp = Date.now();
-      var env = services.nunjucks.getEnvironment(context);
-      env.render(templateFile, templateData, function (err, result) {
-        context.templateRenderDuration = Date.now() - startTimestamp;
 
-        callback(err, result);
+      services.nunjucks.getEnvironment(context, function (err, env) {
+        env.render(templateFile, templateData, function (err, result) {
+          context.templateRenderDuration = Date.now() - startTimestamp;
+
+          callback(err, result);
+        });
       });
     });
   },
