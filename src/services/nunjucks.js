@@ -48,7 +48,7 @@ var addPlugins = function (env, context, callback) {
     return callback(null, env);
   }
 
-  async.eachSeries(fs.readdirSync(pluginPath), function (pluginDir, callback) {
+  async.each(fs.readdirSync(pluginPath), function (pluginDir, callback) {
     var pluginDependencies = [];
 
     try {
@@ -67,11 +67,13 @@ var addPlugins = function (env, context, callback) {
       logger.debug('Installing plugin dependencies for ' + pluginDir + ': ');
       logger.debug(JSON.stringify(pluginDependencies));
 
-      npm.commands.install(path.join(pluginPath, pluginDir), pluginDependencies, function () {
-        callback(null, null);
-      });
+      npm.commands.install(path.join(pluginPath, pluginDir), pluginDependencies, callback);
     });
-  }, function () {
+  }, function (err) {
+    if (err) {
+      return callback(err, env);
+    }
+
     logger.debug('Loaded all plugin dependencies.');
 
     fs.readdirSync(pluginPath).forEach(function (pluginDir) {
