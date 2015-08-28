@@ -1,5 +1,6 @@
 var fs = require('fs');
 var path = require('path');
+var os = require('os');
 var async = require('async');
 var npm = require('npm');
 var logger = require('../server/logging').logger;
@@ -63,7 +64,9 @@ var addPlugins = function (env, context, callback) {
       pluginDependencies = [];
     }
 
-    npm.load({}, function (err) {
+    npm.load({
+      cache: path.join(os.tmpdir(), '.npmcache')
+    }, function (err) {
       if (err) {
         return callback(err, env);
       }
