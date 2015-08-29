@@ -12,4 +12,4 @@ COPY . /usr/src/app
 
 EXPOSE 8080
 
-CMD chown -R node:node /var/control-repo && su -c "npm start" node
+CMD chown -R node:node ${CONTROL_REPO_PATH} && su -c "npm start" node
