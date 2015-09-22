@@ -38,6 +38,7 @@ var TemplateService = {
         env: process.env,
         content: content || {},
         url: services.url,
+        context: context,
         request: context.request,
         response: context.response
       }
