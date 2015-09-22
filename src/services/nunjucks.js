@@ -40,7 +40,7 @@ var addPlugins = function (env, context, callback) {
   var pluginPath = services.path.getPluginsPath(context);
   try {
     fs.openSync(pluginPath, 'r');
-  } catch(e) {
+  } catch (e) {
     logger.warn('Unable to find plugins directory at: ' + pluginPath);
     return callback(null, env);
   }
@@ -88,7 +88,7 @@ var addPlugins = function (env, context, callback) {
 
       try {
         plugin = require(path.join(pluginPath, pluginDir));
-      } catch(e) {
+      } catch (e) {
         logger.error(e);
         return;
       }
@@ -100,7 +100,7 @@ var addPlugins = function (env, context, callback) {
           filter[1] = function (input) {
             try {
               return originalFilter.apply(env, arguments);
-            } catch(e) {
+            } catch (e) {
               logger.error(e);
               return input;
             }
