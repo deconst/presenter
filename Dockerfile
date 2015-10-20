@@ -1,8 +1,10 @@
-FROM node:0.12.1
+FROM alpine:3.2
+
+RUN apk add --update nodejs git && rm -rf /var/cache/apk/*
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
-RUN useradd node
+RUN adduser -D node
 RUN npm install -g nodemon
 RUN mkdir -p /home/node /usr/src/app && chown -R node:node /home/node
 

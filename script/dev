@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 [ -d /usr/src/app ] || {
   echo "This script is intended to be executed inside the docker container."
