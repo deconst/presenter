@@ -22,6 +22,10 @@ Context.prototype._summarize = function (statusCode, message) {
     requestURL: this.request.url,
     requestDomain: this.host(),
     requestProtocol: this.protocol(),
+    requestHostname: this.request.hostname,
+    requestIP: this.request.ip,
+    requestReferer: this.request.get('Referer'),
+    requestUserAgent: this.request.get('User-Agent'),
     totalReqDuration: Date.now() - this.startTimestamp
   };
 
