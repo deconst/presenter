@@ -17,6 +17,7 @@ exports.create = function () {
   app.use('/assets', express.static(staticPath));
 
   app.use(logging.requestLogger());
+  app.set('trust proxy', true);
 
   proxies(app);
   rewrites(app);
