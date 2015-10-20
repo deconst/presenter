@@ -20,6 +20,8 @@ Context.prototype._summarize = function (statusCode, message) {
     statusCode: statusCode,
     message: message,
     requestURL: this.request.url,
+    requestDomain: this.host(),
+    requestProtocol: this.protocol(),
     totalReqDuration: Date.now() - this.startTimestamp
   };
 
