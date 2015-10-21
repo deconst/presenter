@@ -15,11 +15,17 @@ function Context (req, resp) {
   this.templateRenderDuration = null;
 }
 
-Context.prototype._summarize = function (statusCode, message) {
+Context.prototype._summarize = function (statusCode, message, err) {
   var summary = {
     statusCode: statusCode,
     message: message,
     requestURL: this.request.url,
+    requestDomain: this.host(),
+    requestProtocol: this.protocol(),
+    requestHostname: this.request.hostname,
+    requestIP: this.request.ip,
+    requestReferer: this.request.get('Referer'),
+    requestUserAgent: this.request.get('User-Agent'),
     totalReqDuration: Date.now() - this.startTimestamp
   };
 
@@ -39,6 +45,11 @@ Context.prototype._summarize = function (statusCode, message) {
     summary.templateRenderDuration = this.templateRenderDuration;
   }
 
+  if (err) {
+    summary.errMessage = err.message;
+    summary.stack = err.stack;
+  }
+
   return summary;
 };
 
@@ -56,6 +67,7 @@ Context.prototype.send = function (body) {
 };
 
 Context.prototype.handleError = function (err) {
+  var original = err;
   logger.debug(err);
   var code = err.statusCode || 500;
   if (err.statusCode && err.statusCode.toString() === '404') {
@@ -71,7 +83,7 @@ Context.prototype.handleError = function (err) {
     this.response.status(code).send(responseBody);
 
     if (code >= 500) {
-      logger.warn(this._summarize(code, 'Internal error'));
+      logger.warn(this._summarize(code, 'Internal error', original));
     } else {
       logger.info(this._summarize(code, 'Request error'));
     }

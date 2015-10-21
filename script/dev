@@ -12,4 +12,4 @@
 cd /usr/src/app
 
 [ -d node_modules ] || npm install .
-nodemon app.js
+nodemon -L app.js
