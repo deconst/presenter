@@ -1,0 +1,16 @@
+#!/bin/sh
+
+set -euo pipefail
+
+[ -d /usr/src/app ] || {
+  echo "This script is intended to be executed inside the docker container."
+  exit 1
+}
+
+[ -n "${CONTROL_REPO_PATH}" ] || {
+  echo "Please set \${CONTROL_REPO_PATH} to the path within the container at which the control repository is mounted."
+  exit 1
+}
+
+chown -R presenter:presenter "${CONTROL_REPO_PATH}"
+exec /usr/bin/su presenter -c 'npm start'
