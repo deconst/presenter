@@ -52,6 +52,21 @@ module.exports = function (app) {
         // If the incoming URL's pathname matches the pattern, replace
         // it with the rule's "to" pattern
         parsedUrl.pathname = parsedUrl.pathname.replace(fromPattern, rule.to);
+
+        // Set hostname and port independently.
+        delete parsedUrl.host;
+
+        // Replace the host, protocol, and port only if configured to do so.
+        if (rule.toProtocol !== undefined) {
+          parsedUrl.protocol = rule.toProtocol;
+        }
+        if (rule.toHostname !== undefined) {
+          parsedUrl.hostname = rule.toHostname;
+        }
+        if (rule.toPort !== undefined) {
+          parsedUrl.port = rule.toPort;
+        }
+
         req.url = url.format(parsedUrl);
 
         // Stop processing and redirect if this isn't a rewrite

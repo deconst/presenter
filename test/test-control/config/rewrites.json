@@ -1,3 +1,12 @@
 {
-    "deconst.horse": []
+  "deconst.horse": [
+    {
+      "from": "^\\/different-host/(.*)?$",
+      "to": "/$1",
+      "toProtocol": "https",
+      "toHostname": "stable.horse",
+      "rewrite": false,
+      "status": 301
+    }
+  ]
 }

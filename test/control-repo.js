@@ -92,4 +92,11 @@ describe('[control-repo] the app', function () {
       .get('/')
       .expect(404, done);
   });
+
+  it('returns a redirect to a different hostname', function (done) {
+    request(server.create())
+      .get('/different-host/some-path/')
+      .expect('Location', 'https://stable.horse/some-path/')
+      .expect(301, done);
+  });
 });
