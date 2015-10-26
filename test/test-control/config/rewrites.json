@@ -3,8 +3,8 @@
     {
       "from": "^\\/different-host/(.*)?$",
       "to": "/$1",
-      "to_protocol": "https",
-      "to_host": "stable.horse",
+      "toProtocol": "https",
+      "toHostname": "stable.horse",
       "rewrite": false,
       "status": 301
     }

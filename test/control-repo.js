@@ -99,5 +99,4 @@ describe('[control-repo] the app', function () {
       .expect('Location', 'https://stable.horse/some-path/')
       .expect(301, done);
   });
-
 });
