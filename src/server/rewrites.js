@@ -54,7 +54,7 @@ module.exports = function (app) {
         parsedUrl.pathname = parsedUrl.pathname.replace(fromPattern, rule.to);
 
         // Set hostname and port independently.
-        delete parsedUrl['host'];
+        delete parsedUrl.host;
 
         // Replace the host, protocol, and port only if configured to do so.
         if (rule.toProtocol !== undefined) {
