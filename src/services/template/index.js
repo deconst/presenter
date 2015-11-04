@@ -1,6 +1,6 @@
 var globby = require('globby');
 var path = require('path');
-var logger = require('../server/logging').logger;
+var logger = require('../../server/logging').logger;
 var services = {
   content: require('../content'),
   nunjucks: require('../nunjucks'),
