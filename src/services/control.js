@@ -4,6 +4,7 @@ var async = require('async');
 var npm = require('npm');
 var tmp = require('tmp');
 var config = require('../config');
+var ContentRoutingService = require('./content/routing');
 
 var maybeParseJSON = function (filename, def, callback) {
   fs.readFile(filename, {encoding: 'utf-8'}, function (err, body) {
@@ -41,7 +42,7 @@ var readContentMap = function (callback) {
   maybeParseJSON(contentMapPath, {}, function (err, contentMap) {
     if (err) return callback(err);
 
-    callback(null);
+    callback(null, contentMap);
   });
 };
 
@@ -51,11 +52,11 @@ var readTemplateMap = function (callback) {
   maybeParseJSON(templateMapPath, {}, function (err, templateMap) {
     if (err) return callback(err);
 
-    callback(null);
+    callback(null, templateMap);
   });
 };
 
-var readPlugins = function (callback) {
+var loadPlugins = function (callback) {
   var pluginsRoot = path.resolve(controlRepoPath, 'plugins');
 
   fs.readdir(pluginsRoot, function (err, entries) {
@@ -71,19 +72,19 @@ var readPlugins = function (callback) {
     async.filter(entries, function (entry, callback) {
       fs.stat(path.join(pluginsRoot, entry), function (fstat) { callback(fstat.isDirectory()); });
     }, function (dirnames) {
-      async.each(dirnames, readPluginDomain, callback);
+      async.each(dirnames, loadDomainPlugins, callback);
     });
   });
 };
 
-var readPluginDomain = function (rootPath, callback) {
+var loadDomainPlugins = function (domainRoot, callback) {
   tmp.dir({prefix: 'npm-cache-'}, function (err, cachePath) {
     if (err) return callback(err);
 
     npm.load({cache: cachePath}, function (err) {
       if (err) return callback(err);
 
-      npm.commands.install([rootPath], function (err, result) {
+      npm.commands.install([domainRoot], function (err, result) {
         if (err) return callback(err);
 
         callback(null);
@@ -94,11 +95,17 @@ var readPluginDomain = function (rootPath, callback) {
 
 var ControlService = {
   read: function (callback) {
-    async.each([
-      readContentMap,
-      readTemplateMap,
-      readPlugins
-    ], callback);
+    async.parallel({
+      contentMap: readContentMap,
+      templateMap: readTemplateMap,
+      plugins: loadPlugins
+    }, function (err, result) {
+      if (err) return callback(err);
+
+      ContentRoutingService.setContentMap(result.contentMap);
+
+      callback(null);
+    });
   },
   update: function (sha, callback) {
     //
