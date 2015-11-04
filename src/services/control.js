@@ -5,6 +5,7 @@ var npm = require('npm');
 var tmp = require('tmp');
 var config = require('../config');
 var logger = require('../server/logging').logger;
+var PathService = require('./path');
 var ContentRoutingService = require('./content/routing');
 var TemplateRoutingService = require('./template/routing');
 
@@ -47,18 +48,10 @@ var subdirectories = function (rootPath, callback) {
   });
 };
 
-// Path functions
-
-var controlRepoPath = path.resolve(config.control_repo_path());
-
-var configPath = function (configFile) {
-  return path.resolve(controlRepoPath, path.join('config', configFile));
-};
-
 // Read functions
 
 var readContentMap = function (callback) {
-  var contentMapPath = configPath(config.control_content_file());
+  var contentMapPath = PathService.configPath(config.control_content_file());
   logger.debug('Beginning content map load', {
     filename: contentMapPath
   });
@@ -74,7 +67,7 @@ var readContentMap = function (callback) {
 };
 
 var readTemplateMap = function (callback) {
-  var templateMapPath = configPath(config.control_routes_file());
+  var templateMapPath = PathService.configPath(config.control_routes_file());
   logger.debug('Begining template map load', {
     filename: templateMapPath
   });
@@ -90,7 +83,7 @@ var readTemplateMap = function (callback) {
 };
 
 var loadPlugins = function (callback) {
-  var pluginsRoot = path.resolve(controlRepoPath, 'plugins');
+  var pluginsRoot = PathService.getPluginsRoot();
   var beginTs = Date.now();
   logger.debug('Beginning plugin load', {
     path: pluginsRoot

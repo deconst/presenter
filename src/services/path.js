@@ -10,12 +10,14 @@ var PathService = {
   getDefaultTemplatesPath: function () {
     return path.resolve('./static');
   },
+  getPluginsRoot: function () {
+    return path.resolve(this.getControlRepoPath(), 'plugins');
+  },
   getPluginsPath: function (context) {
-    var templatePath = 'plugins/' + context.host();
-    return path.resolve(this.getControlRepoPath(), templatePath);
+    return path.resolve(this.getPluginsRoot(), context.host());
   },
   getTemplatesPath: function (context) {
-    var templatePath = 'templates/' + context.host();
+    var templatePath = path.join('templates', context.host());
     return path.resolve(this.getControlRepoPath(), templatePath);
   },
   getConfigPath: function (configPath) {
