@@ -6,6 +6,7 @@ var tmp = require('tmp');
 var config = require('../config');
 var logger = require('../server/logging').logger;
 var ContentRoutingService = require('./content/routing');
+var TemplateRoutingService = require('./template/routing');
 
 var maybeParseJSON = function (filename, def, callback) {
   fs.readFile(filename, {encoding: 'utf-8'}, function (err, body) {
@@ -196,6 +197,7 @@ var ControlService = {
       }
 
       ContentRoutingService.setContentMap(result.contentMap);
+      TemplateRoutingService.setTemplateMap(result.templateMap);
 
       logger.info('Successfully loaded control repository', {
         duration: Date.now() - startTs
