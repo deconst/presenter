@@ -20,6 +20,9 @@ var PathService = {
     var templatePath = path.join('templates', context.host());
     return path.resolve(this.getControlRepoPath(), templatePath);
   },
+  getAssetPath: function () {
+    return path.resolve(PathService.getControlRepoPath(), 'assets');
+  },
   getConfigPath: function (configPath) {
     configPath = configPath || '';
     return path.resolve(this.getControlRepoPath(), CONFIG_PATH, configPath);

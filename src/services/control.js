@@ -170,7 +170,7 @@ var loadDomainPlugin = function (pluginRoot, callback) {
 };
 
 var ControlService = {
-  read: function (callback) {
+  load: function (callback) {
     var startTs = Date.now();
     logger.info('Loading control repository');
 
