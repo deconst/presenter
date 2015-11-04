@@ -20,6 +20,7 @@
     "globby": "^2.0.0",
     "handlebars": "3.0.0",
     "lodash": "^3.8.0",
+    "mkdirp": "^0.5.1",
     "mock-fs": "^3.0.0",
     "moment": "^2.10.3",
     "mware": "0.0.3",
