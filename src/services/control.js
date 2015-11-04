@@ -277,10 +277,8 @@ var ControlService = {
     var isGit = !!config.control_repo_url();
     var shouldUpdate = (sha === null) || (sha !== controlSHA);
 
-    if (!shouldUpdate || !isGit) {
-      return this.load(function (ok) {
-        callback(null, ok);
-      });
+    if (!shouldUpdate) {
+      return callback(null, false);
     }
 
     var andLoad = function (err, newSHA) {
