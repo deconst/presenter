@@ -2,10 +2,10 @@ var globby = require('globby');
 var path = require('path');
 var logger = require('../server/logging').logger;
 var services = {
-  content: require('./content'),
-  nunjucks: require('./nunjucks'),
-  path: require('./path'),
-  url: require('./url')
+  content: require('../content'),
+  nunjucks: require('../nunjucks'),
+  path: require('../path'),
+  url: require('../url')
 };
 
 var TemplateService = {
