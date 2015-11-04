@@ -3,11 +3,16 @@ var path = require('path');
 var async = require('async');
 var npm = require('npm');
 var tmp = require('tmp');
+var git = require('nodegit');
+var mkdirp = require('mkdirp');
+
 var config = require('../config');
 var logger = require('../server/logging').logger;
 var PathService = require('./path');
 var ContentRoutingService = require('./content/routing');
 var TemplateRoutingService = require('./template/routing');
+
+var controlSHA = null;
 
 var maybeParseJSON = function (filename, def, callback) {
   fs.readFile(filename, {encoding: 'utf-8'}, function (err, body) {
@@ -45,6 +50,75 @@ var subdirectories = function (rootPath, callback) {
         cb(null, fstat.isDirectory());
       });
     }, callback);
+  });
+};
+
+var gitClone = function (url, branch, repoPath, callback) {
+  git.Clone(url, path, {checkoutBranch: branch})
+  .then(function (repository) {
+    return repository.getHeadCommit();
+  })
+  .then(function (commit) {
+    return commit.sha();
+  })
+  .catch(function (err) {
+    return callback(err, null);
+  })
+  .done(function (sha) {
+    return callback(null, sha);
+  });
+};
+
+var gitPull = function (repoPath, callback) {
+  var repo = null;
+  var conf = null;
+
+  var currentBranch = null;
+  var upstreamRemote = null;
+  var upstreamRef = null;
+
+  git.Repository.open(PathService.getControlRepoPath())
+  .then(function (repository) {
+    repo = repository;
+
+    return repo.getCurrentBranch();
+  })
+  .then(function (branch) {
+    currentBranch = branch.shorthand();
+
+    return repo.config();
+  })
+  .then(function (config) {
+    conf = config;
+
+    return conf.getString('branch.' + currentBranch + '.remote');
+  })
+  .then(function (ur) {
+    upstreamRemote = ur;
+
+    return conf.getString('branch.' + currentBranch + '.merge');
+  })
+  .then(function (um) {
+    upstreamRef = um.replace(/^refs\/heads\//, '');
+
+    return repo.fetch(upstreamRemote, {});
+  })
+  .then(function () {
+    return repo.mergeBranches(currentBranch, upstreamRemote + '/' + upstreamRef);
+  })
+  .then(function () {
+    return repo.getHeadCommit();
+  })
+  .then(function (commit) {
+    return commit.sha();
+  })
+  .catch(function (err) {
+    return callback(err, null);
+  })
+  .done(function (newSHA) {
+    repo.free();
+
+    return callback(null, newSHA);
   });
 };
 
@@ -200,7 +274,63 @@ var ControlService = {
     });
   },
   update: function (sha, callback) {
-    //
+    var isGit = !!config.control_repo_url();
+    var shouldUpdate = (sha === null) || (sha !== controlSHA);
+
+    if (!shouldUpdate || !isGit) {
+      return this.load(function (ok) {
+        callback(null, ok);
+      });
+    }
+
+    var andLoad = function (err, newSHA) {
+      if (err) return callback(err);
+
+      this.load(function (ok) {
+        if (ok) {
+          controlSHA = newSHA;
+        }
+
+        callback(null, ok);
+      });
+    };
+
+    if (isGit) {
+      var parentPath = path.dirname(PathService.getControlRepoPath());
+
+      mkdirp(parentPath, function (err) {
+        if (err) return callback(err);
+
+        fs.readdir(PathService.getControlRepoPath(), function (err, contents) {
+          if (err) {
+            if (err.code === 'ENOENT') {
+              // New repository.
+              gitClone(
+                config.control_repo_url(),
+                config.control_repo_branch(),
+                PathService.getControlRepoPath(),
+                andLoad);
+              return;
+            }
+
+            return callback(err, false);
+          }
+
+          // Existing repository.
+          gitPull(
+            PathService.getControlRepoPath(),
+            andLoad);
+        });
+      });
+    } else {
+      // Non-git repository. Most likely a local mount.
+      controlSHA = 'non-git';
+
+      return andLoad();
+    }
+  },
+  getControlSHA: function () {
+    return controlSHA;
   }
 };
 
