@@ -29,6 +29,7 @@
     "nunjucks-date": "^1.1.2",
     "q": "^1.4.1",
     "request": "2.53.0",
+    "rimraf": "^2.4.3",
     "tmp": "0.0.28",
     "url-join": "0.0.1",
     "winston": "^0.9.0"

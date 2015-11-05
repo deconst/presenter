@@ -5,6 +5,7 @@ var npm = require('npm');
 var tmp = require('tmp');
 var childProcess = require('child_process');
 var mkdirp = require('mkdirp');
+var rimraf = require('rimraf');
 
 var config = require('../config');
 var logger = require('../server/logging').logger;
@@ -46,10 +47,12 @@ var subdirectories = function (rootPath, callback) {
 
     async.filter(entries, function (entry, cb) {
       fs.stat(path.join(rootPath, entry), function (err, fstat) {
-        if (err) return cb(err);
-        cb(null, fstat.isDirectory());
+        if (err) return callback(err);
+        cb(fstat.isDirectory());
       });
-    }, callback);
+    }, function (dirs) {
+      return callback(null, dirs);
+    });
   });
 };
 
@@ -151,6 +154,7 @@ var loadPlugins = function (callback) {
 
       logger.debug('Successfully loaded plugins', {
         path: pluginsRoot,
+        pluginCount: results.length,
         duration: Date.now() - beginTs
       });
       callback(null, results);
@@ -158,7 +162,9 @@ var loadPlugins = function (callback) {
   });
 };
 
-var loadDomainPlugins = function (domainRoot, callback) {
+var loadDomainPlugins = function (domain, callback) {
+  var domainRoot = path.join(PathService.getPluginsRoot(), domain);
+
   subdirectories(domainRoot, function (err, subdirs) {
     if (err) return callback(err);
 
@@ -183,21 +189,50 @@ var loadDomainPlugin = function (pluginRoot, callback) {
     pluginRoot: pluginRoot
   });
 
-  tmp.dir({prefix: 'npm-cache-'}, function (err, cachePath) {
-    if (err) return callback(err);
+  var cachePath = null;
+  var deps = null;
+  var plugin = null;
 
+  var createDir = function (cb) {
+    tmp.dir({prefix: 'npm-cache-'}, function (err, cp) {
+      cachePath = cp;
+      cb(err);
+    });
+  };
+
+  var parseDependencies = function (cb) {
+    fs.readFile(path.join(pluginRoot, 'package.json'), {encoding: 'utf-8'}, function (err, doc) {
+      if (err) return cb(err);
+
+      var depDoc = {};
+      try {
+        depDoc = JSON.parse(doc);
+      } catch (e) {
+        return cb(e);
+      }
+
+      deps = [];
+      for (var key in depDoc.dependencies) {
+        deps.push(key + '@' + depDoc.dependencies[key]);
+      }
+
+      cb(null);
+    });
+  };
+
+  var installDependencies = function (cb) {
     npm.load({cache: cachePath}, function (err) {
-      if (err) return callback(err);
+      if (err) return cb(err);
 
-      npm.commands.install([pluginRoot], function (err, result) {
-        if (err) return callback(err);
+      npm.commands.install(pluginRoot, deps, function (err, result) {
+        if (err) return cb(err);
 
         logger.debug('Plugin dependencies installed', {
           pluginRoot: pluginRoot,
           duration: Date.now() - startTs
         });
 
-        var loadTs = Date.now();
+        var requireTs = Date.now();
         var plugin = null;
         try {
           plugin = require(pluginRoot);
@@ -205,14 +240,27 @@ var loadDomainPlugin = function (pluginRoot, callback) {
           return callback(e);
         }
 
-        logger.debug('Plugin loaded', {
+        logger.debug('Plugin required', {
           pluginRoot: pluginRoot,
-          duration: Date.now() - loadTs
+          duration: Date.now() - requireTs
         });
 
-        callback(null, plugin);
+        cb(null);
       });
     });
+  };
+
+  var cleanupCache = function (cb) {
+    rimraf(cachePath, cb);
+  };
+
+  async.series([
+    createDir,
+    parseDependencies,
+    installDependencies,
+    cleanupCache
+  ], function (err) {
+    return callback(err, plugin);
   });
 };
 
@@ -247,10 +295,19 @@ var ControlService = {
     });
   },
   update: function (sha, callback) {
+    var startTs = Date.now();
+    logger.info('Updating control repository', {
+      sha: sha
+    });
+
     var isGit = !!config.control_repo_url();
     var shouldUpdate = (sha === null) || (sha !== controlSHA);
 
     if (!shouldUpdate) {
+      logger.info('Control repository SHA is already up to date.', {
+        sha: sha
+      });
+
       return callback(false);
     }
 
@@ -263,12 +320,34 @@ var ControlService = {
       callback(false);
     };
 
+    var gitStartTs = null;
+    var gitCompletePayload = null;
+
     var andLoad = function (err, newSHA) {
       if (err) return handleErr(err);
 
+      if (gitStartTs !== null && gitCompletePayload !== null) {
+        gitCompletePayload.duration = Date.now() - gitStartTs;
+        var msg = gitCompletePayload.message;
+        delete gitCompletePayload.message;
+
+        logger.info(msg, gitCompletePayload);
+      }
+
       this.load(function (ok) {
         if (ok) {
+          logger.info('Control repository update complete.', {
+            fromSHA: controlSHA,
+            toSHA: newSHA,
+            duration: Date.now() - startTs
+          });
+
           controlSHA = newSHA;
+        } else {
+          logger.info('Control repository load failed.', {
+            currentSHA: controlSHA,
+            toSHA: sha
+          });
         }
 
         callback(ok);
@@ -285,6 +364,18 @@ var ControlService = {
           if (err) {
             if (err.code === 'ENOENT') {
               // New repository.
+
+              logger.debug('Beginning control repository clone', {
+                url: config.control_repo_url(),
+                branch: config.control_repo_branch()
+              });
+              gitCompletePayload = {
+                message: 'Completed control repository clone',
+                url: config.control_repo_url(),
+                branch: config.control_repo_branch()
+              };
+              gitStartTs = Date.now();
+
               gitClone(
                 config.control_repo_url(),
                 config.control_repo_branch(),
@@ -297,6 +388,10 @@ var ControlService = {
           }
 
           // Existing repository.
+          logger.debug('Beginning control repository pull');
+          gitCompletePayload = {message: 'Completed control repository pull'};
+          gitStartTs = Date.now();
+
           gitPull(
             PathService.getControlRepoPath(),
             andLoad);
@@ -304,6 +399,8 @@ var ControlService = {
       });
     } else {
       // Non-git repository. Most likely a local mount.
+      logger.debug('Skipping update for non-git control repository.');
+
       return andLoad(null, 'non-git');
     }
   },
