@@ -304,9 +304,7 @@ var ControlService = {
       });
     } else {
       // Non-git repository. Most likely a local mount.
-      controlSHA = 'non-git';
-
-      return andLoad();
+      return andLoad(null, 'non-git');
     }
   },
   getControlSHA: function () {
