@@ -93,7 +93,7 @@ var gitPull = function (repoPath, callback) {
 // Read functions
 
 var readContentMap = function (callback) {
-  var contentMapPath = PathService.configPath(config.control_content_file());
+  var contentMapPath = PathService.getConfigPath(config.control_content_file());
   logger.debug('Beginning content map load', {
     filename: contentMapPath
   });
@@ -109,7 +109,7 @@ var readContentMap = function (callback) {
 };
 
 var readTemplateMap = function (callback) {
-  var templateMapPath = PathService.configPath(config.control_routes_file());
+  var templateMapPath = PathService.getConfigPath(config.control_routes_file());
   logger.debug('Begining template map load', {
     filename: templateMapPath
   });

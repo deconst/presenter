@@ -14,7 +14,7 @@ var PathService = require('../services/path');
 exports.create = function () {
   var app = express();
 
-  app.use('/assets', express.static(PathService.getAssetRepoPath()));
+  app.use('/assets', express.static(PathService.getAssetPath()));
 
   app.use(logging.requestLogger());
   app.set('trust proxy', true);
