@@ -6,7 +6,7 @@ content:
     ADMIN_APIKEY:
     STORAGE: memory
     CONTENT_LOG_LEVEL: DEBUG
-    CONTENT_LOG_COLOR: true
+    CONTENT_LOG_COLOR: "true"
   ports:
   - "9000:8080"
 presenter:
