@@ -12,6 +12,7 @@ var logger = require('../server/logging').logger;
 var PathService = require('./path');
 var ContentRoutingService = require('./content/routing');
 var TemplateRoutingService = require('./template/routing');
+var NunjucksService = require('./nunjucks');
 
 var controlSHA = null;
 
@@ -38,7 +39,17 @@ var ControlService = {
       ContentRoutingService.setContentMap(result.contentMap);
       TemplateRoutingService.setTemplateMap(result.templateMap);
 
+      var domains = [];
+      for (var domain in result.contentMap) {
+        var plugins = result.plugins[domain] || [];
+
+        NunjucksService.installEnvironment(domain, plugins);
+
+        domains.push(domain);
+      }
+
       logger.info('Successfully loaded control repository', {
+        domains: domains,
         duration: Date.now() - startTs
       });
 
@@ -304,7 +315,13 @@ var loadPlugins = function (callback) {
         pluginCount: results.length,
         duration: Date.now() - beginTs
       });
-      callback(null, results);
+
+      var output = {};
+      for (var i = 0; i < results.length; i++) {
+        output[subdirs[i]] = results[i];
+      }
+
+      callback(null, output);
     });
   });
 };
