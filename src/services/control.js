@@ -251,20 +251,29 @@ var ControlService = {
     var shouldUpdate = (sha === null) || (sha !== controlSHA);
 
     if (!shouldUpdate) {
-      return callback(null, false);
+      return callback(false);
     }
 
+    var handleErr = function (err) {
+      logger.error('Unable to update control repository', {
+        errMessage: err.message,
+        stack: err.stack
+      });
+
+      callback(false);
+    };
+
     var andLoad = function (err, newSHA) {
-      if (err) return callback(err);
+      if (err) return handleErr(err);
 
       this.load(function (ok) {
         if (ok) {
           controlSHA = newSHA;
         }
 
-        callback(null, ok);
+        callback(ok);
       });
-    };
+    }.bind(this);
 
     if (isGit) {
       var parentPath = path.dirname(PathService.getControlRepoPath());
@@ -284,7 +293,7 @@ var ControlService = {
               return;
             }
 
-            return callback(err, false);
+            return handleErr(err);
           }
 
           // Existing repository.
