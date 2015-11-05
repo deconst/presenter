@@ -15,6 +15,153 @@ var TemplateRoutingService = require('./template/routing');
 
 var controlSHA = null;
 
+var ControlService = {
+  load: function (callback) {
+    var startTs = Date.now();
+    logger.info('Loading control repository');
+
+    async.parallel({
+      contentMap: readContentMap,
+      templateMap: readTemplateMap,
+      plugins: loadPlugins
+    }, function (err, result) {
+      if (err) {
+        logger.error('Unable to load control repository', {
+          errMessage: err.message,
+          stack: err.stack,
+          duration: Date.now() - startTs
+        });
+
+        return callback(false);
+      }
+
+      ContentRoutingService.setContentMap(result.contentMap);
+      TemplateRoutingService.setTemplateMap(result.templateMap);
+
+      logger.info('Successfully loaded control repository', {
+        duration: Date.now() - startTs
+      });
+
+      callback(true);
+    });
+  },
+  update: function (sha, callback) {
+    var startTs = Date.now();
+    logger.info('Updating control repository', {
+      sha: sha
+    });
+
+    var isGit = !!config.control_repo_url();
+    var shouldUpdate = (sha === null) || (sha !== controlSHA);
+
+    if (!shouldUpdate) {
+      logger.info('Control repository SHA is already up to date.', {
+        sha: sha
+      });
+
+      return callback(false);
+    }
+
+    var handleErr = function (err) {
+      logger.error('Unable to update control repository', {
+        errMessage: err.message,
+        stack: err.stack
+      });
+
+      callback(false);
+    };
+
+    var gitStartTs = null;
+    var gitCompletePayload = null;
+
+    var andLoad = function (err, newSHA) {
+      if (err) return handleErr(err);
+
+      if (gitStartTs !== null && gitCompletePayload !== null) {
+        gitCompletePayload.duration = Date.now() - gitStartTs;
+        var msg = gitCompletePayload.message;
+        delete gitCompletePayload.message;
+
+        logger.info(msg, gitCompletePayload);
+      }
+
+      this.load(function (ok) {
+        if (ok) {
+          logger.info('Control repository update complete.', {
+            fromSHA: controlSHA,
+            toSHA: newSHA,
+            duration: Date.now() - startTs
+          });
+
+          controlSHA = newSHA;
+        } else {
+          logger.info('Control repository load failed.', {
+            currentSHA: controlSHA,
+            toSHA: sha
+          });
+        }
+
+        callback(ok);
+      });
+    }.bind(this);
+
+    if (isGit) {
+      var parentPath = path.dirname(PathService.getControlRepoPath());
+
+      mkdirp(parentPath, function (err) {
+        if (err) return callback(err);
+
+        fs.readdir(PathService.getControlRepoPath(), function (err, contents) {
+          if (err) {
+            if (err.code === 'ENOENT') {
+              // New repository.
+
+              logger.debug('Beginning control repository clone', {
+                url: config.control_repo_url(),
+                branch: config.control_repo_branch()
+              });
+              gitCompletePayload = {
+                message: 'Completed control repository clone',
+                url: config.control_repo_url(),
+                branch: config.control_repo_branch()
+              };
+              gitStartTs = Date.now();
+
+              gitClone(
+                config.control_repo_url(),
+                config.control_repo_branch(),
+                PathService.getControlRepoPath(),
+                andLoad);
+              return;
+            }
+
+            return handleErr(err);
+          }
+
+          // Existing repository.
+          logger.debug('Beginning control repository pull');
+          gitCompletePayload = {message: 'Completed control repository pull'};
+          gitStartTs = Date.now();
+
+          gitPull(
+            PathService.getControlRepoPath(),
+            andLoad);
+        });
+      });
+    } else {
+      // Non-git repository. Most likely a local mount.
+      logger.debug('Skipping update for non-git control repository.');
+
+      return andLoad(null, 'non-git');
+    }
+  },
+  getControlSHA: function () {
+    return controlSHA;
+  }
+};
+
+module.exports = ControlService;
+
 var maybeParseJSON = function (filename, def, callback) {
   fs.readFile(filename, {encoding: 'utf-8'}, function (err, body) {
     if (err) {
@@ -262,150 +409,3 @@ var loadDomainPlugin = function (pluginRoot, callback) {
     return callback(err, plugin);
   });
 };
-
-var ControlService = {
-  load: function (callback) {
-    var startTs = Date.now();
-    logger.info('Loading control repository');
-
-    async.parallel({
-      contentMap: readContentMap,
-      templateMap: readTemplateMap,
-      plugins: loadPlugins
-    }, function (err, result) {
-      if (err) {
-        logger.error('Unable to load control repository', {
-          errMessage: err.message,
-          stack: err.stack,
-          duration: Date.now() - startTs
-        });
-
-        return callback(false);
-      }
-
-      ContentRoutingService.setContentMap(result.contentMap);
-      TemplateRoutingService.setTemplateMap(result.templateMap);
-
-      logger.info('Successfully loaded control repository', {
-        duration: Date.now() - startTs
-      });
-
-      callback(true);
-    });
-  },
-  update: function (sha, callback) {
-    var startTs = Date.now();
-    logger.info('Updating control repository', {
-      sha: sha
-    });
-
-    var isGit = !!config.control_repo_url();
-    var shouldUpdate = (sha === null) || (sha !== controlSHA);
-
-    if (!shouldUpdate) {
-      logger.info('Control repository SHA is already up to date.', {
-        sha: sha
-      });
-
-      return callback(false);
-    }
-
-    var handleErr = function (err) {
-      logger.error('Unable to update control repository', {
-        errMessage: err.message,
-        stack: err.stack
-      });
-
-      callback(false);
-    };
-
-    var gitStartTs = null;
-    var gitCompletePayload = null;
-
-    var andLoad = function (err, newSHA) {
-      if (err) return handleErr(err);
-
-      if (gitStartTs !== null && gitCompletePayload !== null) {
-        gitCompletePayload.duration = Date.now() - gitStartTs;
-        var msg = gitCompletePayload.message;
-        delete gitCompletePayload.message;
-
-        logger.info(msg, gitCompletePayload);
-      }
-
-      this.load(function (ok) {
-        if (ok) {
-          logger.info('Control repository update complete.', {
-            fromSHA: controlSHA,
-            toSHA: newSHA,
-            duration: Date.now() - startTs
-          });
-
-          controlSHA = newSHA;
-        } else {
-          logger.info('Control repository load failed.', {
-            currentSHA: controlSHA,
-            toSHA: sha
-          });
-        }
-
-        callback(ok);
-      });
-    }.bind(this);
-
-    if (isGit) {
-      var parentPath = path.dirname(PathService.getControlRepoPath());
-
-      mkdirp(parentPath, function (err) {
-        if (err) return callback(err);
-
-        fs.readdir(PathService.getControlRepoPath(), function (err, contents) {
-          if (err) {
-            if (err.code === 'ENOENT') {
-              // New repository.
-
-              logger.debug('Beginning control repository clone', {
-                url: config.control_repo_url(),
-                branch: config.control_repo_branch()
-              });
-              gitCompletePayload = {
-                message: 'Completed control repository clone',
-                url: config.control_repo_url(),
-                branch: config.control_repo_branch()
-              };
-              gitStartTs = Date.now();
-
-              gitClone(
-                config.control_repo_url(),
-                config.control_repo_branch(),
-                PathService.getControlRepoPath(),
-                andLoad);
-              return;
-            }
-
-            return handleErr(err);
-          }
-
-          // Existing repository.
-          logger.debug('Beginning control repository pull');
-          gitCompletePayload = {message: 'Completed control repository pull'};
-          gitStartTs = Date.now();
-
-          gitPull(
-            PathService.getControlRepoPath(),
-            andLoad);
-        });
-      });
-    } else {
-      // Non-git repository. Most likely a local mount.
-      logger.debug('Skipping update for non-git control repository.');
-
-      return andLoad(null, 'non-git');
-    }
-  },
-  getControlSHA: function () {
-    return controlSHA;
-  }
-};
-
-module.exports = ControlService;
