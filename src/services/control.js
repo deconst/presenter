@@ -61,15 +61,20 @@ var readCurrentSHA = function (repoPath, callback) {
       return callback(err);
     }
 
-    childProcess.execFile('/usr/bin/git', ['rev-parse', 'HEAD'], function (err, stdout, stderr) {
-      if (err) {
-        err.stdout = stdout;
-        err.stderr = stderr;
-        return callback(err);
-      }
+    childProcess.execFile(
+      '/usr/bin/git',
+      ['rev-parse', 'HEAD'],
+      {cwd: repoPath},
+      function (err, stdout, stderr) {
+        if (err) {
+          err.stdout = stdout;
+          err.stderr = stderr;
+          return callback(err);
+        }
 
-      callback(null, stdout.replace(/\r?\n$/, ''));
-    });
+        callback(null, stdout.replace(/\r?\n$/, ''));
+      }
+    );
   };
 };
 
