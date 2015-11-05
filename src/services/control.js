@@ -12,6 +12,7 @@ var logger = require('../server/logging').logger;
 var PathService = require('./path');
 var ContentRoutingService = require('./content/routing');
 var TemplateRoutingService = require('./template/routing');
+var RewriteService = require('./rewrite');
 var NunjucksService = require('./nunjucks');
 
 var controlSHA = null;
@@ -24,6 +25,7 @@ var ControlService = {
     async.parallel({
       contentMap: readContentMap,
       templateMap: readTemplateMap,
+      rewriteMap: readRewriteMap,
       plugins: loadPlugins
     }, function (err, result) {
       if (err) {
@@ -38,6 +40,7 @@ var ControlService = {
 
       ContentRoutingService.setContentMap(result.contentMap);
       TemplateRoutingService.setTemplateMap(result.templateMap);
+      RewriteService.setRewriteMap(result.rewriteMap);
 
       var domains = [];
       for (var domain in result.contentMap) {
@@ -287,6 +290,22 @@ var readTemplateMap = function (callback) {
       filename: templateMapPath
     });
     callback(null, templateMap);
+  });
+};
+
+var readRewriteMap = function (callback) {
+  var rewriteMapPath = PathService.getConfigPath(config.control_rewrites_file());
+  logger.debug('Beginning rewrite map load', {
+    filename: rewriteMapPath
+  });
+
+  maybeParseJSON(rewriteMapPath, {}, function (err, rewriteMap) {
+    if (err) return callback(err);
+
+    logger.debug('Successfully loaded rewrite map', {
+      filename: rewriteMapPath
+    });
+    callback(null, rewriteMap);
   });
 };
 
