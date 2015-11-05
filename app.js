@@ -13,7 +13,7 @@ var logger = require('./src/server/logging').logger;
 
 var ControlService = require('./src/services/control');
 
-ControlService.load(function (ok) {
+ControlService.update(null, function (ok) {
   if (!ok) {
     logger.error('Unable to perform initial control repository load');
     process.exit(1);
