@@ -3,7 +3,7 @@ var path = require('path');
 var async = require('async');
 var npm = require('npm');
 var tmp = require('tmp');
-var git = require('nodegit');
+var childProcess = require('child_process');
 var mkdirp = require('mkdirp');
 
 var config = require('../config');
@@ -53,73 +53,41 @@ var subdirectories = function (rootPath, callback) {
   });
 };
 
+var readCurrentSHA = function (repoPath, callback) {
+  return function (err, stdout, stderr) {
+    if (err) {
+      err.stdout = stdout;
+      err.stderr = stderr;
+      return callback(err);
+    }
+
+    childProcess.execFile('/usr/bin/git', ['rev-parse', 'HEAD'], function (err, stdout, stderr) {
+      if (err) {
+        err.stdout = stdout;
+        err.stderr = stderr;
+        return callback(err);
+      }
+
+      callback(null, stdout.replace(/\r?\n$/, ''));
+    });
+  };
+};
+
 var gitClone = function (url, branch, repoPath, callback) {
-  git.Clone(url, path, {checkoutBranch: branch})
-  .then(function (repository) {
-    return repository.getHeadCommit();
-  })
-  .then(function (commit) {
-    return commit.sha();
-  })
-  .catch(function (err) {
-    return callback(err, null);
-  })
-  .done(function (sha) {
-    return callback(null, sha);
-  });
+  childProcess.execFile(
+    '/usr/bin/git',
+    ['clone', '--branch', branch, url, repoPath],
+    readCurrentSHA(repoPath, callback)
+  );
 };
 
 var gitPull = function (repoPath, callback) {
-  var repo = null;
-  var conf = null;
-
-  var currentBranch = null;
-  var upstreamRemote = null;
-  var upstreamRef = null;
-
-  git.Repository.open(PathService.getControlRepoPath())
-  .then(function (repository) {
-    repo = repository;
-
-    return repo.getCurrentBranch();
-  })
-  .then(function (branch) {
-    currentBranch = branch.shorthand();
-
-    return repo.config();
-  })
-  .then(function (config) {
-    conf = config;
-
-    return conf.getString('branch.' + currentBranch + '.remote');
-  })
-  .then(function (ur) {
-    upstreamRemote = ur;
-
-    return conf.getString('branch.' + currentBranch + '.merge');
-  })
-  .then(function (um) {
-    upstreamRef = um.replace(/^refs\/heads\//, '');
-
-    return repo.fetch(upstreamRemote, {});
-  })
-  .then(function () {
-    return repo.mergeBranches(currentBranch, upstreamRemote + '/' + upstreamRef);
-  })
-  .then(function () {
-    return repo.getHeadCommit();
-  })
-  .then(function (commit) {
-    return commit.sha();
-  })
-  .catch(function (err) {
-    return callback(err, null);
-  })
-  .done(function (newSHA) {
-    repo.free();
-
-    return callback(null, newSHA);
-  });
+  childProcess.execFile(
+    '/usr/bin/git',
+    ['pull'],
+    {cwd: repoPath},
+    readCurrentSHA(repoPath, callback)
+  );
 };
 
 // Read functions
