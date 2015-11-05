@@ -233,7 +233,6 @@ var loadDomainPlugin = function (pluginRoot, callback) {
         });
 
         var requireTs = Date.now();
-        var plugin = null;
         try {
           plugin = require(pluginRoot);
         } catch (e) {
