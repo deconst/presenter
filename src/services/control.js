@@ -337,12 +337,7 @@ var loadDomainPlugins = function (domain, callback) {
     }, function (err, results) {
       if (err) return callback(err);
 
-      var output = {};
-      for (var i = 0; i < results.length; i++) {
-        output[subdirs[i]] = results[i];
-      }
-
-      callback(null, output);
+      callback(null, results);
     });
   });
 };

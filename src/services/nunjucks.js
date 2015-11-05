@@ -44,8 +44,8 @@ var createEnvironment = function (domain) {
     return '<pre><code>' + string + '</code></pre>';
   });
 
-  env.precompile(PathService.getTemplatesPath(domain), {env: env});
-  env.precompile(PathService.getDefaultTemplatesPath(), {env: env});
+  nunjucks.precompile(PathService.getTemplatesPath(domain), {env: env});
+  nunjucks.precompile(PathService.getDefaultTemplatesPath(), {env: env});
 
   return env;
 };
