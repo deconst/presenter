@@ -10,8 +10,18 @@ var nock = require('nock');
 var mockfs = require('mock-fs');
 var server = require('../src/server');
 var NunjucksService = require('../src/services/nunjucks');
+var ControlService = require('../src/services/control');
 
 nock.enableNetConnect('127.0.0.1');
+
+var mockControl = function (mfs, callback) {
+  if (mfs !== null) mockfs(mfs);
+
+  ControlService.load(function () {
+    if (mfs !== null) mockfs.restore();
+    callback();
+  });
+};
 
 describe('[control-repo] the app', function () {
   beforeEach(function () {
@@ -24,39 +34,34 @@ describe('[control-repo] the app', function () {
   });
 
   it('returns a 404 with a nonexistent control repo', function (done) {
-    mockfs({
-      'test/test-control/templates/deconst.horse': {
-        '404.html': 'site 404 page'
-      }
+    mockControl({}, function () {
+      nock('http://content')
+        .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
+        .reply(200, {
+          assets: [],
+          envelope: {body: 'the page content'}
+        });
+
+      request(server.create())
+        .get('/')
+        .expect(404)
+        .expect(/Page Not Found/, done);
     });
-
-    nock('http://content')
-      .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
-      .reply(200, {
-        assets: [],
-        envelope: {body: 'the page content'}
-      });
-
-    request(server.create())
-      .get('/')
-      .expect(404)
-      .expect('site 404 page', done);
   });
 
   it('returns a 404 with a malformed content config file', function (done) {
-    mockfs({
+    var mfs = {
       'test/test-control/config': {
         'content.json': '{notJson: "false"}'
-      },
-      'test/test-control/templates/deconst.horse': {
-        '404.html': 'site 404 page'
       }
-    });
+    };
 
-    request(server.create())
-      .get('/')
-      .expect(404)
-      .expect('site 404 page', done);
+    mockControl(mfs, function () {
+      request(server.create())
+        .get('/')
+        .expect(404)
+        .expect(/Page Not Found/, done);
+    });
   });
 
   it('does not require a rewrites.json file', function (done) {
@@ -64,39 +69,38 @@ describe('[control-repo] the app', function () {
       CONTROL_REWRITES_FILE: 'foo.json'
     });
 
-    nock('http://content')
-      .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
-      .reply(200, {
-        assets: [],
-        envelope: {body: 'the page content'}
-      });
+    mockControl(null, function () {
+      nock('http://content')
+        .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
+        .reply(200, {
+          assets: [],
+          envelope: {body: 'the page content'}
+        });
 
-    request(server.create())
-      .get('/')
-      .expect(200, done);
+      request(server.create())
+        .get('/')
+        .expect(200, done);
+    });
   });
 
-  it('404 on umnatched domains/hostnames', function (done) {
+  it('returns a 404 on umnatched domains', function (done) {
     config.set({
       PRESENTED_URL_DOMAIN: 'fake-site.dev'
     });
 
-    nock('http://content')
-      .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
-      .reply(200, {
-        assets: [],
-        envelope: {body: 'the page content'}
-      });
-
-    request(server.create())
-      .get('/')
-      .expect(404, done);
+    mockControl(null, function () {
+      request(server.create())
+        .get('/')
+        .expect(404, done);
+    });
   });
 
   it('returns a redirect to a different hostname', function (done) {
-    request(server.create())
-      .get('/different-host/some-path/')
-      .expect('Location', 'https://stable.horse/some-path/')
-      .expect(301, done);
+    mockControl(null, function () {
+      request(server.create())
+        .get('/different-host/some-path/')
+        .expect('Location', 'https://stable.horse/some-path/')
+        .expect(301, done);
+    });
   });
 });
