@@ -6,6 +6,7 @@ var nunjucksFallback = require('./nunjucks-fallback');
 var PathService = require('./path');
 
 var envs = {};
+var staticEnv = null;
 
 var NunjucksService = {
   clearEnvironments: function () {
@@ -15,7 +16,15 @@ var NunjucksService = {
     var domain = context.host();
 
     if (!envs[domain]) {
-      return callback(new Error('Missing environment for domain'));
+      logger.warn('Missing environment for domain', {
+        domain: domain
+      });
+
+      if (staticEnv === null) {
+        staticEnv = createEnvironment(null);
+      }
+
+      return callback(null, staticEnv);
     }
 
     callback(null, envs[domain]);
@@ -36,10 +45,10 @@ module.exports = NunjucksService;
 var createEnvironment = function (domain) {
   var templates = {};
 
-  var templatePaths = [
-    PathService.getDefaultTemplatesPath(),
-    PathService.getTemplatesPath(domain)
-  ];
+  var templatePaths = [PathService.getDefaultTemplatesPath()];
+  if (domain) {
+    templatePaths.push(PathService.getTemplatesPath(domain));
+  }
 
   templatePaths.forEach(function (templatePath) {
     var isDir = false;
