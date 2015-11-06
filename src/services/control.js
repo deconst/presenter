@@ -17,6 +17,7 @@ var NunjucksService = require('./nunjucks');
 var createAtomicLoader = require('./nunjucks/atomic-loader');
 
 var controlSHA = null;
+var lastAttemptSHA = null;
 
 var ControlService = {
   load: function (callback) {
@@ -82,6 +83,15 @@ var ControlService = {
     logger.info('Updating control repository', {
       sha: sha
     });
+
+    if (sha !== null && lastAttemptSHA === sha) {
+      logger.info('Skipping load of already-attempted SHA', {
+        sha: sha,
+        lastAttemptSHA: lastAttemptSHA
+      });
+      return callback(false);
+    }
+    lastAttemptSHA = sha;
 
     var isGit = !!config.control_repo_url();
     var shouldUpdate = (sha === null) || (sha !== controlSHA);
