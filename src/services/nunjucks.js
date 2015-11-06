@@ -67,7 +67,7 @@ var createEnvironment = function (domain) {
         include: [/^./],
         wrapper: function (tpls) {
           tpls.forEach(function (tpl) {
-            templates[tpl.name] = eval('(function () {\n' + tpl.template + '\n})();\n');
+            templates[tpl.name] = (new Function(tpl.template))();
           });
         }
       });
