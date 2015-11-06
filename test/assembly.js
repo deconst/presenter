@@ -9,12 +9,17 @@ config.configure(before.settings);
 var request = require('supertest');
 var nock = require('nock');
 var server = require('../src/server');
+var ControlService = require('../src/services/control');
 
 nock.enableNetConnect('127.0.0.1');
 
 describe('page assembly', function () {
-  beforeEach(function () {
+  beforeEach(function (done) {
     config.configure(before.settings);
+
+    ControlService.load(function () {
+      done();
+    });
   });
 
   it('assembles a page', function (done) {
