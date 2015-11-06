@@ -1,9 +1,10 @@
-var logger = require('../server/logging').logger;
 var fs = require('fs');
 var nunjucks = require('nunjucks');
 var nunjucksDate = require('nunjucks-date');
-var nunjucksFallback = require('./nunjucks-fallback');
-var PathService = require('./path');
+
+var logger = require('../../server/logging').logger;
+var fallback = require('./fallback');
+var PathService = require('../path');
 
 var envs = {};
 var staticEnv = null;
@@ -93,7 +94,7 @@ var createEnvironment = function (domain) {
   var env = new nunjucks.Environment([loader]);
 
   env.addFilter('date', nunjucksDate);
-  env.addFilter('fallback', nunjucksFallback);
+  env.addFilter('fallback', fallback);
   env.addFilter('json', function (data) {
     var string = JSON.stringify(data, null, 4);
     string = string.replace(/</g, '&lt;').replace(/>/g, '&gt;');
