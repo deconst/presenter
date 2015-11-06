@@ -14,6 +14,7 @@ var ContentRoutingService = require('./content/routing');
 var TemplateRoutingService = require('./template/routing');
 var RewriteService = require('./rewrite');
 var NunjucksService = require('./nunjucks');
+var createAtomicLoader = require('./nunjucks/atomic-loader');
 
 var controlSHA = null;
 
@@ -22,14 +23,9 @@ var ControlService = {
     var startTs = Date.now();
     logger.info('Loading control repository');
 
-    async.parallel({
-      contentMap: readContentMap,
-      templateMap: readTemplateMap,
-      rewriteMap: readRewriteMap,
-      plugins: loadPlugins
-    }, function (err, result) {
+    NunjucksService.initialize(function (err) {
       if (err) {
-        logger.error('Unable to load control repository', {
+        logger.error('Unable to bootstrap nunjucks templates.', {
           errMessage: err.message,
           stack: err.stack,
           duration: Date.now() - startTs
@@ -38,25 +34,47 @@ var ControlService = {
         return callback(false);
       }
 
-      ContentRoutingService.setContentMap(result.contentMap);
-      TemplateRoutingService.setTemplateMap(result.templateMap);
-      RewriteService.setRewriteMap(result.rewriteMap);
+      async.parallel({
+        contentMap: readContentMap,
+        templateMap: readTemplateMap,
+        rewriteMap: readRewriteMap,
+        plugins: loadPlugins,
+        loaders: loadTemplates
+      }, function (err, result) {
+        if (err) {
+          logger.error('Unable to load control repository', {
+            errMessage: err.message,
+            stack: err.stack,
+            duration: Date.now() - startTs
+          });
 
-      var domains = [];
-      for (var domain in result.contentMap) {
-        var plugins = result.plugins[domain] || [];
+          return callback(false);
+        }
 
-        NunjucksService.installEnvironment(domain, plugins);
+        ContentRoutingService.setContentMap(result.contentMap);
+        TemplateRoutingService.setTemplateMap(result.templateMap);
+        RewriteService.setRewriteMap(result.rewriteMap);
 
-        domains.push(domain);
-      }
+        var domains = [];
+        for (var domain in result.contentMap) {
+          var plugins = result.plugins[domain] || [];
+          var loaders = [];
+          if (result.loaders[domain]) {
+            loaders.push(result.loaders[domain]);
+          }
 
-      logger.info('Successfully loaded control repository', {
-        domains: domains,
-        duration: Date.now() - startTs
+          NunjucksService.installEnvironment(domain, loaders, plugins);
+
+          domains.push(domain);
+        }
+
+        logger.info('Successfully loaded control repository', {
+          domains: domains,
+          duration: Date.now() - startTs
+        });
+
+        callback(true);
       });
-
-      callback(true);
     });
   },
   update: function (sha, callback) {
@@ -438,5 +456,27 @@ var loadDomainPlugin = function (pluginRoot, callback) {
     cleanupCache
   ], function (err) {
     return callback(err, plugin);
+  });
+};
+
+var loadTemplates = function (callback) {
+  var templatesRoot = PathService.getTemplatesRoot();
+  subdirectories(templatesRoot, function (err, subdirs) {
+    if (err) return callback(err);
+
+    async.map(subdirs, function (subdir, cb) {
+      var fullPath = path.resolve(templatesRoot, subdir);
+
+      createAtomicLoader(fullPath, cb);
+    }, function (err, results) {
+      if (err) return callback(err);
+
+      var output = {};
+      for (var i = 0; i < results.length; i++) {
+        output[subdirs[i]] = results[i];
+      }
+
+      callback(null, output);
+    });
   });
 };

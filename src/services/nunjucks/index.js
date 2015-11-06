@@ -1,15 +1,29 @@
-var fs = require('fs');
 var nunjucks = require('nunjucks');
 var nunjucksDate = require('nunjucks-date');
 
 var logger = require('../../server/logging').logger;
 var fallback = require('./fallback');
+var createAtomicLoader = require('./atomic-loader');
 var PathService = require('../path');
 
 var envs = {};
 var staticEnv = null;
+var staticLoader = null;
 
 var NunjucksService = {
+  initialize: function (callback) {
+    if (staticEnv && staticLoader) {
+      return callback(null);
+    }
+
+    createAtomicLoader(PathService.getDefaultTemplatesPath(), function (err, loader) {
+      if (err) return callback(err);
+
+      staticLoader = loader;
+      staticEnv = createEnvironment(null, [staticLoader]);
+      callback(null);
+    });
+  },
   clearEnvironments: function () {
     envs = {};
   },
@@ -21,17 +35,13 @@ var NunjucksService = {
         domain: domain
       });
 
-      if (staticEnv === null) {
-        staticEnv = createEnvironment(null);
-      }
-
       return callback(null, staticEnv);
     }
 
     callback(null, envs[domain]);
   },
-  installEnvironment: function (domain, plugins) {
-    var env = createEnvironment(domain);
+  installEnvironment: function (domain, loaders, plugins) {
+    var env = createEnvironment(domain, loaders);
 
     plugins.forEach(function (plugin) {
       addPlugin(env, plugin);
@@ -43,55 +53,9 @@ var NunjucksService = {
 
 module.exports = NunjucksService;
 
-var createEnvironment = function (domain) {
-  var templates = {};
-
-  var templatePaths = [PathService.getDefaultTemplatesPath()];
-  if (domain) {
-    templatePaths.push(PathService.getTemplatesPath(domain));
-  }
-
-  templatePaths.forEach(function (templatePath) {
-    var isDir = false;
-    try {
-      isDir = fs.statSync(templatePath).isDirectory();
-    } catch (e) {
-      if (e.code !== 'ENOENT') {
-        logger.error('Unable to load templates', {
-          templatePath: templatePath,
-          errMessage: e.message,
-          errCode: e.code,
-          stack: e.stack
-        });
-      }
-      return;
-    }
-
-    if (isDir) {
-      logger.debug('Loading templates', {
-        domain: domain,
-        templatePath: templatePath
-      });
-      nunjucks.precompile(templatePath, {
-        env: env,
-        include: [/^./],
-        wrapper: function (tpls) {
-          tpls.forEach(function (tpl) {
-            templates[tpl.name] = (new Function(tpl.template))();
-          });
-        }
-      });
-    }
-  });
-
-  logger.debug('Loaded templates', {
-    domain: domain,
-    templateNames: Object.keys(templates)
-  });
-
-  var loader = new nunjucks.PrecompiledLoader(templates);
-
-  var env = new nunjucks.Environment([loader]);
+var createEnvironment = function (domain, loaders) {
+  loaders.push(staticLoader);
+  var env = new nunjucks.Environment(loaders);
 
   env.addFilter('date', nunjucksDate);
   env.addFilter('fallback', fallback);

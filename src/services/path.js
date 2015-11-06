@@ -16,9 +16,11 @@ var PathService = {
   getPluginsPath: function (domain) {
     return path.resolve(this.getPluginsRoot(), domain);
   },
+  getTemplatesRoot: function (domain) {
+    return path.resolve(this.getControlRepoPath(), 'templates');
+  },
   getTemplatesPath: function (domain) {
-    var templatePath = path.join('templates', domain);
-    return path.resolve(this.getControlRepoPath(), templatePath);
+    return path.resolve(this.getTemplatesRoot(), domain);
   },
   getAssetPath: function () {
     return path.resolve(PathService.getControlRepoPath(), 'assets');
