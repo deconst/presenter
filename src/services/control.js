@@ -190,7 +190,7 @@ var maybeParseJSON = function (filename, def, callback) {
     try {
       doc = JSON.parse(body);
     } catch (e) {
-      logger.warning('Configuration file contained invalid JSON', {
+      logger.warn('Configuration file contained invalid JSON', {
         errMessage: e.message,
         filename: filename,
         source: body
