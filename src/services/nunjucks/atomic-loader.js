@@ -23,9 +23,6 @@ var AtomicLoader = function (basePath, templateFiles) {
       continue;
     }
 
-    logger.debug('template source', {
-      templateSource: templateSource
-    });
     this.templateSources[templateName] = {
       src: templateSource,
       path: templateFullPath,
@@ -61,10 +58,6 @@ var createAtomicLoader = function (rootPath, callback) {
         return next();
       }
 
-      logger.debug('Loaded template file', {
-        fullPath: fullPath,
-        templateName: templateName
-      });
       templateFiles[templateName] = body;
       next();
     });

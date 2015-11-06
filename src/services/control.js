@@ -460,11 +460,20 @@ var loadDomainPlugin = function (pluginRoot, callback) {
 };
 
 var loadTemplates = function (callback) {
+  var startTs = Date.now();
   var templatesRoot = PathService.getTemplatesRoot();
+  logger.debug('Beginning template preload', {
+    templatesRoot: templatesRoot
+  });
+
   subdirectories(templatesRoot, function (err, subdirs) {
     if (err) {
       if (err.code === 'ENOENT') {
         // No templates to load in this control repository.
+        logger.debug('No templates to load', {
+          duration: Date.now() - startTs
+        });
+
         return callback(null, {});
       }
 
@@ -482,6 +491,11 @@ var loadTemplates = function (callback) {
       for (var i = 0; i < results.length; i++) {
         output[subdirs[i]] = results[i];
       }
+
+      logger.debug('Successfully preloaded templates', {
+        domains: subdirs,
+        duration: Date.now() - startTs
+      });
 
       callback(null, output);
     });
