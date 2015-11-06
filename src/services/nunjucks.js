@@ -37,8 +37,8 @@ var createEnvironment = function (domain) {
   var templates = {};
 
   var templatePaths = [
-    PathService.getTemplatesPath(domain),
-    PathService.getDefaultTemplatesPath()
+    PathService.getDefaultTemplatesPath(),
+    PathService.getTemplatesPath(domain)
   ];
 
   templatePaths.forEach(function (templatePath) {
