@@ -17,16 +17,23 @@ nock.enableNetConnect('127.0.0.1');
 var mockControl = function (mfs, callback) {
   if (mfs !== null) mockfs(mfs);
 
-  ControlService.load(function () {
+  ControlService.load(function (ok) {
     if (mfs !== null) mockfs.restore();
+
+    if (!ok) {
+      throw new Error('Unable to load control repository');
+    }
+
     callback();
   });
 };
 
 describe('[control-repo] the app', function () {
-  beforeEach(function () {
+  beforeEach(function (done) {
     config.configure(before.settings);
     NunjucksService.clearEnvironments();
+
+    NunjucksService.initialize(done);
   });
 
   afterEach(function () {
@@ -42,21 +49,6 @@ describe('[control-repo] the app', function () {
           envelope: {body: 'the page content'}
         });
 
-      request(server.create())
-        .get('/')
-        .expect(404)
-        .expect(/Page Not Found/, done);
-    });
-  });
-
-  it('returns a 404 with a malformed content config file', function (done) {
-    var mfs = {
-      'test/test-control/config': {
-        'content.json': '{notJson: "false"}'
-      }
-    };
-
-    mockControl(mfs, function () {
       request(server.create())
         .get('/')
         .expect(404)

@@ -462,7 +462,14 @@ var loadDomainPlugin = function (pluginRoot, callback) {
 var loadTemplates = function (callback) {
   var templatesRoot = PathService.getTemplatesRoot();
   subdirectories(templatesRoot, function (err, subdirs) {
-    if (err) return callback(err);
+    if (err) {
+      if (err.code === 'ENOENT') {
+        // No templates to load in this control repository.
+        return callback(null, {});
+      }
+
+      return callback(err);
+    }
 
     async.map(subdirs, function (subdir, cb) {
       var fullPath = path.resolve(templatesRoot, subdir);

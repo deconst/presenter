@@ -17,7 +17,11 @@ describe('page assembly', function () {
   beforeEach(function (done) {
     config.configure(before.settings);
 
-    ControlService.load(function () {
+    ControlService.load(function (ok) {
+      if (!ok) {
+        return done(new Error('Control repository load failed'));
+      }
+
       done();
     });
   });
