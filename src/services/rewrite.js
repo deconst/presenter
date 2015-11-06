@@ -8,7 +8,7 @@ var RewriteService = {
   setRewriteMap: function (configMap) {
     for (var domain in configMap) {
       configMap[domain].forEach(function (rule) {
-        rule.fromPattern = new RegExp(rule.fromPattern, 'g');
+        rule.from = new RegExp(rule.from, 'g');
       });
     }
 
