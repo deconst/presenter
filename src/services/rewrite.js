@@ -6,10 +6,12 @@ var rewriteMap = {};
 
 var RewriteService = {
   setRewriteMap: function (configMap) {
+    var compileRx = function (rule) {
+      rule.from = new RegExp(rule.from, 'g');
+    };
+
     for (var domain in configMap) {
-      configMap[domain].forEach(function (rule) {
-        rule.from = new RegExp(rule.from, 'g');
-      });
+      configMap[domain].forEach(compileRx);
     }
 
     rewriteMap = configMap;

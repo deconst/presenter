@@ -14,7 +14,7 @@ var AtomicLoader = function (basePath, templateFiles) {
     var templateSource = templateFiles[templateName];
     var templateFullPath = path.resolve(basePath, templateName);
 
-    if (!templateFullPath.indexOf(basePath) === 0) {
+    if (templateFullPath.indexOf(basePath) === -1) {
       logger.warn('Attempt to load template outside of base path', {
         basePath: basePath,
         templateName: templateName,
