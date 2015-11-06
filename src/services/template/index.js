@@ -55,7 +55,7 @@ var TemplateService = {
   },
   _findTemplate: function (context, templatePath) {
     templatePath = templatePath || 'index';
-    var templateDir = services.path.getTemplatesPath(context);
+    var templateDir = services.path.getTemplatesPath(context.host());
     var defaultTemplateDir = services.path.getDefaultTemplatesPath();
     var templateBase = path.resolve(templateDir, templatePath);
     var defaultTemplateBase = path.resolve(defaultTemplateDir, templatePath);
