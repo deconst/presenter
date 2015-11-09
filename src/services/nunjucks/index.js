@@ -55,7 +55,9 @@ module.exports = NunjucksService;
 
 var createEnvironment = function (domain, loaders) {
   loaders.push(staticLoader);
-  var env = new nunjucks.Environment(loaders);
+  var env = new nunjucks.Environment(loaders, {
+    autoescape: false
+  });
 
   env.addFilter('date', nunjucksDate);
   env.addFilter('fallback', fallback);
