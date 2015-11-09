@@ -7,10 +7,11 @@ set -euo pipefail
   exit 1
 }
 
-[ -n "${CONTROL_REPO_PATH}" ] || {
+if [ -n "${CONTROL_REPO_PATH:-}" ]; then
   echo "Please set \${CONTROL_REPO_PATH} to the path within the container at which the control repository is mounted."
   exit 1
-}
+elif [ -d "${CONTROL_REPO_PATH:-}" ]; then
+  chown -R presenter:presenter "${CONTROL_REPO_PATH}"
+fi
 
-chown -R presenter:presenter "${CONTROL_REPO_PATH}"
 exec /usr/bin/su presenter -c 'npm start'
