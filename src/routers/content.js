@@ -8,6 +8,7 @@ var ContentService = require('../services/content');
 var ContentRoutingService = require('../services/content/routing');
 var ContentFilterService = require('../services/content/filter');
 var UrlService = require('../services/url');
+var ControlService = require('../services/control');
 
 // Register content filters.
 
@@ -78,6 +79,17 @@ module.exports = function (req, res) {
         );
 
         return callback(null, toc.envelope.body);
+      });
+    },
+    control: function (callback) {
+      ContentService.getControlSHA(context, function (err, sha) {
+        if (err) return callback(err);
+
+        // No need to hold up the current request for the control repository update.
+        // Kick it off here but don't wait for it to complete.
+        if (sha) ControlService.update(sha);
+
+        callback(null, sha);
       });
     }
   }, function (err, output) {

@@ -43,6 +43,10 @@ describe('[control-repo] the app', function () {
   it('returns a 404 with a nonexistent control repo', function (done) {
     mockControl({}, function () {
       nock('http://content')
+        .get('/control')
+        .reply(200, {
+          sha: null
+        })
         .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
         .reply(200, {
           assets: [],
@@ -63,6 +67,10 @@ describe('[control-repo] the app', function () {
 
     mockControl(null, function () {
       nock('http://content')
+        .get('/control')
+        .reply(200, {
+          sha: null
+        })
         .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
         .reply(200, {
           assets: [],

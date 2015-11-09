@@ -84,6 +84,11 @@ var ControlService = {
       sha: sha
     });
 
+    // The callback is optional.
+    if (!callback) {
+      callback = function () {};
+    }
+
     if (sha !== null && lastAttemptSHA === sha) {
       logger.info('Skipping load of already-attempted SHA', {
         sha: sha,
