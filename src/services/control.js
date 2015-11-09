@@ -18,6 +18,7 @@ var createAtomicLoader = require('./nunjucks/atomic-loader');
 
 var controlSHA = null;
 var lastAttemptSHA = null;
+var updateInProgress = false;
 
 var ControlService = {
   load: function (callback) {
@@ -79,15 +80,19 @@ var ControlService = {
     });
   },
   update: function (sha, callback) {
-    var startTs = Date.now();
-    logger.info('Updating control repository', {
-      sha: sha
-    });
-
     // The callback is optional.
     if (!callback) {
       callback = function () {};
     }
+
+    if (updateInProgress) {
+      return callback(false);
+    }
+
+    var startTs = Date.now();
+    logger.info('Updating control repository', {
+      sha: sha
+    });
 
     if (sha !== null && lastAttemptSHA === sha) {
       logger.info('Skipping load of already-attempted SHA', {
@@ -109,12 +114,15 @@ var ControlService = {
       return callback(false);
     }
 
+    updateInProgress = true;
+
     var handleErr = function (err) {
       logger.error('Unable to update control repository', {
         errMessage: err.message,
         stack: err.stack
       });
 
+      updateInProgress = false;
       callback(false);
     };
 
@@ -148,6 +156,7 @@ var ControlService = {
           });
         }
 
+        updateInProgress = false;
         callback(ok);
       });
     }.bind(this);
@@ -156,7 +165,7 @@ var ControlService = {
       var parentPath = path.dirname(PathService.getControlRepoPath());
 
       mkdirp(parentPath, function (err) {
-        if (err) return callback(err);
+        if (err) return handleErr(err);
 
         fs.readdir(PathService.getControlRepoPath(), function (err, contents) {
           if (err) {
