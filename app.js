@@ -10,11 +10,20 @@ var config = require('./src/config');
 config.configure(process.env);
 
 var logger = require('./src/server/logging').logger;
-var app = require('./src/server').create();
 
-var server = app.listen(8080, function () {
-  var host = server.address().address;
-  var port = server.address().port;
+var ControlService = require('./src/services/control');
 
-  logger.info('Presenter listening at http://%s:%s', host, port);
+ControlService.update(null, function (ok) {
+  if (!ok) {
+    logger.warn('Unable to perform initial control repository load');
+  }
+
+  var app = require('./src/server').create();
+
+  var server = app.listen(8080, function () {
+    var host = server.address().address;
+    var port = server.address().port;
+
+    logger.info('Presenter listening at http://%s:%s', host, port);
+  });
 });

@@ -3,18 +3,18 @@
  */
 
 var express = require('express');
+
 var logging = require('./logging');
 var proxies = require('./proxies');
 var rewrites = require('./rewrites');
 var routes = require('../routers');
-var path = require('path');
-var pathService = require('../services/path');
+
+var PathService = require('../services/path');
 
 exports.create = function () {
   var app = express();
 
-  var staticPath = path.resolve(pathService.getControlRepoPath(), 'assets');
-  app.use('/assets', express.static(staticPath));
+  app.use('/assets', express.static(PathService.getAssetPath()));
 
   app.use(logging.requestLogger());
   app.set('trust proxy', true);

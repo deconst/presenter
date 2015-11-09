@@ -1,6 +1,17 @@
 // Handle application configuration.
 
 var configuration = {
+  control_repo_url: {
+    env: 'CONTROL_REPO_URL',
+    description: 'Git clone URL of the control repository',
+    required: false
+  },
+  control_repo_branch: {
+    env: 'CONTROL_REPO_BRANCH',
+    description: 'Git branch to track in the control repository',
+    def: 'master',
+    required: false
+  },
   control_repo_path: {
     env: 'CONTROL_REPO_PATH',
     description: 'Filesystem path to the control repo',
@@ -8,19 +19,19 @@ var configuration = {
   },
   control_content_file: {
     env: 'CONTROL_CONTENT_FILE',
-    description: "basename of the control repo's content config file",
+    description: "Basename of the control repo's content config file",
     def: 'content.json',
     required: true
   },
   control_rewrites_file: {
     env: 'CONTROL_REWRITES_FILE',
-    description: "basename of the control repo's rewrites config file",
+    description: "Basename of the control repo's rewrites config file",
     def: 'rewrites.json',
     required: false
   },
   control_routes_file: {
     env: 'CONTROL_ROUTES_FILE',
-    description: "basename of the control repo's routes config file",
+    description: "Basename of the control repo's routes config file",
     def: 'routes.json',
     required: true
   },

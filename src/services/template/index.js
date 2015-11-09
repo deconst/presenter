@@ -1,11 +1,11 @@
 var globby = require('globby');
 var path = require('path');
-var logger = require('../server/logging').logger;
+var logger = require('../../server/logging').logger;
 var services = {
-  content: require('./content'),
-  nunjucks: require('./nunjucks'),
-  path: require('./path'),
-  url: require('./url')
+  content: require('../content'),
+  nunjucks: require('../nunjucks'),
+  path: require('../path'),
+  url: require('../url')
 };
 
 var TemplateService = {
@@ -55,7 +55,7 @@ var TemplateService = {
   },
   _findTemplate: function (context, templatePath) {
     templatePath = templatePath || 'index';
-    var templateDir = services.path.getTemplatesPath(context);
+    var templateDir = services.path.getTemplatesPath(context.host());
     var defaultTemplateDir = services.path.getDefaultTemplatesPath();
     var templateBase = path.resolve(templateDir, templatePath);
     var defaultTemplateBase = path.resolve(defaultTemplateDir, templatePath);

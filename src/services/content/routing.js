@@ -1,54 +1,42 @@
-var fs = require('fs');
-var path = require('path');
 var url = require('url');
-var config = require('../../config');
 var logger = require('../../server/logging').logger;
-var PathService = require('../path');
 var UrlService = require('../url');
 
-var CONTENT_FILE = config.control_content_file();
+var contentMap = {};
+
+var getDomainContentMap = function (domain) {
+  if (!contentMap.hasOwnProperty(domain) || !contentMap[domain].hasOwnProperty('content')) {
+    logger.warn('Content map has no content routes defined for this domain.', {
+      domain: domain
+    });
+    return {};
+  }
+
+  return contentMap[domain].content;
+};
+
+var getDomainProxyMap = function (domain) {
+  if (!contentMap.hasOwnProperty(domain) || !contentMap[domain].hasOwnProperty('proxy')) {
+    return {};
+  }
+
+  return contentMap[domain].proxy;
+};
 
 var ContentRoutingService = {
-  _readContentConfig: function () {
-    try {
-      return JSON.parse(fs.readFileSync(
-        path.resolve(PathService.getConfigPath(), CONTENT_FILE),
-        'utf-8'
-      ));
-    } catch (e) {
-      logger.error('Unable to read ' + path.resolve(PathService.getConfigPath(), CONTENT_FILE));
-      return {};
-    }
-  },
-  _readContent: function (site) {
-    var contentConfig = this._readContentConfig();
-
-    if (!contentConfig.hasOwnProperty(site) || !contentConfig[site].hasOwnProperty('content')) {
-      logger.warn(CONTENT_FILE + ' has no content routes defined for this site.');
-      return {};
-    }
-
-    return contentConfig[site].content;
-  },
-  _readProxies: function (site) {
-    var contentConfig = this._readContentConfig();
-
-    if (!contentConfig.hasOwnProperty(site) || !contentConfig[site].hasOwnProperty('proxy')) {
-      return {};
-    }
-
-    return contentConfig[site].proxy;
+  setContentMap: function (map) {
+    contentMap = map;
   },
   getContentId: function (context, urlPath) {
     urlPath = urlPath || context.request.path;
-    var content = this._readContent(context.host());
+    var domainContentMap = getDomainContentMap(context.host());
 
     var contentStoreBase = null;
     var afterPrefix = null;
 
-    for (var prefix in content) {
+    for (var prefix in domainContentMap) {
       if (urlPath.indexOf(prefix) !== -1) {
-        contentStoreBase = content[prefix];
+        contentStoreBase = domainContentMap[prefix];
         afterPrefix = urlPath.replace(prefix, '');
       }
     }
@@ -61,11 +49,11 @@ var ContentRoutingService = {
   },
   getContentPrefix: function (context) {
     var urlPath = context.request.path;
-    var content = this._readContent(context.host());
+    var domainContentMap = getDomainContentMap(context.host());
 
     var prefixMatch = null;
 
-    for (var prefix in content) {
+    for (var prefix in domainContentMap) {
       if (urlPath.indexOf(prefix) !== -1) {
         prefixMatch = prefix;
       }
@@ -74,29 +62,27 @@ var ContentRoutingService = {
     return prefixMatch;
   },
   getPresentedUrl: function (context, contentId) {
-    var content = this._readContent(context.host());
+    var domainContentMap = getDomainContentMap(context.host());
     var urlBase = null;
     var afterPrefix = null;
 
-    for (var prefix in content) {
-      if (contentId.indexOf(content[prefix].replace(/\/$/, '')) !== -1) {
+    for (var prefix in domainContentMap) {
+      if (contentId.indexOf(domainContentMap[prefix].replace(/\/$/, '')) !== -1) {
         urlBase = prefix;
-        afterPrefix = contentId.replace(content[prefix], '');
+        afterPrefix = contentId.replace(domainContentMap[prefix], '');
       }
     }
 
     return UrlService.getSiteUrl(context, url.resolve(urlBase, afterPrefix));
   },
   getProxies: function (context) {
-    return this._readProxies(context.host());
+    return getDomainProxyMap(context.host());
   },
   getAllProxies: function () {
     var proxies = [];
 
-    var contentConfig = this._readContentConfig();
-
-    for (var site in contentConfig) {
-      var siteConfig = contentConfig[site];
+    for (var site in contentMap) {
+      var siteConfig = contentMap[site];
       if (siteConfig.hasOwnProperty('proxy')) {
         proxies.push({
           site: site,
