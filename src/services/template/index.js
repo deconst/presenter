@@ -67,8 +67,9 @@ var TemplateService = {
       defaultTemplateBase + '/index.htm'
     ];
 
+    var templateDir = null;
     if (context.host()) {
-      var templateDir = services.path.getTemplatesPath(context.host());
+      templateDir = services.path.getTemplatesPath(context.host());
       var templateBase = path.resolve(templateDir, templatePath);
 
       possibilities = possibilities.concat([
@@ -90,7 +91,11 @@ var TemplateService = {
       throw new Error('Unable to find static 404 handler');
     }
 
-    return matches[0].replace(templateDir + '/', '').replace(defaultTemplateDir + '/', '');
+    var m = matches[0].replace(defaultTemplateDir + '/', '');
+    if (templateDir) {
+      m = m.replace(templateDir + '/', '');
+    }
+    return m;
   }
 };
 
