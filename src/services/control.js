@@ -119,7 +119,8 @@ var ControlService = {
     var handleErr = function (err) {
       logger.error('Unable to update control repository', {
         errMessage: err.message,
-        stack: err.stack
+        stack: err.stack,
+        sha: sha
       });
 
       updateInProgress = false;
@@ -150,7 +151,7 @@ var ControlService = {
 
           controlSHA = newSHA;
         } else {
-          logger.info('Control repository load failed.', {
+          logger.error('Control repository load failed.', {
             currentSHA: controlSHA,
             toSHA: sha
           });
