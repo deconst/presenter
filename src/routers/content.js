@@ -87,7 +87,7 @@ module.exports = function (req, res) {
 
         // No need to hold up the current request for the control repository update.
         // Kick it off here but don't wait for it to complete.
-        if (sha) ControlService.update(sha);
+        if (sha && sha !== ControlService.getControlSHA()) ControlService.update(sha);
 
         callback(null, sha);
       });
