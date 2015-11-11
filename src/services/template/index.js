@@ -55,23 +55,32 @@ var TemplateService = {
   },
   _findTemplate: function (context, templatePath) {
     templatePath = templatePath || 'index';
-    var templateDir = services.path.getTemplatesPath(context.host());
+
     var defaultTemplateDir = services.path.getDefaultTemplatesPath();
-    var templateBase = path.resolve(templateDir, templatePath);
     var defaultTemplateBase = path.resolve(defaultTemplateDir, templatePath);
 
-    var matches = globby.sync([
-      templateBase,
-      templateBase + '.html',
-      templateBase + '.htm',
-      templateBase + '/index.html',
-      templateBase + '/index.htm',
+    var possibilities = [
       defaultTemplateBase,
       defaultTemplateBase + '.html',
       defaultTemplateBase + '.htm',
       defaultTemplateBase + '/index.html',
       defaultTemplateBase + '/index.htm'
-    ]);
+    ];
+
+    if (context.host()) {
+      var templateDir = services.path.getTemplatesPath(context.host());
+      var templateBase = path.resolve(templateDir, templatePath);
+
+      possibilities = possibilities.concat([
+        templateBase,
+        templateBase + '.html',
+        templateBase + '.htm',
+        templateBase + '/index.html',
+        templateBase + '/index.htm'
+      ]);
+    }
+
+    var matches = globby.sync(possibilities);
 
     if (matches.length === 0 && templatePath !== '404.html') {
       return this._findTemplate(context, '404.html');
