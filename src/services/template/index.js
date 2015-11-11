@@ -55,23 +55,33 @@ var TemplateService = {
   },
   _findTemplate: function (context, templatePath) {
     templatePath = templatePath || 'index';
-    var templateDir = services.path.getTemplatesPath(context.host());
+
     var defaultTemplateDir = services.path.getDefaultTemplatesPath();
-    var templateBase = path.resolve(templateDir, templatePath);
     var defaultTemplateBase = path.resolve(defaultTemplateDir, templatePath);
 
-    var matches = globby.sync([
-      templateBase,
-      templateBase + '.html',
-      templateBase + '.htm',
-      templateBase + '/index.html',
-      templateBase + '/index.htm',
+    var possibilities = [
       defaultTemplateBase,
       defaultTemplateBase + '.html',
       defaultTemplateBase + '.htm',
       defaultTemplateBase + '/index.html',
       defaultTemplateBase + '/index.htm'
-    ]);
+    ];
+
+    var templateDir = null;
+    if (context.host()) {
+      templateDir = services.path.getTemplatesPath(context.host());
+      var templateBase = path.resolve(templateDir, templatePath);
+
+      possibilities = possibilities.concat([
+        templateBase,
+        templateBase + '.html',
+        templateBase + '.htm',
+        templateBase + '/index.html',
+        templateBase + '/index.htm'
+      ]);
+    }
+
+    var matches = globby.sync(possibilities);
 
     if (matches.length === 0 && templatePath !== '404.html') {
       return this._findTemplate(context, '404.html');
@@ -81,7 +91,11 @@ var TemplateService = {
       throw new Error('Unable to find static 404 handler');
     }
 
-    return matches[0].replace(templateDir + '/', '').replace(defaultTemplateDir + '/', '');
+    var m = matches[0].replace(defaultTemplateDir + '/', '');
+    if (templateDir) {
+      m = m.replace(templateDir + '/', '');
+    }
+    return m;
   }
 };
 
