@@ -5,7 +5,6 @@ var npm = require('npm');
 var tmp = require('tmp');
 var childProcess = require('child_process');
 var mkdirp = require('mkdirp');
-var rimraf = require('rimraf');
 
 var config = require('../config');
 var logger = require('../server/logging').logger;
@@ -19,6 +18,7 @@ var createAtomicLoader = require('./nunjucks/atomic-loader');
 var controlSHA = null;
 var lastAttemptSHA = null;
 var updateInProgress = false;
+var cachePath = null;
 
 var ControlService = {
   load: function (callback) {
@@ -410,11 +410,14 @@ var loadDomainPlugin = function (pluginRoot, callback) {
     pluginRoot: pluginRoot
   });
 
-  var cachePath = null;
   var deps = null;
   var plugin = null;
 
   var createDir = function (cb) {
+    if (cachePath !== null) {
+      return cb(null);
+    }
+
     tmp.dir({prefix: 'npm-cache-'}, function (err, cp) {
       cachePath = cp;
       cb(err);
@@ -470,15 +473,10 @@ var loadDomainPlugin = function (pluginRoot, callback) {
     });
   };
 
-  var cleanupCache = function (cb) {
-    rimraf(cachePath, cb);
-  };
-
   async.series([
     createDir,
     parseDependencies,
-    installDependencies,
-    cleanupCache
+    installDependencies
   ], function (err) {
     return callback(err, plugin);
   });
