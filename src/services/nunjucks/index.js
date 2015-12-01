@@ -6,6 +6,7 @@ var fallback = require('./fallback');
 var createAtomicLoader = require('./atomic-loader');
 var PathService = require('../path');
 var ContentService = require('../content');
+var ContentRoutingService = require('../content/routing');
 
 var envs = {};
 var staticEnv = null;
@@ -69,7 +70,18 @@ var createEnvironment = function (domain, loaders) {
     return '<pre><code>' + string + '</code></pre>';
   });
   env.addFilter('search', function (query, pageNumber, perPage, callback) {
-    ContentService.getSearch(query, pageNumber, perPage, callback);
+    var context = this.ctx.deconst.context;
+
+    ContentService.getSearch(query, pageNumber, perPage, function (err, r) {
+      if (err) return callback(err);
+
+      r.results = r.results.filter(function (each) {
+        each.url = ContentRoutingService.getPresentedUrl(context, each.contentID, true);
+        return each.url !== null;
+      });
+
+      callback(null, r);
+    });
   }, true);
 
   return env;
