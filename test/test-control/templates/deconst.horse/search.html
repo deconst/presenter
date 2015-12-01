@@ -1,6 +1,9 @@
-{% set query = deconst.request.query %}
+{% set query = deconst.request.query -%}
+{% set r = query.notq|search(query.notpagenum, query.notperpage) -%}
 
-{% for result in query.notq|search(query.notpagenum, query.notperpage) %}
+Total results: {{ r.total }}
+
+{% for result in r.results %}
 {{ loop.index0 }}: url {{ result.url }}
 {{ loop.index0 }}: title {{ result.title }}
 {{ loop.index0 }}: excerpt {{ result.excerpt }}
