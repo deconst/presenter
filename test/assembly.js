@@ -127,4 +127,33 @@ describe('page assembly', function () {
       .expect(/1: title second/)
       .expect(/1: excerpt this <em>is<\/em> result two/, done);
   });
+
+  it('performs cross-domain searches', function (done) {
+    nock('http://content')
+      .get('/control')
+      .reply(200, { sha: null })
+      .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Fsearch')
+      .reply(200, {
+        assets: [],
+        envelope: { body: 'this is ignored' }
+      })
+      .get('/search?q=term')
+      .reply(200, {
+        total: 1,
+        results: [
+          {
+            contentID: 'https://github.com/deconst-dog/fake/one',
+            title: 'first',
+            excerpt: 'this <em>is</em> a cross-domain result'
+          }
+        ]
+      });
+
+    request(server.create())
+      .get('/search/?notq=term')
+      .expect(200)
+      .expect(/0: url https:\/\/deconst\.dog\/one\//)
+      .expect(/0: title first/)
+      .expect(/0: excerpt this <em>is<\/em> a cross-domain result/, done);
+  });
 });
