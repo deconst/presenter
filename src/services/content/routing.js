@@ -62,18 +62,32 @@ var ContentRoutingService = {
     return prefixMatch;
   },
   getPresentedUrl: function (context, contentId) {
-    var domainContentMap = getDomainContentMap(context.host());
+    var domainContentMaps = [];
+
+    if (context) {
+      domainContentMaps.push(getDomainContentMap(context.host()));
+    } else {
+      domainContentMaps = Object.keys(contentMap);
+    }
+
     var urlBase = null;
     var afterPrefix = null;
 
-    for (var prefix in domainContentMap) {
-      if (contentId.indexOf(domainContentMap[prefix].replace(/\/$/, '')) !== -1) {
-        urlBase = prefix;
-        afterPrefix = contentId.replace(domainContentMap[prefix], '');
+    domainContentMaps.forEach(function (domainContentMap) {
+      for (var prefix in domainContentMap) {
+        if (contentId.indexOf(domainContentMap[prefix].replace(/\/$/, '')) !== -1) {
+          urlBase = prefix;
+          afterPrefix = contentId.replace(domainContentMap[prefix], '');
+          break;
+        }
       }
-    }
+    });
 
-    return UrlService.getSiteUrl(context, url.resolve(urlBase, afterPrefix));
+    if (urlBase !== null && afterPrefix !== null) {
+      return UrlService.getSiteUrl(context, url.resolve(urlBase, afterPrefix));
+    } else {
+      return null;
+    }
   },
   getProxies: function (context) {
     return getDomainProxyMap(context.host());
