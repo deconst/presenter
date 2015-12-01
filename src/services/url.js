@@ -10,9 +10,11 @@ var withTrailingSlash = function (u) {
 };
 
 var UrlService = {
-  getSiteUrl: function (context, path) {
+  getSiteUrl: function (context, path, domain) {
     path = path || '';
-    var siteUrl = context.protocol() + '://' + context.host();
+    domain = domain || context.host();
+
+    var siteUrl = context.protocol() + '://' + domain;
 
     return withTrailingSlash(url.resolve(siteUrl + SITE_DIRECTORY, path));
   },
