@@ -62,35 +62,43 @@ var ContentRoutingService = {
     return prefixMatch;
   },
   getPresentedUrl: function (context, contentId, crossDomain) {
-    var domainContentMaps = [];
+    var domainContentMaps = {};
 
     if (crossDomain) {
       domainContentMaps = Object.keys(contentMap).map(function (k) {
-        return getDomainContentMap(k);
+        return {
+          domain: k,
+          map: getDomainContentMap(k)
+        };
       });
     } else {
-      domainContentMaps.push(getDomainContentMap(context.host()));
+      domainContentMaps.push({
+        domain: context.host(),
+        map: getDomainContentMap(context.host())
+      });
     }
 
+    var urlDomain = null;
     var urlBase = null;
     var afterPrefix = null;
 
-    domainContentMaps.forEach(function (domainContentMap) {
-      if (urlBase !== null && afterPrefix !== null) {
+    domainContentMaps.forEach(function (domainContent) {
+      if (urlDomain !== null && urlBase !== null && afterPrefix !== null) {
         return;
       }
 
-      for (var prefix in domainContentMap) {
-        if (contentId.indexOf(domainContentMap[prefix].replace(/\/$/, '')) !== -1) {
+      for (var prefix in domainContent.map) {
+        if (contentId.indexOf(domainContent.map[prefix].replace(/\/$/, '')) !== -1) {
+          urlDomain = domainContent.domain;
           urlBase = prefix;
-          afterPrefix = contentId.replace(domainContentMap[prefix], '');
+          afterPrefix = contentId.replace(domainContent.map[prefix], '');
           break;
         }
       }
     });
 
-    if (urlBase !== null && afterPrefix !== null) {
-      return UrlService.getSiteUrl(context, url.resolve(urlBase, afterPrefix));
+    if (urlDomain !== null && urlBase !== null && afterPrefix !== null) {
+      return UrlService.getSiteUrl(context, url.resolve(urlBase, afterPrefix), urlDomain);
     } else {
       return null;
     }
