@@ -61,19 +61,25 @@ var ContentRoutingService = {
 
     return prefixMatch;
   },
-  getPresentedUrl: function (context, contentId) {
+  getPresentedUrl: function (context, contentId, crossDomain) {
     var domainContentMaps = [];
 
-    if (context) {
-      domainContentMaps.push(getDomainContentMap(context.host()));
+    if (crossDomain) {
+      domainContentMaps = Object.keys(contentMap).map(function (k) {
+        return getDomainContentMap(k);
+      });
     } else {
-      domainContentMaps = Object.keys(contentMap);
+      domainContentMaps.push(getDomainContentMap(context.host()));
     }
 
     var urlBase = null;
     var afterPrefix = null;
 
     domainContentMaps.forEach(function (domainContentMap) {
+      if (urlBase !== null && afterPrefix !== null) {
+        return;
+      }
+
       for (var prefix in domainContentMap) {
         if (contentId.indexOf(domainContentMap[prefix].replace(/\/$/, '')) !== -1) {
           urlBase = prefix;
