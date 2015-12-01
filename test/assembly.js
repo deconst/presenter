@@ -95,7 +95,7 @@ describe('page assembly', function () {
     nock('http://content')
       .get('/control')
       .reply(200, { sha: null })
-      .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
+      .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Fsearch')
       .reply(200, {
         assets: [],
         envelope: { body: 'this is ignored' }
