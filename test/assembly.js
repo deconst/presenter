@@ -90,4 +90,41 @@ describe('page assembly', function () {
       .get('/')
       .expect(409, done);
   });
+
+  it('performs a search if requested', function (done) {
+    nock('http://content')
+      .get('/control')
+      .reply(200, { sha: null })
+      .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
+      .reply(200, {
+        assets: [],
+        envelope: { body: 'this is ignored' }
+      })
+      .get('/search?q=term&pageNumber=2&perPage=20')
+      .reply(200, {
+        total: 2,
+        results: [
+          {
+            contentID: 'https://github.com/deconst/fake/one',
+            title: 'first',
+            excerpt: 'this <em>is</em> result one'
+          },
+          {
+            contentID: 'https://github.com/deconst/fake/two',
+            title: 'second',
+            excerpt: 'this <em>is</em> result two'
+          }
+        ]
+      });
+
+    request(server.create())
+      .get('/search/?notq=term&notpagenum=2&notperpage=20')
+      .expect(200)
+      .expect(/0: url https:\/\/deconst\.horse\/one\//)
+      .expect(/0: title first/)
+      .expect(/0: excerpt this <em>is<\/em> result one/)
+      .expect(/1: url https:\/\/deconst\.horse\/two\//)
+      .expect(/1: title second/)
+      .expect(/1: excerpt this <em>is<\/em> result two/, done);
+  });
 });

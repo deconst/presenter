@@ -1,0 +1,9 @@
+{% set query = deconst.request.query %}
+
+{% for result in query.notq|search(query.notpagenum, query.notperpage) %}
+{{ loop.index0 }}: url {{ result.url }}
+{{ loop.index0 }}: title {{ result.title }}
+{{ loop.index0 }}: excerpt {{ result.excerpt }}
+{% else %}
+no results
+{% endfor %}
