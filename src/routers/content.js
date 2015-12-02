@@ -63,20 +63,6 @@ module.exports = function (req, res) {
 
   async.parallel({
     content: function (callback) {
-      if (contentId === ContentRoutingService.UNMAPPED) {
-        return callback({
-          statusCode: 404,
-          message: 'Unable to locate content ID'
-        });
-      }
-
-      if (contentId === ContentRoutingService.EMPTY_ENVELOPE) {
-        return callback(null, {
-          title: '',
-          body: ''
-        });
-      }
-
       ContentService.get(context, contentId, {}, callback);
     },
     toc: function (callback) {
