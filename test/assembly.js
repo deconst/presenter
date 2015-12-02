@@ -90,4 +90,62 @@ describe('page assembly', function () {
       .get('/')
       .expect(409, done);
   });
+
+  it('performs a search if requested', function (done) {
+    nock('http://content')
+      .get('/control')
+      .reply(200, { sha: null })
+      .get('/search?q=term&pageNumber=3&perPage=2')
+      .reply(200, {
+        total: 11,
+        results: [
+          {
+            contentID: 'https://github.com/deconst/fake/one',
+            title: 'first',
+            excerpt: 'this <em>is</em> result one'
+          },
+          {
+            contentID: 'https://github.com/deconst/fake/two',
+            title: 'second',
+            excerpt: 'this <em>is</em> result two'
+          }
+        ]
+      });
+
+    request(server.create())
+      .get('/search/?notq=term&notpagenum=3&notperpage=2')
+      .expect(200)
+      .expect(/Total results: 11\b/)
+      .expect(/Number of pages: 6\b/)
+      .expect(/0: url https:\/\/deconst\.horse\/one\//)
+      .expect(/0: title first/)
+      .expect(/0: excerpt this <em>is<\/em> result one/)
+      .expect(/1: url https:\/\/deconst\.horse\/two\//)
+      .expect(/1: title second/)
+      .expect(/1: excerpt this <em>is<\/em> result two/, done);
+  });
+
+  it('performs cross-domain searches', function (done) {
+    nock('http://content')
+      .get('/control')
+      .reply(200, { sha: null })
+      .get('/search?q=term')
+      .reply(200, {
+        total: 1,
+        results: [
+          {
+            contentID: 'https://github.com/deconst-dog/fake/one',
+            title: 'first',
+            excerpt: 'this <em>is</em> a cross-domain result'
+          }
+        ]
+      });
+
+    request(server.create())
+      .get('/search/?notq=term')
+      .expect(200)
+      .expect(/0: url https:\/\/deconst\.dog\/one\//)
+      .expect(/0: title first/)
+      .expect(/0: excerpt this <em>is<\/em> a cross-domain result/, done);
+  });
 });

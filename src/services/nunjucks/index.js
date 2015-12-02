@@ -5,6 +5,8 @@ var logger = require('../../server/logging').logger;
 var fallback = require('./fallback');
 var createAtomicLoader = require('./atomic-loader');
 var PathService = require('../path');
+var ContentService = require('../content');
+var ContentRoutingService = require('../content/routing');
 
 var envs = {};
 var staticEnv = null;
@@ -67,6 +69,23 @@ var createEnvironment = function (domain, loaders) {
 
     return '<pre><code>' + string + '</code></pre>';
   });
+  env.addFilter('search', function (query, pageNumber, perPage, callback) {
+    var context = this.ctx.deconst.context;
+
+    ContentService.getSearch(query, pageNumber, perPage, function (err, r) {
+      if (err) return callback(err);
+
+      r.results = r.results.filter(function (each) {
+        each.url = ContentRoutingService.getPresentedUrl(context, each.contentID, true);
+        return each.url !== null;
+      });
+
+      // Compute the page count as well.
+      r.pages = Math.ceil(r.total / (perPage || 10));
+
+      callback(null, r);
+    });
+  }, true);
 
   return env;
 };

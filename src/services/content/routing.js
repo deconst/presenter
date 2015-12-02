@@ -24,6 +24,18 @@ var getDomainProxyMap = function (domain) {
 };
 
 var ContentRoutingService = {
+  // Sentinel objects to return from getContentId
+  UNMAPPED: {
+    toString: function () {
+      return '[unmapped]';
+    }
+  },
+  EMPTY_ENVELOPE: {
+    toString: function () {
+      return '[empty]';
+    }
+  },
+
   setContentMap: function (map) {
     contentMap = map;
   },
@@ -31,18 +43,24 @@ var ContentRoutingService = {
     urlPath = urlPath || context.request.path;
     var domainContentMap = getDomainContentMap(context.host());
 
+    var found = false;
     var contentStoreBase = null;
     var afterPrefix = null;
 
     for (var prefix in domainContentMap) {
       if (urlPath.indexOf(prefix) !== -1) {
+        found = true;
         contentStoreBase = domainContentMap[prefix];
         afterPrefix = urlPath.replace(prefix, '');
       }
     }
 
+    if (!found) {
+      return this.UNMAPPED;
+    }
+
     if (contentStoreBase === null) {
-      return null;
+      return /^\/?$/.test(afterPrefix) ? this.EMPTY_ENVELOPE : this.UNMAPPED;
     }
 
     return url.resolve(contentStoreBase, afterPrefix).replace(/\/$/, '');
@@ -61,19 +79,51 @@ var ContentRoutingService = {
 
     return prefixMatch;
   },
-  getPresentedUrl: function (context, contentId) {
-    var domainContentMap = getDomainContentMap(context.host());
+  getPresentedUrl: function (context, contentId, crossDomain) {
+    var domainContentMaps = {};
+
+    if (crossDomain) {
+      domainContentMaps = Object.keys(contentMap).map(function (k) {
+        return {
+          domain: k,
+          map: getDomainContentMap(k)
+        };
+      });
+    } else {
+      domainContentMaps.push({
+        domain: context.host(),
+        map: getDomainContentMap(context.host())
+      });
+    }
+
+    var urlDomain = null;
     var urlBase = null;
     var afterPrefix = null;
 
-    for (var prefix in domainContentMap) {
-      if (contentId.indexOf(domainContentMap[prefix].replace(/\/$/, '')) !== -1) {
-        urlBase = prefix;
-        afterPrefix = contentId.replace(domainContentMap[prefix], '');
+    domainContentMaps.forEach(function (domainContent) {
+      if (urlDomain !== null && urlBase !== null && afterPrefix !== null) {
+        return;
       }
-    }
 
-    return UrlService.getSiteUrl(context, url.resolve(urlBase, afterPrefix));
+      for (var prefix in domainContent.map) {
+        var contentIdBase = domainContent.map[prefix];
+        if (contentIdBase === null) continue;
+        contentIdBase = contentIdBase.replace(/\/$/, '');
+
+        if (contentId.indexOf(contentIdBase) !== -1) {
+          urlDomain = domainContent.domain;
+          urlBase = prefix;
+          afterPrefix = contentId.replace(contentIdBase, '');
+          break;
+        }
+      }
+    });
+
+    if (urlDomain !== null && urlBase !== null && afterPrefix !== null) {
+      return UrlService.getSiteUrl(context, url.resolve(urlBase, afterPrefix), urlDomain);
+    } else {
+      return null;
+    }
   },
   getProxies: function (context) {
     return getDomainProxyMap(context.host());
