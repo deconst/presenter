@@ -2,6 +2,7 @@
 {% set r = query.notq|search(query.notpagenum, query.notperpage) -%}
 
 Total results: {{ r.total }}
+Number of pages: {{ r.pages }}
 
 {% for result in r.results %}
 {{ loop.index0 }}: url {{ result.url }}

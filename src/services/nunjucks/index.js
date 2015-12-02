@@ -80,6 +80,9 @@ var createEnvironment = function (domain, loaders) {
         return each.url !== null;
       });
 
+      // Compute the page count as well.
+      r.pages = Math.ceil(r.total / (perPage || 10));
+
       callback(null, r);
     });
   }, true);

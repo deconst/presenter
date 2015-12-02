@@ -95,9 +95,9 @@ describe('page assembly', function () {
     nock('http://content')
       .get('/control')
       .reply(200, { sha: null })
-      .get('/search?q=term&pageNumber=2&perPage=20')
+      .get('/search?q=term&pageNumber=3&perPage=2')
       .reply(200, {
-        total: 2,
+        total: 11,
         results: [
           {
             contentID: 'https://github.com/deconst/fake/one',
@@ -113,8 +113,10 @@ describe('page assembly', function () {
       });
 
     request(server.create())
-      .get('/search/?notq=term&notpagenum=2&notperpage=20')
+      .get('/search/?notq=term&notpagenum=3&notperpage=2')
       .expect(200)
+      .expect(/Total results: 11\b/)
+      .expect(/Number of pages: 6\b/)
       .expect(/0: url https:\/\/deconst\.horse\/one\//)
       .expect(/0: title first/)
       .expect(/0: excerpt this <em>is<\/em> result one/)
