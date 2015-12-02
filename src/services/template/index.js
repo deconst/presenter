@@ -46,6 +46,11 @@ var TemplateService = {
 
     services.content.getAssets(context, function (err, data) {
       if (err) {
+        logger.warn('Error retrieving assets from content store', {
+          errMessage: err.message,
+          stack: err.stack
+        });
+
         ctx.deconst.assets = {};
       } else {
         ctx.deconst.assets = data;
