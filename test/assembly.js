@@ -125,6 +125,31 @@ describe('page assembly', function () {
       .expect(/1: excerpt this <em>is<\/em> result two/, done);
   });
 
+  it.only('performs a search with default parameters', function (done) {
+    nock('http://content')
+      .get('/control')
+      .reply(200, { sha: null })
+      .get('/search?q=term')
+      .reply(200, {
+        total: 1,
+        results: [
+          {
+            contentID: 'https://github.com/deconst/fake/one',
+            title: 'first',
+            excerpt: 'this <em>is</em> result one'
+          }
+        ]
+      });
+
+    request(server.create())
+      .get('/searchparams/?q=term')
+      .expect(200)
+      .expect(/Total results: 1\b/)
+      .expect(/Number of pages: 1\b/)
+      .expect(/0: url https:\/\/deconst\.horse\/one\//)
+      .expect(/0: title first/, done);
+  });
+
   it('performs cross-domain searches', function (done) {
     nock('http://content')
       .get('/control')
