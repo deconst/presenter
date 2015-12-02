@@ -10,7 +10,7 @@ var INFRA_ERRORS = ['ENOTFOUND', 'ETIMEDOUT', 'ECONNREFUSED'];
 var ContentService = {
   get: function (context, id, options, callback) {
     if (id === ContentRoutingService.UNMAPPED) {
-      // with an unampped id, this is like a 404
+      // with an unmapped id, this is a 404
       return callback({
         statusCode: 404,
         message: 'Unable to locate content ID'
