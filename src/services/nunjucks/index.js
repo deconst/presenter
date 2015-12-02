@@ -72,6 +72,16 @@ var createEnvironment = function (domain, loaders) {
   env.addFilter('search', function (query, pageNumber, perPage, callback) {
     var context = this.ctx.deconst.context;
 
+    // perPage and pageNumber are optional.
+    if (!(callback instanceof Function)) {
+      callback = perPage;
+      perPage = null;
+    }
+    if (!(callback instanceof Function)) {
+      callback = pageNumber;
+      pageNumber = null;
+    }
+
     ContentService.getSearch(query, pageNumber, perPage, function (err, r) {
       if (err) return callback(err);
 
