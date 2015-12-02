@@ -1,7 +1,8 @@
 {
     "deconst.horse": {
         "content": {
-            "/": "https://github.com/deconst/fake/"
+            "/": "https://github.com/deconst/fake/",
+            "/search": null
         },
         "proxy": {
             "/proxy": "http://deconst.dog"

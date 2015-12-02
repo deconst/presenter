@@ -24,6 +24,18 @@ var getDomainProxyMap = function (domain) {
 };
 
 var ContentRoutingService = {
+  // Sentinel objects to return from getContentId
+  UNMAPPED: {
+    toString: function () {
+      return '[unmapped]';
+    }
+  },
+  EMPTY_ENVELOPE: {
+    toString: function () {
+      return '[empty]';
+    }
+  },
+
   setContentMap: function (map) {
     contentMap = map;
   },
@@ -31,18 +43,24 @@ var ContentRoutingService = {
     urlPath = urlPath || context.request.path;
     var domainContentMap = getDomainContentMap(context.host());
 
+    var found = false;
     var contentStoreBase = null;
     var afterPrefix = null;
 
     for (var prefix in domainContentMap) {
       if (urlPath.indexOf(prefix) !== -1) {
+        found = true;
         contentStoreBase = domainContentMap[prefix];
         afterPrefix = urlPath.replace(prefix, '');
       }
     }
 
+    if (!found) {
+      return this.UNMAPPED;
+    }
+
     if (contentStoreBase === null) {
-      return null;
+      return /^\/?$/.test(afterPrefix) ? this.EMPTY_ENVELOPE : this.UNMAPPED;
     }
 
     return url.resolve(contentStoreBase, afterPrefix).replace(/\/$/, '');
@@ -88,10 +106,14 @@ var ContentRoutingService = {
       }
 
       for (var prefix in domainContent.map) {
-        if (contentId.indexOf(domainContent.map[prefix].replace(/\/$/, '')) !== -1) {
+        var contentIdBase = domainContent.map[prefix];
+        if (contentIdBase === null) continue;
+        contentIdBase = contentIdBase.replace(/\/$/, '');
+
+        if (contentId.indexOf(contentIdBase) !== -1) {
           urlDomain = domainContent.domain;
           urlBase = prefix;
-          afterPrefix = contentId.replace(domainContent.map[prefix], '');
+          afterPrefix = contentId.replace(contentIdBase, '');
           break;
         }
       }
