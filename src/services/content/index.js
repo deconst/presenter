@@ -9,8 +9,6 @@ var INFRA_ERRORS = ['ENOTFOUND', 'ETIMEDOUT', 'ECONNREFUSED'];
 
 var ContentService = {
   get: function (context, id, options, callback) {
-    console.trace('fetching id = ' + id);
-
     if (id === ContentRoutingService.UNMAPPED) {
       // with an unampped id, this is like a 404
       return callback({
