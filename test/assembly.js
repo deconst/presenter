@@ -125,7 +125,7 @@ describe('page assembly', function () {
       .expect(/1: excerpt this <em>is<\/em> result two/, done);
   });
 
-  it.only('performs a search with default parameters', function (done) {
+  it('performs a search with default parameters', function (done) {
     nock('http://content')
       .get('/control')
       .reply(200, { sha: null })

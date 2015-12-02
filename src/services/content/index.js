@@ -106,11 +106,9 @@ var ContentService = {
   },
   getSearch: function (q, pageNumber, perPage, callback) {
     var searchUrl = urljoin(config.content_service_url(), 'search');
-    var searchQuery = {
-      q: q,
-      pageNumber: pageNumber,
-      perPage: perPage
-    };
+    var searchQuery = {q: q};
+    if (pageNumber !== null && pageNumber !== undefined) searchQuery.pageNumber = pageNumber;
+    if (perPage !== null && perPage !== undefined) searchQuery.perPage = perPage;
     var reqStart = Date.now();
 
     logger.debug('Content service request: performing search.', {
