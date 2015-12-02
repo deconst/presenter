@@ -3,15 +3,25 @@ var config = require('../../config');
 var logger = require('../../server/logging').logger;
 var urljoin = require('url-join');
 
+var ContentRoutingService = require('./routing');
+
 var INFRA_ERRORS = ['ENOTFOUND', 'ETIMEDOUT', 'ECONNREFUSED'];
 
 var ContentService = {
   get: function (context, id, options, callback) {
-    if (!id) {
-      // without a contentID, this is like a 404
+    if (id === ContentRoutingService.UNMAPPED) {
+      // with an unmapped id, this is a 404
       return callback({
         statusCode: 404,
         message: 'Unable to locate content ID'
+      });
+    }
+
+    if (id === ContentRoutingService.EMPTY_ENVELOPE) {
+      // hardwired to return an empty envelope
+      return callback(null, {
+        title: '',
+        body: ''
       });
     }
 
