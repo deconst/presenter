@@ -28,6 +28,11 @@ var TemplateService = {
 module.exports = TemplateService;
 
 var buildTemplateLocals = function (context, content, assets) {
+  if (assets) {
+    // Some templates still use deconst.content.assets instead of deconst.assets
+    content.assets = assets;
+  }
+
   return {
     deconst: {
       env: process.env,
