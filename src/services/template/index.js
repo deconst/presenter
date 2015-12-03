@@ -1,11 +1,8 @@
 var globby = require('globby');
 var path = require('path');
-var services = {
-  content: require('../content'),
-  nunjucks: require('../nunjucks'),
-  path: require('../path'),
-  url: require('../url')
-};
+var NunjucksService = require('../nunjucks');
+var PathService = require('../path');
+var UrlService = require('../url');
 
 var TemplateService = {
   render: function (context, options, callback) {
@@ -13,7 +10,7 @@ var TemplateService = {
     var templateLocals = buildTemplateLocals(context, options.content, options.assets);
     var startTs = Date.now();
 
-    services.nunjucks.getEnvironment(context, function (err, env) {
+    NunjucksService.getEnvironment(context, function (err, env) {
       if (err) return callback(err);
 
       env.render(templateFile, templateLocals, function (err, result) {
@@ -38,7 +35,7 @@ var buildTemplateLocals = function (context, content, assets) {
       env: process.env,
       content: content || {},
       assets: assets || {},
-      url: services.url,
+      url: UrlService,
       context: context,
       request: context.request,
       response: context.response
@@ -49,7 +46,7 @@ var buildTemplateLocals = function (context, content, assets) {
 var findTemplate = function (context, templatePath) {
   templatePath = templatePath || 'index';
 
-  var defaultTemplateDir = services.path.getDefaultTemplatesPath();
+  var defaultTemplateDir = PathService.getDefaultTemplatesPath();
   var defaultTemplateBase = path.resolve(defaultTemplateDir, templatePath);
 
   var possibilities = [
@@ -62,7 +59,7 @@ var findTemplate = function (context, templatePath) {
 
   var templateDir = null;
   if (context.host()) {
-    templateDir = services.path.getTemplatesPath(context.host());
+    templateDir = PathService.getTemplatesPath(context.host());
     var templateBase = path.resolve(templateDir, templatePath);
 
     possibilities = possibilities.concat([
