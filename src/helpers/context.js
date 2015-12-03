@@ -74,7 +74,7 @@ Context.prototype.handleError = function (err) {
     code = 404;
   }
 
-  TemplateService.render(this, code.toString(), {}, {}, function (err, responseBody) {
+  TemplateService.render(this, {templatePath: code.toString()}, function (err, responseBody) {
     if (err) {
       logger.error("I couldn't render an error template. I'm freaking out!", err);
       responseBody = "Er, I was going to render an error template, but I couldn't.";

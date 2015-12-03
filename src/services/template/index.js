@@ -8,9 +8,9 @@ var services = {
 };
 
 var TemplateService = {
-  render: function (context, templatePath, content, assets, callback) {
-    var templateFile = findTemplate(context, templatePath);
-    var templateLocals = buildTemplateLocals(context, content, assets);
+  render: function (context, options, callback) {
+    var templateFile = findTemplate(context, options.templatePath);
+    var templateLocals = buildTemplateLocals(context, options.content, options.assets);
     var startTs = Date.now();
 
     services.nunjucks.getEnvironment(context, function (err, env) {

@@ -125,14 +125,15 @@ module.exports = function (req, res) {
     };
 
     ContentFilterService.filter(input, function (err, filterResult) {
-      if (err) {
-        return context.handleError(err);
-      }
+      if (err) return context.handleError(err);
 
-      var templatePath = TemplateRoutingService.getRoute(context);
-      var filteredContent = filterResult.content;
+      var options = {
+        templatePath: TemplateRoutingService.getRoute(context),
+        content: filterResult.content,
+        assets: output.assets
+      };
 
-      TemplateService.render(context, templatePath, filteredContent, output.assets, function (err, renderedContent) {
+      TemplateService.render(context, options, function (err, renderedContent) {
         if (err) {
           return context.handleError(err);
         }
