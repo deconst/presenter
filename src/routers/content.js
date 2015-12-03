@@ -1,6 +1,7 @@
 // Handler to assemble a specific piece of static content.
 
 var async = require('async');
+var logger = require('../server/logging').logger;
 var Context = require('../helpers/context');
 var TemplateService = require('../services/template');
 var TemplateRoutingService = require('../services/template/routing');
@@ -65,6 +66,21 @@ module.exports = function (req, res) {
     content: function (callback) {
       ContentService.get(context, contentId, {}, callback);
     },
+    assets: function (callback) {
+      ContentService.getAssets(context, function (err, assetMap) {
+        if (err) {
+          // Fail gracefully.
+          logger.warn('Unable to enumerate assets.', {
+            errMessage: err.message,
+            stack: err.stack
+          });
+
+          return callback(null, {});
+        }
+
+        callback(null, assetMap);
+      });
+    },
     toc: function (callback) {
       ContentService.get(context, tocId, {ignoreErrors: true}, function (err, toc) {
         if (err || !toc) {
@@ -113,10 +129,10 @@ module.exports = function (req, res) {
         return context.handleError(err);
       }
 
-      var route = TemplateRoutingService.getRoute(context);
+      var templatePath = TemplateRoutingService.getRoute(context);
       var filteredContent = filterResult.content;
 
-      TemplateService.render(context, route, filteredContent, function (err, renderedContent) {
+      TemplateService.render(context, templatePath, filteredContent, output.assets, function (err, renderedContent) {
         if (err) {
           return context.handleError(err);
         }
