@@ -1,5 +1,5 @@
 {% set query = deconst.request.query -%}
-{% set r = query.notq|search(query.notpagenum, query.notperpage) -%}
+{% set r = query.notq|search(pageNumber=query.notpagenum, perPage=query.notperpage) -%}
 
 Total results: {{ r.total }}
 Number of pages: {{ r.pages }}

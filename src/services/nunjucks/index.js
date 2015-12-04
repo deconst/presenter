@@ -69,20 +69,16 @@ var createEnvironment = function (domain, loaders) {
 
     return '<pre><code>' + string + '</code></pre>';
   });
-  env.addFilter('search', function (query, pageNumber, perPage, callback) {
+  env.addFilter('search', function (query, kwargs, callback) {
     var context = this.ctx.deconst.context;
 
-    // perPage and pageNumber are optional.
-    if (!(callback instanceof Function)) {
-      callback = perPage;
-      perPage = null;
-    }
-    if (!(callback instanceof Function)) {
-      callback = pageNumber;
-      pageNumber = null;
+    // kwargs are optional.
+    if (!callback) {
+      callback = kwargs;
+      kwargs = {};
     }
 
-    ContentService.getSearch(query, pageNumber, perPage, function (err, r) {
+    ContentService.getSearch(query, kwargs.pageNumber, kwargs.perPage, function (err, r) {
       if (err) return callback(err);
 
       r.results = r.results.filter(function (each) {
@@ -91,7 +87,7 @@ var createEnvironment = function (domain, loaders) {
       });
 
       // Compute the page count as well.
-      r.pages = Math.ceil(r.total / (perPage || 10));
+      r.pages = Math.ceil(r.total / (kwargs.perPage || 10));
 
       callback(null, r);
     });
