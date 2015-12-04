@@ -3,7 +3,8 @@
         "routes": {
             "^/": "default",
             "^/search/?$": "search.html",
-            "^/searchparams/?$": "searchparams.html"
+            "^/searchparams/?$": "searchparams.html",
+            "^/searchcats/?$": "searchcats.html"
         }
     }
 }

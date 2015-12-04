@@ -29,9 +29,9 @@ describe('page assembly', function () {
   it('assembles a page', function (done) {
     nock('http://content')
       .get('/control')
-      .reply(200, {
-        sha: null
-      })
+      .reply(200, { sha: null })
+      .get('/assets')
+      .reply(200, {})
       .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
       .reply(200, {
         assets: [],
@@ -47,9 +47,9 @@ describe('page assembly', function () {
   it('ignores empty URL segments', function (done) {
     nock('http://content')
       .get('/control')
-      .reply(200, {
-        sha: null
-      })
+      .reply(200, { sha: null })
+      .get('/assets')
+      .reply(200, {})
       .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Ffoo')
       .reply(200, {
         assets: [],
@@ -65,9 +65,9 @@ describe('page assembly', function () {
   it('returns the user-defined 404 template', function (done) {
     nock('http://content')
       .get('/control')
-      .reply(200, {
-        sha: null
-      })
+      .reply(200, { sha: null })
+      .get('/assets')
+      .reply(200, {})
       .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
       .reply(404);
 
@@ -80,9 +80,9 @@ describe('page assembly', function () {
   it('passes other failing status codes through', function (done) {
     nock('http://content')
       .get('/control')
-      .reply(200, {
-        sha: null
-      })
+      .reply(200, { sha: null })
+      .get('/assets')
+      .reply(200, {})
       .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
       .reply(409);
 
@@ -95,6 +95,8 @@ describe('page assembly', function () {
     nock('http://content')
       .get('/control')
       .reply(200, { sha: null })
+      .get('/assets')
+      .reply(200, {})
       .get('/search?q=term&pageNumber=3&perPage=2')
       .reply(200, {
         total: 11,
@@ -129,6 +131,8 @@ describe('page assembly', function () {
     nock('http://content')
       .get('/control')
       .reply(200, { sha: null })
+      .get('/assets')
+      .reply(200, {})
       .get('/search?q=term')
       .reply(200, {
         total: 1,
@@ -154,6 +158,8 @@ describe('page assembly', function () {
     nock('http://content')
       .get('/control')
       .reply(200, { sha: null })
+      .get('/assets')
+      .reply(200, {})
       .get('/search?q=term')
       .reply(200, {
         total: 1,
@@ -172,5 +178,31 @@ describe('page assembly', function () {
       .expect(/0: url https:\/\/deconst\.dog\/one\//)
       .expect(/0: title first/)
       .expect(/0: excerpt this <em>is<\/em> a cross-domain result/, done);
+  });
+
+  it('constrains searches by category', function (done) {
+    nock('http://content')
+      .get('/control')
+      .reply(200, { sha: null })
+      .get('/assets')
+      .reply(200, {})
+      .get('/search?q=term&categories%5B0%5D=Abyssinian&categories%5B1%5D=American%20Bobtail')
+      .reply(200, {
+        total: 1,
+        results: [
+          {
+            contentID: 'https://github.com/deconst/fake/one',
+            title: 'first',
+            excerpt: 'this <em>is</em> a constrained result'
+          }
+        ]
+      });
+
+    request(server.create())
+      .get('/searchcats/?q=term')
+      .expect(200)
+      .expect(/0: url https:\/\/deconst\.horse\/one\//)
+      .expect(/0: title first/)
+      .expect(/0: excerpt this <em>is<\/em> a constrained result/, done);
   });
 });

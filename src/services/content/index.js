@@ -114,11 +114,20 @@ var ContentService = {
       callback(null, JSON.parse(body));
     });
   },
-  getSearch: function (q, pageNumber, perPage, callback) {
+  getSearch: function (q, options, callback) {
     var searchUrl = urljoin(config.content_service_url(), 'search');
     var searchQuery = {q: q};
-    if (pageNumber !== null && pageNumber !== undefined) searchQuery.pageNumber = pageNumber;
-    if (perPage !== null && perPage !== undefined) searchQuery.perPage = perPage;
+
+    if (options.pageNumber !== null && options.pageNumber !== undefined) {
+      searchQuery.pageNumber = options.pageNumber;
+    }
+    if (options.perPage !== null && options.perPage !== undefined) {
+      searchQuery.perPage = options.perPage;
+    }
+    if (options.categories !== null && options.categories !== undefined) {
+      searchQuery.categories = options.categories;
+    }
+
     var reqStart = Date.now();
 
     logger.debug('Content service request: performing search.', {

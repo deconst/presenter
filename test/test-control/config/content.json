@@ -3,7 +3,8 @@
         "content": {
             "/": "https://github.com/deconst/fake/",
             "/search": null,
-            "/searchparams": null
+            "/searchparams": null,
+            "/searchcats": null
         },
         "proxy": {
             "/proxy": "http://deconst.dog"
