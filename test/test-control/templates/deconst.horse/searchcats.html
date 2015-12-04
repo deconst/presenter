@@ -1,0 +1,13 @@
+{% set query = deconst.request.query -%}
+{% set r = query.q|search(categories=["Abyssinian", "American Bobtail"]) -%}
+
+Total results: {{ r.total }}
+Number of pages: {{ r.pages }}
+
+{% for result in r.results %}
+{{ loop.index0 }}: url {{ result.url }}
+{{ loop.index0 }}: title {{ result.title }}
+{{ loop.index0 }}: excerpt {{ result.excerpt }}
+{% else %}
+no results
+{% endfor %}

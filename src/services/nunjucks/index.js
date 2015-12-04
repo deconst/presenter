@@ -73,12 +73,13 @@ var createEnvironment = function (domain, loaders) {
     var context = this.ctx.deconst.context;
 
     // kwargs are optional.
+    // Recognized arguments: pageNumber, perPage, categories
     if (!callback) {
       callback = kwargs;
       kwargs = {};
     }
 
-    ContentService.getSearch(query, kwargs.pageNumber, kwargs.perPage, function (err, r) {
+    ContentService.getSearch(query, kwargs, function (err, r) {
       if (err) return callback(err);
 
       r.results = r.results.filter(function (each) {
