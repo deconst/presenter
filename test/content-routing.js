@@ -9,7 +9,7 @@ config.configure(before.settings);
 
 var ContentRoutingService = require('../src/services/content/routing');
 
-describe.only('ContentRoutingService', function () {
+describe('ContentRoutingService', function () {
   var context = {
     host: function () {
       return 'deconst.horse';
