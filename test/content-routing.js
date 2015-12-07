@@ -54,6 +54,9 @@ describe('ContentRoutingService', function () {
   it('does not require a trailing slash on presented paths',
     shouldMap('/without-slash/blah', 'noslash/blah'));
 
+  it('trims trailing slashes from the suffix',
+    shouldMap('/without-slash/blah/boo/bar/', 'noslash/blah/boo/bar'));
+
   it('maps null routes to the empty envelope',
     shouldMap('/empty/', ContentRoutingService.EMPTY_ENVELOPE));
 
