@@ -23,6 +23,14 @@ var getDomainProxyMap = function (domain) {
   return contentMap[domain].proxy;
 };
 
+var slashJoin = function (strings) {
+  return strings.map(function (each) {
+    return each.replace(/^\/+/, '').replace(/\/+$/, '');
+  }).filter(function (each) {
+    return each !== '';
+  }).join('/');
+};
+
 var ContentRoutingService = {
   // Sentinel objects to return from getContentId
   UNMAPPED: {
@@ -44,13 +52,15 @@ var ContentRoutingService = {
     var domainContentMap = getDomainContentMap(context.host());
 
     var found = false;
-    var contentStoreBase = null;
+    var contentIDBase = null;
     var afterPrefix = null;
+    var prefixLength = 0;
 
     for (var prefix in domainContentMap) {
-      if (urlPath.indexOf(prefix) !== -1) {
+      if (urlPath.indexOf(prefix) === 0 && prefix.length > prefixLength) {
         found = true;
-        contentStoreBase = domainContentMap[prefix];
+        prefixLength = prefix.length;
+        contentIDBase = domainContentMap[prefix];
         afterPrefix = urlPath.replace(prefix, '');
       }
     }
@@ -59,11 +69,11 @@ var ContentRoutingService = {
       return this.UNMAPPED;
     }
 
-    if (contentStoreBase === null) {
+    if (contentIDBase === null) {
       return /^\/?$/.test(afterPrefix) ? this.EMPTY_ENVELOPE : this.UNMAPPED;
     }
 
-    return url.resolve(contentStoreBase, afterPrefix).replace(/\/$/, '');
+    return slashJoin([contentIDBase, afterPrefix]);
   },
   getContentPrefix: function (context) {
     var urlPath = context.request.path;
