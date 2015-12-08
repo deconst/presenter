@@ -67,13 +67,16 @@ describe('page assembly', function () {
       .get('/control')
       .reply(200, { sha: null })
       .get('/assets')
-      .reply(200, {})
+      .reply(200, {
+        some_css_url: 'https://cdn.wtf/hooray/main-12345.css'
+      })
       .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
       .reply(404);
 
     request(server.create())
       .get('/')
       .expect(404)
+      .expect(/https:\/\/cdn.wtf\/hooray\/main-12345.css/)
       .expect(/user-defined 404 template/, done);
   });
 
