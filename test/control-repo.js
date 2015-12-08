@@ -83,7 +83,7 @@ describe('[control-repo] the app', function () {
     });
   });
 
-  it('returns a 404 on umnatched domains', function (done) {
+  it('returns a 404 on unmatched domains', function (done) {
     config.set({
       PRESENTED_URL_DOMAIN: 'fake-site.dev'
     });

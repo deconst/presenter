@@ -62,9 +62,22 @@ module.exports = function (req, res) {
 
   context.contentId = contentId;
 
+  // Note that each function returns errors as a .err attribute of its results object rather than
+  // as the err parameter to its callback. This is so that all calls are guaranteed to complete
+  // before the final callback is invoked, even if one or more produces an error, and assets will
+  // be available.
+
+  var capturedError = null;
+
   async.parallel({
     content: function (callback) {
-      ContentService.get(context, contentId, {}, callback);
+      ContentService.get(context, contentId, {}, function (err, content) {
+        if (err) {
+          capturedError = err;
+          return callback(null, null);
+        }
+        callback(null, content);
+      });
     },
     assets: function (callback) {
       ContentService.getAssets(context, function (err, assetMap) {
@@ -78,6 +91,7 @@ module.exports = function (req, res) {
           return callback(null, {});
         }
 
+        context.setAssets(assetMap);
         callback(null, assetMap);
       });
     },
@@ -109,8 +123,8 @@ module.exports = function (req, res) {
       });
     }
   }, function (err, output) {
-    if (err) {
-      return context.handleError(err);
+    if (err || capturedError) {
+      return context.handleError(err || capturedError);
     }
 
     if (output.toc) {

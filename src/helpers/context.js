@@ -9,6 +9,7 @@ function Context (req, resp) {
 
   this.contentId = null;
   this.templatePath = null;
+  this.assets = {};
 
   this.contentReqDuration = null;
   this.assetReqDuration = null;
@@ -66,6 +67,10 @@ Context.prototype.send = function (body) {
   logger.info(this._summarize(200, 'Successful request'));
 };
 
+Context.prototype.setAssets = function (assets) {
+  this.assets = assets;
+};
+
 Context.prototype.handleError = function (err) {
   var original = err;
   logger.debug(err);
@@ -74,7 +79,13 @@ Context.prototype.handleError = function (err) {
     code = 404;
   }
 
-  TemplateService.render(this, {templatePath: code.toString()}, function (err, responseBody) {
+  var options = {
+    templatePath: code.toString(),
+    assets: this.assets,
+    content: {}
+  };
+
+  TemplateService.render(this, options, function (err, responseBody) {
     if (err) {
       logger.error("I couldn't render an error template. I'm freaking out!", err);
       responseBody = "Er, I was going to render an error template, but I couldn't.";
