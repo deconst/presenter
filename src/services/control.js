@@ -240,8 +240,7 @@ var readAndMergeConfigFiles = function (files, def, callback) {
       var doc;
       try {
         doc = JSON.parse(body);
-      }
-      catch (e) {
+      } catch (e) {
         doc = {};
         logger.warn('Configuration file contained invalid JSON', {
           errMessage: e.message,
@@ -255,10 +254,9 @@ var readAndMergeConfigFiles = function (files, def, callback) {
       // _reasonable_ use cases.
       for (var site in doc) {
         if (doc.hasOwnProperty(site)) {
-          if(previousValue.hasOwnProperty(site)) {
+          if (previousValue.hasOwnProperty(site)) {
             previousValue[site] = previousValue[site].concat(doc[site]);
-          }
-          else {
+          } else {
             previousValue[site] = doc[site];
           }
         }
