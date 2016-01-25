@@ -219,30 +219,51 @@ var ControlService = {
 
 module.exports = ControlService;
 
-var maybeParseJSON = function (filename, def, callback) {
-  fs.readFile(filename, {encoding: 'utf-8'}, function (err, body) {
-    if (err) {
-      if (err.code === 'ENOENT') {
-        return callback(null, def);
+var readAndMergeConfigFiles = function (files, def, callback) {
+  // for compatibility. Might be called with files as a single path, not an
+  // array of paths
+  if (!Array.isArray(files)) {
+    files = [files];
+  }
+
+  async.reduce(files, {}, function (previousValue, currentValue, reduceCallback) {
+    fs.readFile(currentValue, {encoding: 'utf-8'}, function (err, body) {
+      if (err) {
+        if (err.code === 'ENOENT') {
+          return callback(null, def);
+        }
+
+        return callback(err);
       }
 
-      return callback(err);
-    }
+      var doc;
+      try {
+        doc = JSON.parse(body);
+      } catch (e) {
+        doc = {};
+        logger.warn('Configuration file contained invalid JSON', {
+          errMessage: e.message,
+          filename: currentValue,
+          source: body
+        });
+      }
 
-    var doc;
-    try {
-      doc = JSON.parse(body);
-    } catch (e) {
-      logger.warn('Configuration file contained invalid JSON', {
-        errMessage: e.message,
-        filename: filename,
-        source: body
-      });
+      // I'm surprised this little concatenation loop works as well as it does.
+      // Could definitely use some testing to be sure it covers all the
+      // _reasonable_ use cases.
+      for (var site in doc) {
+        if (doc.hasOwnProperty(site)) {
+          if (previousValue.hasOwnProperty(site)) {
+            previousValue[site] = previousValue[site].concat(doc[site]);
+          } else {
+            previousValue[site] = doc[site];
+          }
+        }
+      }
 
-      return callback(e);
-    }
-    callback(null, doc);
-  });
+      reduceCallback(null, previousValue);
+    });
+  }, callback);
 };
 
 var subdirectories = function (rootPath, callback) {
@@ -305,49 +326,53 @@ var gitPull = function (repoPath, callback) {
 // Read functions
 
 var readContentMap = function (callback) {
-  var contentMapPath = PathService.getConfigPath(config.control_content_file());
+  var contentFiles = PathService.getContentFiles();
+
   logger.debug('Beginning content map load', {
-    filename: contentMapPath
+    files: contentFiles
   });
 
-  maybeParseJSON(contentMapPath, {}, function (err, contentMap) {
+  readAndMergeConfigFiles(contentFiles, {}, function (err, contentMap) {
     if (err) return callback(err);
 
     logger.debug('Successfully loaded content map', {
-      filename: contentMapPath
+      files: contentFiles
     });
     callback(null, contentMap);
   });
 };
 
 var readTemplateMap = function (callback) {
-  var templateMapPath = PathService.getConfigPath(config.control_routes_file());
+  var routeFiles = PathService.getRoutesFiles();
+
   logger.debug('Begining template map load', {
-    filename: templateMapPath
+    files: routeFiles
   });
 
-  maybeParseJSON(templateMapPath, {}, function (err, templateMap) {
+  readAndMergeConfigFiles(routeFiles, {}, function (err, templateMap) {
     if (err) return callback(err);
 
     logger.debug('Successfully loaded template map', {
-      filename: templateMapPath
+      filename: routeFiles
     });
     callback(null, templateMap);
   });
 };
 
 var readRewriteMap = function (callback) {
-  var rewriteMapPath = PathService.getConfigPath(config.control_rewrites_file());
+  var rewriteFiles = PathService.getRewritesFiles();
+
   logger.debug('Beginning rewrite map load', {
-    filename: rewriteMapPath
+    files: rewriteFiles
   });
 
-  maybeParseJSON(rewriteMapPath, {}, function (err, rewriteMap) {
+  readAndMergeConfigFiles(rewriteFiles, {}, function (err, rewriteMap) {
     if (err) return callback(err);
 
     logger.debug('Successfully loaded rewrite map', {
-      filename: rewriteMapPath
+      files: rewriteFiles
     });
+
     callback(null, rewriteMap);
   });
 };
