@@ -2,7 +2,6 @@ var path = require('path');
 var globby = require('globby');
 var config = require('../config');
 
-
 var CONFIG_PATH = 'config';
 
 var PathService = {
@@ -32,7 +31,7 @@ var PathService = {
     return path.resolve(this.getControlRepoPath(), CONFIG_PATH, configPath);
   },
   getContentFiles: function () {
-    if(process.env.CONTROL_CONTENT_FILE) {
+    if (process.env.CONTROL_CONTENT_FILE) {
       return globby.sync([this.getConfigPath(process.env.CONTROL_CONTENT_FILE)]);
     }
 
@@ -42,7 +41,7 @@ var PathService = {
     ]);
   },
   getRewritesFiles: function () {
-    if(process.env.CONTROL_REWRITES_FILE) {
+    if (process.env.CONTROL_REWRITES_FILE) {
       return globby.sync([this.getConfigPath(process.env.CONTROL_REWRITES_FILE)]);
     }
 
@@ -52,7 +51,7 @@ var PathService = {
     ]);
   },
   getRoutesFiles: function () {
-    if(process.env.CONTROL_ROUTES_FILE) {
+    if (process.env.CONTROL_ROUTES_FILE) {
       return globby.sync([this.getConfigPath(process.env.CONTROL_ROUTES_FILE)]);
     }
 
