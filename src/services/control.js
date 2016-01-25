@@ -1,7 +1,6 @@
 var fs = require('fs');
 var path = require('path');
 var async = require('async');
-var globby = require('globby');
 var npm = require('npm');
 var tmp = require('tmp');
 var childProcess = require('child_process');
@@ -327,10 +326,7 @@ var gitPull = function (repoPath, callback) {
 // Read functions
 
 var readContentMap = function (callback) {
-  var contentFiles = globby.sync([
-    PathService.getConfigPath(config.control_content_file()),
-    PathService.getConfigPath('content.d/**/*')
-  ]);
+  var contentFiles = PathService.getContentFiles();
 
   logger.debug('Beginning content map load', {
     files: contentFiles
@@ -347,10 +343,7 @@ var readContentMap = function (callback) {
 };
 
 var readTemplateMap = function (callback) {
-  var routeFiles = globby.sync([
-    PathService.getConfigPath(config.control_routes_file()),
-    PathService.getConfigPath('routes.d/**/*')
-  ]);
+  var routeFiles = PathService.getRoutesFiles();
 
   logger.debug('Begining template map load', {
     files: routeFiles
@@ -367,10 +360,7 @@ var readTemplateMap = function (callback) {
 };
 
 var readRewriteMap = function (callback) {
-  var rewriteFiles = globby.sync([
-    PathService.getConfigPath(config.control_rewrites_file()),
-    PathService.getConfigPath('rewrites.d/**/*')
-  ]);
+  var rewriteFiles = PathService.getRewritesFiles();
 
   logger.debug('Beginning rewrite map load', {
     files: rewriteFiles
