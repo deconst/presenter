@@ -8,6 +8,7 @@ var mkdirp = require('mkdirp');
 
 var config = require('../config');
 var logger = require('../server/logging').logger;
+var ControlRepo = require('../control-repo');
 var PathService = require('./path');
 var ContentRoutingService = require('./content/routing');
 var TemplateRoutingService = require('./template/routing');
@@ -19,6 +20,12 @@ var controlSHA = null;
 var lastAttemptSHA = null;
 var updateInProgress = false;
 var cachePath = null;
+
+/**
+ * @todo This file is way too long. All the git stuff needs to be somewhere else.
+ * @todo Fold plugin handling into control repo methods
+ * @todo remove subdirectories() function once no longer used
+ */
 
 var ControlService = {
   load: function (callback) {
@@ -141,6 +148,9 @@ var ControlService = {
         logger.info(msg, gitCompletePayload);
       }
 
+      /**
+       * @todo The signature for this function should be function (err, result)
+       */
       this.load(function (ok) {
         if (ok) {
           logger.info('Control repository update complete.', {
@@ -219,53 +229,6 @@ var ControlService = {
 
 module.exports = ControlService;
 
-var readAndMergeConfigFiles = function (files, def, callback) {
-  // for compatibility. Might be called with files as a single path, not an
-  // array of paths
-  if (!Array.isArray(files)) {
-    files = [files];
-  }
-
-  async.reduce(files, {}, function (previousValue, currentValue, reduceCallback) {
-    fs.readFile(currentValue, {encoding: 'utf-8'}, function (err, body) {
-      if (err) {
-        if (err.code === 'ENOENT') {
-          return callback(null, def);
-        }
-
-        return callback(err);
-      }
-
-      var doc;
-      try {
-        doc = JSON.parse(body);
-      } catch (e) {
-        doc = {};
-        logger.warn('Configuration file contained invalid JSON', {
-          errMessage: e.message,
-          filename: currentValue,
-          source: body
-        });
-      }
-
-      // I'm surprised this little concatenation loop works as well as it does.
-      // Could definitely use some testing to be sure it covers all the
-      // _reasonable_ use cases.
-      for (var site in doc) {
-        if (doc.hasOwnProperty(site)) {
-          if (previousValue.hasOwnProperty(site)) {
-            previousValue[site] = previousValue[site].concat(doc[site]);
-          } else {
-            previousValue[site] = doc[site];
-          }
-        }
-      }
-
-      reduceCallback(null, previousValue);
-    });
-  }, callback);
-};
-
 var subdirectories = function (rootPath, callback) {
   fs.readdir(rootPath, function (err, entries) {
     if (err) return callback(err);
@@ -326,54 +289,44 @@ var gitPull = function (repoPath, callback) {
 // Read functions
 
 var readContentMap = function (callback) {
-  var contentFiles = PathService.getContentFiles();
+  ControlRepo.getContentMaps(function (err, maps) {
+    if(err) {
+      return callback(err, null);
+    }
 
-  logger.debug('Beginning content map load', {
-    files: contentFiles
-  });
-
-  readAndMergeConfigFiles(contentFiles, {}, function (err, contentMap) {
-    if (err) return callback(err);
-
-    logger.debug('Successfully loaded content map', {
-      files: contentFiles
+    logger.debug('Successfully loaded content maps', {
+      maps: maps
     });
-    callback(null, contentMap);
+
+    callback(err, maps);
   });
 };
 
 var readTemplateMap = function (callback) {
-  var routeFiles = PathService.getRoutesFiles();
+  ControlRepo.getRouteMaps(function (err, maps) {
+    if(err) {
+      return callback(err, null);
+    }
 
-  logger.debug('Begining template map load', {
-    files: routeFiles
-  });
-
-  readAndMergeConfigFiles(routeFiles, {}, function (err, templateMap) {
-    if (err) return callback(err);
-
-    logger.debug('Successfully loaded template map', {
-      filename: routeFiles
+    logger.debug('Successfully loaded template maps', {
+      maps: maps
     });
-    callback(null, templateMap);
+
+    callback(err, maps);
   });
 };
 
 var readRewriteMap = function (callback) {
-  var rewriteFiles = PathService.getRewritesFiles();
+  ControlRepo.getRewriteMaps(function (err, maps) {
+    if(err) {
+      return callback(err, null);
+    }
 
-  logger.debug('Beginning rewrite map load', {
-    files: rewriteFiles
-  });
-
-  readAndMergeConfigFiles(rewriteFiles, {}, function (err, rewriteMap) {
-    if (err) return callback(err);
-
-    logger.debug('Successfully loaded rewrite map', {
-      files: rewriteFiles
+    logger.debug('Successfully loaded rewrite maps', {
+      maps: maps
     });
 
-    callback(null, rewriteMap);
+    callback(err, maps);
   });
 };
 
@@ -509,43 +462,21 @@ var loadDomainPlugin = function (pluginRoot, callback) {
 
 var loadTemplates = function (callback) {
   var startTs = Date.now();
-  var templatesRoot = PathService.getTemplatesRoot();
-  logger.debug('Beginning template preload', {
-    templatesRoot: templatesRoot
-  });
+  logger.debug('Beginning template preload', {});
 
-  subdirectories(templatesRoot, function (err, subdirs) {
-    if (err) {
-      if (err.code === 'ENOENT') {
-        // No templates to load in this control repository.
-        logger.debug('No templates to load', {
-          duration: Date.now() - startTs
-        });
+  var sources = {};
 
-        return callback(null, {});
-      }
-
-      return callback(err);
-    }
-
-    async.map(subdirs, function (subdir, cb) {
-      var fullPath = path.resolve(templatesRoot, subdir);
-
-      createAtomicLoader(fullPath, cb);
-    }, function (err, results) {
-      if (err) return callback(err);
-
-      var output = {};
-      for (var i = 0; i < results.length; i++) {
-        output[subdirs[i]] = results[i];
-      }
-
-      logger.debug('Successfully preloaded templates', {
-        domains: subdirs,
-        duration: Date.now() - startTs
+  async.each(ControlRepo.sites, function (site, cb) {
+    site.getTemplateSources(function (err, templateSources) {
+      createAtomicLoader(templateSources, function (err, loader) {
+        sources[site.domain] = loader;
+        cb();
       });
-
-      callback(null, output);
     });
+  }, function (err) {
+    logger.debug('Finished template preload', {
+      duration: Date.now() - startTs
+    });
+    callback(null, sources);
   });
 };

@@ -11,7 +11,7 @@ var RewriteService = {
     };
 
     for (var domain in configMap) {
-      configMap[domain].forEach(compileRx);
+      Array.prototype.forEach.call(configMap[domain], compileRx);
     }
 
     rewriteMap = configMap;
