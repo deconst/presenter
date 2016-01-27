@@ -24,8 +24,8 @@ var PathService = {
   getTemplatesPath: function (domain) {
     return ControlRepo.getTemplatesPath(domain);
   },
-  getAssetPath: function () {
-    return path.resolve(PathService.getControlRepoPath(), 'assets');
+  getAssetPath: function (domain) {
+    return ControlRepo.getAssetsPath(domain);
   },
   getConfigPath: function (configPath) {
     configPath = configPath || '';
