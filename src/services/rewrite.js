@@ -18,6 +18,10 @@ var RewriteService = {
   },
   getRewrite: function (req) {
     var domain = config.presented_url_domain() || req.get('Host');
+    if(!rewriteMap[domain]) {
+      return;
+    }
+
     var rewrites = rewriteMap[domain].rewrites || [];
 
     for (var i = 0; i < rewrites.length; i++) {

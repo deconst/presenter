@@ -3,6 +3,7 @@ var path = require('path');
 var NunjucksService = require('../nunjucks');
 var PathService = require('../path');
 var UrlService = require('../url');
+var ControlRepo = require('../../control-repo');
 
 var TemplateService = {
   render: function (context, options, callback) {
@@ -58,7 +59,7 @@ var findTemplate = function (context, templatePath) {
   ];
 
   var templateDir = null;
-  if (context.host()) {
+  if (context.host() && ControlRepo.siteExists(context.host())) {
     templateDir = PathService.getTemplatesPath(context.host());
     var templateBase = path.resolve(templateDir, templatePath);
 

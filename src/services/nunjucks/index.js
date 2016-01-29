@@ -1,3 +1,7 @@
+var fs = require('fs');
+var path = require('path');
+var async = require('async');
+var globby = require('globby');
 var nunjucks = require('nunjucks');
 var nunjucksDate = require('nunjucks-date');
 
@@ -18,12 +22,12 @@ var NunjucksService = {
       return callback(null);
     }
 
-    createAtomicLoader(PathService.getDefaultTemplatesPath(), function (err, loader) {
-      if (err) return callback(err);
-
-      staticLoader = loader;
-      staticEnv = createEnvironment(null, [staticLoader]);
-      callback(null);
+    getStaticTemplateSources(function (err, sources) {
+      createAtomicLoader(sources, function (err, loader) {
+        staticLoader = loader;
+        staticEnv = createEnvironment(null, [staticLoader]);
+        callback(null);
+      });
     });
   },
   clearEnvironments: function () {
@@ -54,6 +58,25 @@ var NunjucksService = {
 };
 
 module.exports = NunjucksService;
+
+var getStaticTemplateSources = function (callback) {
+  var templateDir = PathService.getDefaultTemplatesPath();
+  var templateFiles = globby.sync(path.resolve(templateDir, '**/*'), {nodir: true});
+  var sources = {};
+
+  async.each(templateFiles, function (file, callback) {
+    fs.readFile(file, 'utf-8', function (err, contents) {
+      sources[path.relative(templateDir, file)] = {
+        src: contents,
+        path: file
+      };
+
+      callback(null);
+    });
+  }, function (err) {
+    return callback(null, sources);
+  });
+};
 
 var createEnvironment = function (domain, loaders) {
   loaders.push(staticLoader);
