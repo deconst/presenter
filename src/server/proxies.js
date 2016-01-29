@@ -6,9 +6,11 @@ var request = require('request');
 
 function makeProxyRoute (site, path, target) {
   return function (req, res, next) {
-    var host = config.presented_url_domain() || req.get('Host');
-    if (host !== site) {
-      return next();
+    if(site) {
+      var host = config.presented_url_domain() || req.get('Host');
+      if (host !== site) {
+        return next();
+      }
     }
 
     var suffix = url.parse(req.originalUrl).path.replace(path, '');
@@ -29,7 +31,7 @@ module.exports = function (app) {
   // this will do for now.
   // See also: https://github.com/deconst/content-service/issues/66
   app.use('/__local_asset__', makeProxyRoute(
-    config.presented_url_domain(),
+    null,
     '__local_asset__/',
     url.resolve(config.content_service_url(), '/assets')
   ));

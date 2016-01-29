@@ -23,8 +23,6 @@ var cachePath = null;
 
 /**
  * @todo This file is way too long. All the git stuff needs to be somewhere else.
- * @todo Fold plugin handling into control repo methods
- * @todo remove subdirectories() function once no longer used
  */
 
 var ControlService = {
@@ -229,21 +227,6 @@ var ControlService = {
 
 module.exports = ControlService;
 
-var subdirectories = function (rootPath, callback) {
-  fs.readdir(rootPath, function (err, entries) {
-    if (err) return callback(err);
-
-    async.filter(entries, function (entry, cb) {
-      fs.stat(path.join(rootPath, entry), function (err, fstat) {
-        if (err) return callback(err);
-        cb(fstat.isDirectory());
-      });
-    }, function (dirs) {
-      return callback(null, dirs);
-    });
-  });
-};
-
 var readCurrentSHA = function (repoPath, callback) {
   return function (err, stdout, stderr) {
     if (err) {
@@ -331,132 +314,22 @@ var readRewriteMap = function (callback) {
 };
 
 var loadPlugins = function (callback) {
-  var pluginsRoot = PathService.getPluginsRoot();
-  var beginTs = Date.now();
-  logger.debug('Beginning plugin load', {
-    path: pluginsRoot
-  });
-
-  subdirectories(pluginsRoot, function (err, subdirs) {
-    if (err) {
-      if (err.code === 'ENOENT') {
-        // No plugins to enumerate.
-        return callback(null, {});
-      }
-
-      return callback(err);
-    }
-
-    async.map(subdirs, loadDomainPlugins, function (err, results) {
-      if (err) return callback(err);
-
-      logger.debug('Successfully loaded plugins', {
-        path: pluginsRoot,
-        pluginCount: results.length,
-        duration: Date.now() - beginTs
-      });
-
-      var output = {};
-      for (var i = 0; i < results.length; i++) {
-        output[subdirs[i]] = results[i];
-      }
-
-      callback(null, output);
-    });
-  });
-};
-
-var loadDomainPlugins = function (domain, callback) {
-  var domainRoot = path.join(PathService.getPluginsRoot(), domain);
-
-  subdirectories(domainRoot, function (err, subdirs) {
-    if (err) return callback(err);
-
-    async.map(subdirs, function (subdir, cb) {
-      loadDomainPlugin(path.join(domainRoot, subdir), cb);
-    }, function (err, results) {
-      if (err) return callback(err);
-
-      callback(null, results);
-    });
-  });
-};
-
-var loadDomainPlugin = function (pluginRoot, callback) {
   var startTs = Date.now();
-  logger.debug('Loading plugin', {
-    pluginRoot: pluginRoot
-  });
+  logger.debug('Beginning plugin load', {});
 
-  var deps = null;
-  var plugin = null;
+  var allPlugins = {};
 
-  var createDir = function (cb) {
-    if (cachePath !== null) {
-      return cb(null);
-    }
-
-    tmp.dir({prefix: 'npm-cache-'}, function (err, cp) {
-      cachePath = cp;
-      cb(err);
+  async.each(ControlRepo.sites, function (site, cb) {
+    site.getPlugins(function (err, plugins) {
+      allPlugins[site.domain] = plugins;
+      return cb();
     });
-  };
-
-  var parseDependencies = function (cb) {
-    fs.readFile(path.join(pluginRoot, 'package.json'), {encoding: 'utf-8'}, function (err, doc) {
-      if (err) return cb(err);
-
-      var depDoc = {};
-      try {
-        depDoc = JSON.parse(doc);
-      } catch (e) {
-        return cb(e);
-      }
-
-      deps = [];
-      for (var key in depDoc.dependencies) {
-        deps.push(key + '@' + depDoc.dependencies[key]);
-      }
-
-      cb(null);
+  }, function (err) {
+    logger.debug('Finished plugin load', {
+      duration: Date.now() - startTs
     });
-  };
 
-  var installDependencies = function (cb) {
-    npm.load({cache: cachePath}, function (err) {
-      if (err) return cb(err);
-
-      npm.commands.install(pluginRoot, deps, function (err, result) {
-        if (err) return cb(err);
-
-        logger.debug('Plugin dependencies installed', {
-          pluginRoot: pluginRoot,
-          duration: Date.now() - startTs
-        });
-
-        var requireTs = Date.now();
-        try {
-          plugin = require(pluginRoot);
-        } catch (e) {
-          return callback(e);
-        }
-
-        logger.debug('Plugin required', {
-          pluginRoot: pluginRoot,
-          duration: Date.now() - requireTs
-        });
-
-        cb(null);
-      });
-    });
-  };
-
-  async.series([
-    createDir,
-    parseDependencies,
-    installDependencies
-  ], function (err) {
-    return callback(err, plugin);
+    return callback(null, allPlugins);
   });
 };
 
