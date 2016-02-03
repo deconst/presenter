@@ -11,14 +11,18 @@ var RewriteService = {
     };
 
     for (var domain in configMap) {
-      configMap[domain].forEach(compileRx);
+      Array.prototype.forEach.call(configMap[domain].rewrites, compileRx);
     }
 
     rewriteMap = configMap;
   },
   getRewrite: function (req) {
     var domain = config.presented_url_domain() || req.get('Host');
-    var rewrites = rewriteMap[domain] || [];
+    if(!rewriteMap[domain]) {
+      return;
+    }
+
+    var rewrites = rewriteMap[domain].rewrites || [];
 
     for (var i = 0; i < rewrites.length; i++) {
       var rule = rewrites[i];

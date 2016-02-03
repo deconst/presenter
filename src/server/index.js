@@ -8,13 +8,20 @@ var logging = require('./logging');
 var proxies = require('./proxies');
 var rewrites = require('./rewrites');
 var routes = require('../routers');
+var config = require('../config');
 
 var PathService = require('../services/path');
 
 exports.create = function () {
   var app = express();
 
-  app.use('/assets', express.static(PathService.getAssetPath()));
+  // Serve assets from the appropriate site in the control repo
+  app.use('/assets', function (req, res, next) {
+    var domain = config.presented_url_domain() || req.hostname;
+    var assetsPath = PathService.getAssetPath(domain);
+
+    return express.static(assetsPath).apply(this, arguments);
+  });
 
   app.use(logging.requestLogger());
   app.set('trust proxy', true);

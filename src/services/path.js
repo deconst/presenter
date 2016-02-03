@@ -1,6 +1,7 @@
 var path = require('path');
 var globby = require('globby');
 var config = require('../config');
+var ControlRepo = require('../control-repo');
 
 var CONFIG_PATH = 'config';
 
@@ -15,16 +16,16 @@ var PathService = {
     return path.resolve(this.getControlRepoPath(), 'plugins');
   },
   getPluginsPath: function (domain) {
-    return path.resolve(this.getPluginsRoot(), domain);
+    return ControlRepo.getInstance().getPluginsPath(domain);
   },
   getTemplatesRoot: function (domain) {
     return path.resolve(this.getControlRepoPath(), 'templates');
   },
   getTemplatesPath: function (domain) {
-    return path.resolve(this.getTemplatesRoot(), domain);
+    return ControlRepo.getInstance().getTemplatesPath(domain);
   },
-  getAssetPath: function () {
-    return path.resolve(PathService.getControlRepoPath(), 'assets');
+  getAssetPath: function (domain) {
+    return ControlRepo.getInstance().getAssetsPath(domain);
   },
   getConfigPath: function (configPath) {
     configPath = configPath || '';
