@@ -59,7 +59,7 @@ var findTemplate = function (context, templatePath) {
   ];
 
   var templateDir = null;
-  if (context.host() && ControlRepo.siteExists(context.host())) {
+  if (context.host() && ControlRepo.getInstance().siteExists(context.host())) {
     templateDir = PathService.getTemplatesPath(context.host());
     var templateBase = path.resolve(templateDir, templatePath);
 

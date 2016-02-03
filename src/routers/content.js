@@ -111,17 +111,19 @@ module.exports = function (req, res) {
         return callback(null, toc.envelope.body);
       });
     },
-    control: function (callback) {
-      ContentService.getControlSHA(context, function (err, sha) {
-        if (err) return callback(err);
-
-        // No need to hold up the current request for the control repository update.
-        // Kick it off here but don't wait for it to complete.
-        if (sha && sha !== ControlService.getControlSHA()) ControlService.update(sha);
-
-        callback(null, sha);
-      });
-    }
+    // control: function (callback) {
+    //   ContentService.getControlSHA(context, function (err, sha) {
+    //     if (err) return callback(err);
+    //
+    //     // No need to hold up the current request for the control repository update.
+    //     // Kick it off here but don't wait for it to complete.
+    //     if (sha && sha !== ControlService.getControlSHA()) {
+    //       ControlService.update(sha);
+    //     }
+    //
+    //     callback(null, sha);
+    //   });
+    // }
   }, function (err, output) {
     if (err || capturedError) {
       return context.handleError(err || capturedError);

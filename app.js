@@ -13,8 +13,8 @@ var logger = require('./src/server/logging').logger;
 
 var ControlService = require('./src/services/control');
 
-ControlService.update(null, function (ok) {
-  if (!ok) {
+ControlService.update(function (err) {
+  if (err) {
     logger.warn('Unable to perform initial control repository load');
   }
 

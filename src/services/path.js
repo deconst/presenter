@@ -16,16 +16,16 @@ var PathService = {
     return path.resolve(this.getControlRepoPath(), 'plugins');
   },
   getPluginsPath: function (domain) {
-    return ControlRepo.getPluginsPath(domain);
+    return ControlRepo.getInstance().getPluginsPath(domain);
   },
   getTemplatesRoot: function (domain) {
     return path.resolve(this.getControlRepoPath(), 'templates');
   },
   getTemplatesPath: function (domain) {
-    return ControlRepo.getTemplatesPath(domain);
+    return ControlRepo.getInstance().getTemplatesPath(domain);
   },
   getAssetPath: function (domain) {
-    return ControlRepo.getAssetsPath(domain);
+    return ControlRepo.getInstance().getAssetsPath(domain);
   },
   getConfigPath: function (configPath) {
     configPath = configPath || '';
