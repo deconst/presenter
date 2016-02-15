@@ -1,6 +1,6 @@
-FROM alpine:3.2
+FROM alpine:3.3
 
-RUN apk add --update nodejs git && rm -rf /var/cache/apk/*
+RUN apk add --no-cache nodejs git && rm -rf /var/cache/apk/*
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
