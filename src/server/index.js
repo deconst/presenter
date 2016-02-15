@@ -25,6 +25,7 @@ exports.create = function () {
 
   app.use(function (err, req, res, next) {
     logging.logger.error({
+      statusCode: 500,
       stack: err.stack,
       message: 'Express.js error handler invoked'
     });
