@@ -14,4 +14,4 @@ elif [ -d "${CONTROL_REPO_PATH:-}" ]; then
   chown -R presenter:presenter "${CONTROL_REPO_PATH}"
 fi
 
-exec /usr/bin/su presenter -c 'npm start'
+exec /bin/su presenter -c 'npm start'
