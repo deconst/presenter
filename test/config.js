@@ -1,11 +1,13 @@
-/* globals it describe */
+'use strict';
+/* globals it describe afterEach */
 // Unit tests for the configuration system.
 
-var expect = require('chai').expect;
-var config = require('../src/config');
+const expect = require('chai').expect;
+const config = require('../src/config');
+const before = require('./helpers/before');
 
-describe('config', function () {
-  it('reads configuration values from the environment', function () {
+describe('config', () => {
+  it('reads configuration values from the environment', () => {
     config.configure({
       CONTROL_REPO_PATH: './test/test-control',
       CONTENT_SERVICE_URL: 'https://content',
@@ -13,7 +15,8 @@ describe('config', function () {
       PRESENTED_URL_DOMAIN: 'deconst.horse',
       PUBLIC_URL_PROTO: 'https',
       PUBLIC_URL_DOMAIN: 'localhost',
-      PRESENTER_LOG_LEVEL: 'debug'
+      PRESENTER_LOG_LEVEL: 'debug',
+      STAGING_MODE: 'true'
     });
 
     expect(config.content_service_url()).to.equal('https://content');
@@ -22,15 +25,16 @@ describe('config', function () {
     expect(config.public_url_proto()).to.equal('https');
     expect(config.public_url_domain()).to.equal('localhost');
     expect(config.log_level()).to.equal('debug');
+    expect(config.staging_mode()).to.equal(true);
   });
 
-  it('requires service URLs', function () {
-    expect(function () {
+  it('requires service URLs', () => {
+    expect(() => {
       config.configure({});
     }).to.throw(Error, /Inadequate configuration/);
   });
 
-  it('defaults the log level', function () {
+  it('defaults the log level', () => {
     config.configure({
       CONTROL_REPO_PATH: './test/test-control',
       CONTENT_SERVICE_URL: 'https://content'
@@ -39,7 +43,7 @@ describe('config', function () {
     expect(config.log_level()).to.equal('info');
   });
 
-  it('normalizes service URLs', function () {
+  it('normalizes service URLs', () => {
     config.configure({
       CONTROL_REPO_PATH: './test/test-control',
       CONTENT_SERVICE_URL: 'https://content/'
@@ -47,4 +51,6 @@ describe('config', function () {
 
     expect(config.content_service_url()).to.equal('https://content');
   });
+
+  afterEach(before.reconfigure);
 });

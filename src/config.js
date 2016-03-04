@@ -79,6 +79,13 @@ var configuration = {
     env: 'PRESENTER_DIAGNOSTICS',
     description: 'Enable diagnostic tooling within the presenter.',
     required: false
+  },
+  staging_mode: {
+    env: 'STAGING_MODE',
+    description: 'Present staged content from many revisions at subpaths.',
+    normalize: normalize_bool,
+    def: 'false',
+    required: false
   }
 };
 
