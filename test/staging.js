@@ -60,5 +60,61 @@ describe('staging mode', () => {
       .expect(/deconst dog content/, done);
   });
 
+  describe('link manipulation', () => {
+    it('prepends revision ID to relative links', (done) => {
+      nock('http://content')
+        .get('/control')
+        .reply(200, { sha: null })
+        .get('/assets')
+        .reply(200, {})
+        .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fsubpath')
+        .reply(200, {
+          assets: {},
+          envelope: { body: 'with <a href="/foo/bar/baz/">relative link</a>' }
+        });
+
+      request(server.create())
+        .get('/build-12345/subpath/')
+        .expect(200)
+        .expect(/<a href="\/build-12345\/foo\/bar\/baz\/">/, done);
+    });
+
+    it('prepends revision ID to absolute links', (done) => {
+      nock('http://content')
+        .get('/control')
+        .reply(200, { sha: null })
+        .get('/assets')
+        .reply(200, {})
+        .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fsubpath')
+        .reply(200, {
+          assets: {},
+          envelope: { body: 'with <a href="https://deconst.horse/huh/what/">absolute link</a>' }
+        });
+
+      request(server.create())
+        .get('/build-12345/subpath/')
+        .expect(200)
+        .expect(/<a href="https:\/\/deconst\.horse\/build-12345\/huh\/what\/">/, done);
+    });
+
+    it('prepends host and revision ID to outgoing links for non-default hosts', (done) => {
+      nock('http://content')
+        .get('/control')
+        .reply(200, { sha: null })
+        .get('/assets')
+        .reply(200, {})
+        .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst-dog%2Ffake%2Fand-how')
+        .reply(200, {
+          assets: [],
+          envelope: { body: 'has <a href="/aaa/bbb/">relative link</a>' }
+        });
+
+      request(server.create())
+        .get('/deconst.dog/build-12345/and-how/')
+        .expect(200)
+        .expect(/<a href="\/deconst.dog\/build-12345\/aaa\/bbb\/">/, done);
+    });
+  });
+
   afterEach(before.reconfigure);
 });
