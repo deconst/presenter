@@ -74,9 +74,12 @@ ContentFilterService.add(function (input, next) {
         //   return;
         // }
 
-        if (parts[0] === '') {
-          parts.shift();
+        if (parts[0] !== '') {
+          // URL is a non-root-relative URL.
+          return;
         }
+
+        parts.shift();
         parts.unshift(context.revisionID);
 
         if (targetURL.hostname) {
