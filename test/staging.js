@@ -24,7 +24,7 @@ describe('staging mode', () => {
     });
   });
 
-  it('understands the host and revision ID path segments', (done) => {
+  it('understands the revision ID path segment', (done) => {
     nock('http://content')
       .get('/control')
       .reply(200, { sha: null })
