@@ -47,6 +47,9 @@ var ContentRoutingService = {
   setContentMap: function (map) {
     contentMap = map;
   },
+  isKnownDomain: function (domain) {
+    return contentMap[domain] !== undefined;
+  },
   getContentId: function (context, urlPath) {
     urlPath = urlPath || context.request.path;
     var domainContentMap = getDomainContentMap(context.host());

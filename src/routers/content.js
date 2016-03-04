@@ -1,15 +1,16 @@
+'use strict';
 // Handler to assemble a specific piece of static content.
 
-var async = require('async');
-var logger = require('../server/logging').logger;
-var Context = require('../helpers/context');
-var TemplateService = require('../services/template');
-var TemplateRoutingService = require('../services/template/routing');
-var ContentService = require('../services/content');
-var ContentRoutingService = require('../services/content/routing');
-var ContentFilterService = require('../services/content/filter');
-var UrlService = require('../services/url');
-var ControlService = require('../services/control');
+const async = require('async');
+const logger = require('../server/logging').logger;
+const Context = require('../helpers/context');
+const TemplateService = require('../services/template');
+const TemplateRoutingService = require('../services/template/routing');
+const ContentService = require('../services/content');
+const ContentRoutingService = require('../services/content/routing');
+const ContentFilterService = require('../services/content/filter');
+const UrlService = require('../services/url');
+const ControlService = require('../services/control');
 
 // Register content filters.
 
