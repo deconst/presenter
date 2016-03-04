@@ -94,7 +94,7 @@ describe('staging mode', () => {
       request(server.create())
         .get('/build-12345/subpath/')
         .expect(200)
-        .expect(/<a href="https:\/\/deconst\.horse\/build-12345\/huh\/what\/">/, done);
+        .expect(/<a href="\/build-12345\/huh\/what\/">/, done);
     });
 
     it('prepends host and revision ID to outgoing root-relative links for non-default hosts', (done) => {

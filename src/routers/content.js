@@ -79,11 +79,20 @@ ContentFilterService.add(function (input, next) {
         }
         parts.unshift(context.revisionID);
 
-        let shouldUnshiftHost = false;
-        shouldUnshiftHost = shouldUnshiftHost || context.host() !== config.presented_url_domain();
-        if (shouldUnshiftHost) {
+        if (targetURL.hostname) {
+          // URL is an absolute URL to an on-cluster destination.
+          if (targetURL.hostname !== config.presented_url_domain()) {
+            parts.unshift(targetURL.hostname);
+          }
+
+          targetURL.protocol = null;
+          targetURL.slashes = false;
+          targetURL.host = null;
+          targetURL.hostname = null;
+        } else if (context.host() !== config.presented_url_domain()) {
+          // URL is a root-relative URL and the current staging host is non-default.
+
           parts.unshift(context.host());
-          logger.debug('unshifted host!');
         }
 
         targetURL.pathname = '/' + parts.join('/');
