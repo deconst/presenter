@@ -151,6 +151,10 @@ describe('staging mode', () => {
         .expect(/<a href="baz\/">/, done);
     });
 
+    it('leaves fragment-only links alone');
+
+    it('leaves mailto links alone');
+
     it('leaves absolute links off-cluster alone', (done) => {
       nock('http://content')
         .get('/control')
