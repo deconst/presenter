@@ -1,7 +1,10 @@
 'use strict';
 // Handler to assemble a specific piece of static content.
 
+const url = require('url');
 const async = require('async');
+const cheerio = require('cheerio');
+const config = require('../config');
 const logger = require('../server/logging').logger;
 const Context = require('../helpers/context');
 const TemplateService = require('../services/template');
@@ -15,12 +18,12 @@ const ControlService = require('../services/control');
 // Register content filters.
 
 ContentFilterService.add(function (input, next) {
-  var context = input.context;
-  var content = input.content;
+  let context = input.context;
+  let content = input.content;
 
   // Match nunjucks-like "{{ to('') }}" directives that are used to defer rendering of presented URLs
   // until presenter-time.
-  var urlDirectiveRx = /\{\{\s*to\('([^']+)'\)\s*\}\}/g;
+  let urlDirectiveRx = /\{\{\s*to\('([^']+)'\)\s*\}\}/g;
 
   if (content.contentID && content.envelope) {
     // Replace any "{{ to() }}" directives with the appropriate presented URL.
@@ -36,8 +39,8 @@ ContentFilterService.add(function (input, next) {
 });
 
 ContentFilterService.add(function (input, next) {
-  var context = input.context;
-  var content = input.content;
+  let context = input.context;
+  let content = input.content;
 
   // Locate the URLs for the content IDs of any next and previous links included in the
   // document.
@@ -47,6 +50,49 @@ ContentFilterService.add(function (input, next) {
 
   if (content.previous && content.previous.contentID && !content.previous.url) {
     content.previous.url = ContentRoutingService.getPresentedUrl(context, content.previous.contentID);
+  }
+
+  return next();
+});
+
+ContentFilterService.add(function (input, next) {
+  if (config.staging_mode()) {
+    let context = input.context;
+    let body = input.content.envelope.body;
+
+    let $ = cheerio.load(body);
+
+    $('a').each((i, element) => {
+      let e = $(element);
+      let target = e.attr('href');
+      if (target) {
+        let targetURL = url.parse(target);
+        let parts = targetURL.pathname.split('/');
+
+        // if (targetURL.hostname && !ContentRoutingService.isKnownDomain(targetURL.hostname)) {
+        //   // URL is an absolute URL to a non-cluster destination.
+        //   return;
+        // }
+
+        if (parts[0] === '') {
+          parts.shift();
+        }
+        parts.unshift(context.revisionID);
+
+        let shouldUnshiftHost = false;
+        shouldUnshiftHost = shouldUnshiftHost || context.host() !== config.presented_url_domain();
+        if (shouldUnshiftHost) {
+          parts.unshift(context.host());
+          logger.debug('unshifted host!');
+        }
+
+        targetURL.pathname = '/' + parts.join('/');
+
+        e.attr('href', url.format(targetURL));
+      }
+    });
+
+    input.content.envelope.body = $.html();
   }
 
   return next();
