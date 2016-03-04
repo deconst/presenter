@@ -67,12 +67,24 @@ ContentFilterService.add(function (input, next) {
       let target = e.attr('href');
       if (target) {
         let targetURL = url.parse(target);
-        let parts = targetURL.pathname.split('/');
+
+        if (targetURL.scheme && targetURL.scheme !== 'http' && targetURL.scheme !== 'http') {
+          // URL is a non-HTTP protocol. Don't touch it.
+          return;
+        }
 
         if (targetURL.hostname && !ContentRoutingService.isKnownDomain(targetURL.hostname)) {
           // URL is an absolute URL to a non-cluster destination.
           return;
         }
+
+        if (targetURL.pathname === null) {
+          // URL is a fragment-only URL.
+          // Even url.parse('https://rackspace.com') produces a pathname of '/'.
+          return;
+        }
+
+        let parts = targetURL.pathname.split('/');
 
         if (parts[0] !== '') {
           // URL is a non-root-relative URL.
