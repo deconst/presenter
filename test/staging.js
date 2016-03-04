@@ -137,8 +137,6 @@ describe('staging mode', () => {
       nock('http://content')
         .get('/control')
         .reply(200, { sha: null })
-        .get('/assets')
-        .reply(200, {})
         .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fabc')
         .reply(200, {
           assets: {},
@@ -151,12 +149,42 @@ describe('staging mode', () => {
         .expect(/<a href="baz\/">/, done);
     });
 
+    it('leaves fragment-only links alone', (done) => {
+      nock('http://content')
+        .get('/control')
+        .reply(200, { sha: null })
+        .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fabc')
+        .reply(200, {
+          assets: {},
+          envelope: { body: 'with <a href="#whatever">fragment link</a>' }
+        });
+
+      request(server.create())
+        .get('/build-12345/abc/')
+        .expect(200)
+        .expect(/<a href="#whatever">/, done);
+    });
+
+    it('leaves mailto links alone', (done) => {
+      nock('http://content')
+        .get('/control')
+        .reply(200, { sha: null })
+        .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fabc')
+        .reply(200, {
+          assets: {},
+          envelope: { body: 'with <a href="mailto:me@wherever.com">mailto link</a>' }
+        });
+
+      request(server.create())
+        .get('/build-12345/abc/')
+        .expect(200)
+        .expect(/<a href="mailto:me@wherever\.com">/, done);
+    });
+
     it('leaves absolute links off-cluster alone', (done) => {
       nock('http://content')
         .get('/control')
         .reply(200, { sha: null })
-        .get('/assets')
-        .reply(200, {})
         .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fzzz')
         .reply(200, {
           assets: {},
