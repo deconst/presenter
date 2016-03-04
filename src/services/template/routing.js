@@ -18,7 +18,7 @@ var TemplateRoutingService = {
     templateMap = map;
   },
   getRoute: function (context) {
-    var urlPath = context.request.path;
+    var urlPath = context.presentedPath();
     var domainTemplateMap = getDomainTemplateMap(context.host());
     var bestMatch = null;
 
