@@ -1,6 +1,9 @@
-var logger = require('../server/logging').logger;
-var config = require('../config');
-var TemplateService = require('../services/template');
+'use strict';
+
+const logger = require('../server/logging').logger;
+const config = require('../config');
+const ContentRoutingService = require('../services/content/routing');
+const TemplateService = require('../services/template');
 
 function Context (req, resp) {
   this.request = req;
@@ -14,12 +17,36 @@ function Context (req, resp) {
   this.contentReqDuration = null;
   this.assetReqDuration = null;
   this.templateRenderDuration = null;
+
+  if (config.staging_mode()) {
+    this._applyStagingMode();
+  }
 }
+
+Context.prototype._applyStagingMode = function () {
+  this.originalPresentedPath = this.request.path;
+
+  let parts = this.request.path.split('/');
+  while (parts[0] === '') {
+    parts.shift();
+  }
+
+  let first = parts.shift();
+  if (ContentRoutingService.isKnownDomain(first)) {
+    this.stagingHost = first;
+    this.revisionID = parts.shift();
+  } else {
+    this.stagingHost = config.presented_url_domain();
+    this.revisionID = first;
+  }
+
+  this.stagingPresentedPath = '/' + parts.join('/');
+};
 
 Context.prototype._summarize = function (statusCode, message, err) {
   var summary = {
-    statusCode: statusCode,
-    message: message,
+    statusCode,
+    message,
     requestURL: this.request.url,
     requestDomain: this.host(),
     requestProtocol: this.protocol(),
@@ -46,6 +73,14 @@ Context.prototype._summarize = function (statusCode, message, err) {
     summary.templateRenderDuration = this.templateRenderDuration;
   }
 
+  if (this.revisionID) {
+    summary.revisionID = this.revisionID;
+  }
+
+  if (this.stagingPresentedPath) {
+    summary.stagingPresentedPath = this.stagingPresentedPath;
+  }
+
   if (err) {
     summary.errMessage = err.message;
     summary.stack = err.stack;
@@ -54,8 +89,12 @@ Context.prototype._summarize = function (statusCode, message, err) {
   return summary;
 };
 
+Context.prototype.presentedPath = function () {
+  return this.stagingPresentedPath || this.request.path;
+};
+
 Context.prototype.host = function () {
-  return config.presented_url_domain() || this.request.get('Host');
+  return this.stagingHost || config.presented_url_domain() || this.request.get('Host');
 };
 
 Context.prototype.protocol = function () {

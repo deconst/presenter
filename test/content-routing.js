@@ -1,22 +1,19 @@
+'use strict';
 /* globals it describe beforeEach */
 // Unit tests for the ContentRoutingService.
 
-var before = require('./helpers/before');
-var config = require('../src/config');
-var expect = require('chai').expect;
+const before = require('./helpers/before');
+const expect = require('chai').expect;
 
-config.configure(before.settings);
+const ContentRoutingService = require('../src/services/content/routing');
 
-var ContentRoutingService = require('../src/services/content/routing');
-
-describe('ContentRoutingService', function () {
+describe('ContentRoutingService', () => {
   var context = {
-    host: function () {
-      return 'deconst.horse';
-    }
+    host: () => 'deconst.horse'
   };
 
-  beforeEach(function () {
+  beforeEach(before.reconfigure);
+  beforeEach(() => {
     ContentRoutingService.setContentMap({
       'deconst.horse': {
         content: {
@@ -30,10 +27,16 @@ describe('ContentRoutingService', function () {
     });
   });
 
+  it('recognizes a known domain', () => {
+    expect(ContentRoutingService.isKnownDomain('deconst.horse')).to.equal(true);
+  });
+
+  it('recognizes an unknown domain', () => {
+    expect(ContentRoutingService.isKnownDomain('other.horse')).to.equal(false);
+  });
+
   var shouldMap = function (presentedPath, contentID) {
-    return function () {
-      expect(ContentRoutingService.getContentId(context, presentedPath)).to.equal(contentID);
-    };
+    return () => expect(ContentRoutingService.getContentId(context, presentedPath)).to.equal(contentID);
   };
 
   it('returns a sentinel for umapped content',

@@ -4,8 +4,6 @@ sudo: false
 node_js:
 - "4.2.1"
 install:
-- npm install -g jshint
 - npm install .
 script:
 - npm test
-- jshint .

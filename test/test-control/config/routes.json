@@ -6,5 +6,10 @@
             "^/searchparams/?$": "searchparams.html",
             "^/searchcats/?$": "searchcats.html"
         }
+    },
+    "deconst.dog": {
+        "routes": {
+            ".": "default.html"
+        }
     }
 }
