@@ -1,6 +1,7 @@
 'use strict';
 // Common setup functions for unit tests.
 
+const _ = require('lodash');
 const config = require('../../src/config');
 
 const settings = {
@@ -16,4 +17,11 @@ exports.settings = settings;
 
 exports.reconfigure = function () {
   config.configure(settings);
+};
+
+exports.reconfigureWith = function (overrides) {
+  return () => {
+    let s = _.defaults(overrides, settings);
+    config.configure(s);
+  };
 };
