@@ -1,35 +1,11 @@
-var url = require('url');
-var logger = require('../../server/logging').logger;
-var UrlService = require('../url');
+'use strict';
+
+const url = require('url');
+const config = require('../../config');
+const logger = require('../../server/logging').logger;
+const UrlService = require('../url');
 
 var contentMap = {};
-
-var getDomainContentMap = function (domain) {
-  if (!contentMap.hasOwnProperty(domain) || !contentMap[domain].hasOwnProperty('content')) {
-    logger.warn('Content map has no content routes defined for this domain.', {
-      domain: domain
-    });
-    return {};
-  }
-
-  return contentMap[domain].content;
-};
-
-var getDomainProxyMap = function (domain) {
-  if (!contentMap.hasOwnProperty(domain) || !contentMap[domain].hasOwnProperty('proxy')) {
-    return {};
-  }
-
-  return contentMap[domain].proxy;
-};
-
-var slashJoin = function (strings) {
-  return strings.map(function (each) {
-    return each.replace(/^\/+/, '').replace(/\/+$/, '');
-  }).filter(function (each) {
-    return each !== '';
-  }).join('/');
-};
 
 var ContentRoutingService = {
   // Sentinel objects to return from getContentId
@@ -51,7 +27,7 @@ var ContentRoutingService = {
     return contentMap[domain] !== undefined;
   },
   getContentId: function (context, urlPath) {
-    urlPath = urlPath || context.request.path;
+    urlPath = urlPath || context.presentedPath();
     var domainContentMap = getDomainContentMap(context.host());
 
     var found = false;
@@ -76,10 +52,25 @@ var ContentRoutingService = {
       return /^\/?$/.test(afterPrefix) ? this.EMPTY_ENVELOPE : this.UNMAPPED;
     }
 
-    return slashJoin([contentIDBase, afterPrefix]);
+    let contentID = slashJoin([contentIDBase, afterPrefix]);
+
+    // In staging mode, prepend a path segment with the revision ID into the content ID.
+    if (config.staging_mode()) {
+      let u = url.parse(contentID);
+      let pathSegments = u.pathname.split('/');
+      while (pathSegments[0] === '') {
+        pathSegments.shift();
+      }
+      pathSegments.unshift(context.revisionID);
+      u.pathname = pathSegments.join('/');
+
+      contentID = url.format(u);
+    }
+
+    return contentID;
   },
   getContentPrefix: function (context) {
-    var urlPath = context.request.path;
+    var urlPath = context.presentedPath();
     var domainContentMap = getDomainContentMap(context.host());
 
     var prefixMatch = null;
@@ -159,3 +150,30 @@ var ContentRoutingService = {
 };
 
 module.exports = ContentRoutingService;
+
+const getDomainContentMap = function (domain) {
+  if (!contentMap.hasOwnProperty(domain) || !contentMap[domain].hasOwnProperty('content')) {
+    logger.warn('Content map has no content routes defined for this domain.', {
+      domain: domain
+    });
+    return {};
+  }
+
+  return contentMap[domain].content;
+};
+
+const getDomainProxyMap = function (domain) {
+  if (!contentMap.hasOwnProperty(domain) || !contentMap[domain].hasOwnProperty('proxy')) {
+    return {};
+  }
+
+  return contentMap[domain].proxy;
+};
+
+const slashJoin = function (strings) {
+  return strings.map(function (each) {
+    return each.replace(/^\/+/, '').replace(/\/+$/, '');
+  }).filter(function (each) {
+    return each !== '';
+  }).join('/');
+};
