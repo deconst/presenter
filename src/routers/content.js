@@ -69,10 +69,10 @@ ContentFilterService.add(function (input, next) {
         let targetURL = url.parse(target);
         let parts = targetURL.pathname.split('/');
 
-        // if (targetURL.hostname && !ContentRoutingService.isKnownDomain(targetURL.hostname)) {
-        //   // URL is an absolute URL to a non-cluster destination.
-        //   return;
-        // }
+        if (targetURL.hostname && !ContentRoutingService.isKnownDomain(targetURL.hostname)) {
+          // URL is an absolute URL to a non-cluster destination.
+          return;
+        }
 
         if (parts[0] !== '') {
           // URL is a non-root-relative URL.
