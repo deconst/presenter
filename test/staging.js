@@ -196,6 +196,8 @@ describe('staging mode', () => {
         .expect(200)
         .expect(/<a href="https:\/\/github\.com\/deconst">/, done);
     });
+
+    it('replaces links from templates, too!');
   });
 
   afterEach(before.reconfigure);
