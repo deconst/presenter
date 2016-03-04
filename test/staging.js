@@ -61,7 +61,7 @@ describe('staging mode', () => {
   });
 
   describe('link manipulation', () => {
-    it('prepends revision ID to relative links', (done) => {
+    it('prepends revision ID to root-relative links', (done) => {
       nock('http://content')
         .get('/control')
         .reply(200, { sha: null })
@@ -97,7 +97,7 @@ describe('staging mode', () => {
         .expect(/<a href="https:\/\/deconst\.horse\/build-12345\/huh\/what\/">/, done);
     });
 
-    it('prepends host and revision ID to outgoing links for non-default hosts', (done) => {
+    it('prepends host and revision ID to outgoing root-relative links for non-default hosts', (done) => {
       nock('http://content')
         .get('/control')
         .reply(200, { sha: null })
@@ -113,6 +113,60 @@ describe('staging mode', () => {
         .get('/deconst.dog/build-12345/and-how/')
         .expect(200)
         .expect(/<a href="\/deconst.dog\/build-12345\/aaa\/bbb\/">/, done);
+    });
+
+    it('prepends host and revision ID to outgoing absolute links for non-default hosts', (done) => {
+      nock('http://content')
+        .get('/control')
+        .reply(200, { sha: null })
+        .get('/assets')
+        .reply(200, {})
+        .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fyuppers')
+        .reply(200, {
+          assets: [],
+          envelope: { body: 'has <a href="https://deconst.dog/aaa/bbb/">absolute link</a>' }
+        });
+
+      request(server.create())
+        .get('/build-12345/yuppers/')
+        .expect(200)
+        .expect(/<a href="\/deconst.dog\/build-12345\/aaa\/bbb\/">/, done);
+    });
+
+    it('leaves non-root relative links alone', (done) => {
+      nock('http://content')
+        .get('/control')
+        .reply(200, { sha: null })
+        .get('/assets')
+        .reply(200, {})
+        .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fabc')
+        .reply(200, {
+          assets: {},
+          envelope: { body: 'with <a href="baz/">relative link</a>' }
+        });
+
+      request(server.create())
+        .get('/build-12345/abc/')
+        .expect(200)
+        .expect(/<a href="baz\/">/, done);
+    });
+
+    it('leaves absolute links off-cluster alone', (done) => {
+      nock('http://content')
+        .get('/control')
+        .reply(200, { sha: null })
+        .get('/assets')
+        .reply(200, {})
+        .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fzzz')
+        .reply(200, {
+          assets: {},
+          envelope: { body: 'with <a href="https://github.com/deconst">absolute link off-cluster</a>' }
+        });
+
+      request(server.create())
+        .get('/build-12345/zzz/')
+        .expect(200)
+        .expect(/<a href="https:\/\/github\.com\/deconst">/, done);
     });
   });
 
