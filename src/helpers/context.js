@@ -2,7 +2,7 @@
 
 const logger = require('../server/logging').logger;
 const config = require('../config');
-const ContentRoutingService = require('../services/routing');
+const ContentRoutingService = require('../services/content/routing');
 const TemplateService = require('../services/template');
 
 function Context (req, resp) {
