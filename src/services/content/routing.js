@@ -83,51 +83,59 @@ var ContentRoutingService = {
 
     return prefixMatch;
   },
-  getPresentedUrl: function (context, contentId, crossDomain) {
-    var domainContentMaps = {};
+  getMappingsForContentID: function (contentID, domain, onlyFirst) {
+    let domainContentMaps = [];
 
-    if (crossDomain) {
-      domainContentMaps = Object.keys(contentMap).map(function (k) {
-        return {
-          domain: k,
-          map: getDomainContentMap(k)
-        };
-      });
+    if (domain) {
+      domainContentMaps = [{ domain, map: getDomainContentMap(domain) }];
     } else {
-      domainContentMaps.push({
-        domain: context.host(),
-        map: getDomainContentMap(context.host())
+      domainContentMaps = Object.keys(contentMap).map((domain) => {
+        return { domain, map: getDomainContentMap(domain) };
       });
     }
 
-    var urlDomain = null;
-    var urlBase = null;
-    var afterPrefix = null;
+    let mappings = [];
 
-    domainContentMaps.forEach(function (domainContent) {
-      if (urlDomain !== null && urlBase !== null && afterPrefix !== null) {
-        return;
-      }
+    domainContentMaps.forEach((domainContent) => {
+      for (let basePath in domainContent.map) {
+        let baseContentID = domainContent.map[basePath];
+        if (baseContentID === null) continue;
+        baseContentID = baseContentID.replace(/\/$/, '');
 
-      for (var prefix in domainContent.map) {
-        var contentIdBase = domainContent.map[prefix];
-        if (contentIdBase === null) continue;
-        contentIdBase = contentIdBase.replace(/\/$/, '');
+        if (contentID.indexOf(baseContentID) !== -1) {
+          let subPath = contentID.replace(baseContentID, '');
 
-        if (contentId.indexOf(contentIdBase) !== -1) {
-          urlDomain = domainContent.domain;
-          urlBase = prefix;
-          afterPrefix = contentId.replace(contentIdBase, '');
-          break;
+          mappings.push({
+            domain: domainContent.domain,
+            baseContentID,
+            basePath,
+            subPath
+          });
+
+          if (onlyFirst) break;
         }
       }
     });
 
-    if (urlDomain !== null && urlBase !== null && afterPrefix !== null) {
-      return UrlService.getSiteUrl(context, url.resolve(urlBase, afterPrefix), urlDomain);
-    } else {
-      return null;
+    return mappings;
+  },
+  getPresentedUrl: function (context, contentID, crossDomain) {
+    let domain = null;
+    let onlyFirst = false;
+
+    if (!crossDomain) {
+      domain = context.host();
+      onlyFirst = true;
     }
+
+    let urls = this.getMappingsForContentID(contentID, domain, onlyFirst).map((mapping) => {
+      let path = url.resolve(mapping.basePath, mapping.subPath);
+      return UrlService.getSiteUrl(context, path, mapping.domain);
+    });
+
+    if (urls.length === 0) return null;
+
+    return urls[0];
   },
   getProxies: function (context) {
     return getDomainProxyMap(context.host());
