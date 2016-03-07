@@ -29,7 +29,7 @@ describe('the mapping API', () => {
           mappings: [
             {
               domain: 'deconst.horse',
-              path: '/subrepo/somepath/',
+              path: '/subrepo/somepath',
               baseContentID: 'https://github.com/deconst/subrepo/',
               basePath: '/subrepo/'
             }
