@@ -4,7 +4,8 @@
             "^/": "default",
             "^/search/?$": "search.html",
             "^/searchparams/?$": "searchparams.html",
-            "^/searchcats/?$": "searchcats.html"
+            "^/searchcats/?$": "searchcats.html",
+            "^/with-template-link/?$": "link.html"
         }
     },
     "deconst.dog": {

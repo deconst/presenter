@@ -32,7 +32,6 @@ describe('staging mode', () => {
       .reply(200, {})
       .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fsubpath')
       .reply(200, {
-        assets: [],
         envelope: { body: 'subpath content' }
       });
 
@@ -50,7 +49,6 @@ describe('staging mode', () => {
       .reply(200, {})
       .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst-dog%2Ffake%2Fand-how')
       .reply(200, {
-        assets: [],
         envelope: { body: 'deconst dog content' }
       });
 
@@ -69,7 +67,6 @@ describe('staging mode', () => {
         .reply(200, {})
         .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fsubpath')
         .reply(200, {
-          assets: {},
           envelope: { body: 'with <a href="/foo/bar/baz/">relative link</a>' }
         });
 
@@ -87,7 +84,6 @@ describe('staging mode', () => {
         .reply(200, {})
         .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fsubpath')
         .reply(200, {
-          assets: {},
           envelope: { body: 'with <a href="https://deconst.horse/huh/what/">absolute link</a>' }
         });
 
@@ -105,7 +101,6 @@ describe('staging mode', () => {
         .reply(200, {})
         .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst-dog%2Ffake%2Fand-how')
         .reply(200, {
-          assets: [],
           envelope: { body: 'has <a href="/aaa/bbb/">relative link</a>' }
         });
 
@@ -123,7 +118,6 @@ describe('staging mode', () => {
         .reply(200, {})
         .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fyuppers')
         .reply(200, {
-          assets: [],
           envelope: { body: 'has <a href="https://deconst.dog/aaa/bbb/">absolute link</a>' }
         });
 
@@ -138,10 +132,7 @@ describe('staging mode', () => {
         .get('/control')
         .reply(200, { sha: null })
         .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fabc')
-        .reply(200, {
-          assets: {},
-          envelope: { body: 'with <a href="baz/">relative link</a>' }
-        });
+        .reply(200, { envelope: { body: 'with <a href="baz/">relative link</a>' } });
 
       request(server.create())
         .get('/build-12345/abc/')
@@ -155,7 +146,6 @@ describe('staging mode', () => {
         .reply(200, { sha: null })
         .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fabc')
         .reply(200, {
-          assets: {},
           envelope: { body: 'with <a href="#whatever">fragment link</a>' }
         });
 
@@ -171,7 +161,6 @@ describe('staging mode', () => {
         .reply(200, { sha: null })
         .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fabc')
         .reply(200, {
-          assets: {},
           envelope: { body: 'with <a href="mailto:me@wherever.com">mailto link</a>' }
         });
 
@@ -187,7 +176,6 @@ describe('staging mode', () => {
         .reply(200, { sha: null })
         .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fzzz')
         .reply(200, {
-          assets: {},
           envelope: { body: 'with <a href="https://github.com/deconst">absolute link off-cluster</a>' }
         });
 
@@ -195,6 +183,19 @@ describe('staging mode', () => {
         .get('/build-12345/zzz/')
         .expect(200)
         .expect(/<a href="https:\/\/github\.com\/deconst">/, done);
+    });
+
+    it('replaces links from templates, too!', (done) => {
+      nock('http://content')
+        .get('/control')
+        .reply(200, { sha: null })
+        .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fwith-template-link')
+        .reply(200, { envelope: { body: 'irrelevant' } });
+
+      request(server.create())
+        .get('/build-12345/with-template-link/')
+        .expect(200)
+        .expect(/<a href="\/build-12345\/some\/path\/here\/#fragment">/, done);
     });
   });
 

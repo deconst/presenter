@@ -55,72 +55,65 @@ ContentFilterService.add(function (input, next) {
   return next();
 });
 
-ContentFilterService.add(function (input, next) {
-  if (config.staging_mode()) {
-    let context = input.context;
-    let body = input.content.envelope.body;
+let retargetStagingLinks = function (context, renderedContent) {
+  let $ = cheerio.load(renderedContent);
 
-    let $ = cheerio.load(body);
+  $('a').each((i, element) => {
+    let e = $(element);
+    let target = e.attr('href');
+    if (target) {
+      let targetURL = url.parse(target);
 
-    $('a').each((i, element) => {
-      let e = $(element);
-      let target = e.attr('href');
-      if (target) {
-        let targetURL = url.parse(target);
-
-        if (targetURL.scheme && targetURL.scheme !== 'http' && targetURL.scheme !== 'http') {
-          // URL is a non-HTTP protocol. Don't touch it.
-          return;
-        }
-
-        if (targetURL.hostname && !ContentRoutingService.isKnownDomain(targetURL.hostname)) {
-          // URL is an absolute URL to a non-cluster destination.
-          return;
-        }
-
-        if (targetURL.pathname === null) {
-          // URL is a fragment-only URL.
-          // Even url.parse('https://rackspace.com') produces a pathname of '/'.
-          return;
-        }
-
-        let parts = targetURL.pathname.split('/');
-
-        if (parts[0] !== '') {
-          // URL is a non-root-relative URL.
-          return;
-        }
-
-        parts.shift();
-        parts.unshift(context.revisionID);
-
-        if (targetURL.hostname) {
-          // URL is an absolute URL to an on-cluster destination.
-          if (targetURL.hostname !== config.presented_url_domain()) {
-            parts.unshift(targetURL.hostname);
-          }
-
-          targetURL.protocol = null;
-          targetURL.slashes = false;
-          targetURL.host = null;
-          targetURL.hostname = null;
-        } else if (context.host() !== config.presented_url_domain()) {
-          // URL is a root-relative URL and the current staging host is non-default.
-
-          parts.unshift(context.host());
-        }
-
-        targetURL.pathname = '/' + parts.join('/');
-
-        e.attr('href', url.format(targetURL));
+      if (targetURL.scheme && targetURL.scheme !== 'http' && targetURL.scheme !== 'http') {
+        // URL is a non-HTTP protocol. Don't touch it.
+        return;
       }
-    });
 
-    input.content.envelope.body = $.html();
-  }
+      if (targetURL.hostname && !ContentRoutingService.isKnownDomain(targetURL.hostname)) {
+        // URL is an absolute URL to a non-cluster destination.
+        return;
+      }
 
-  return next();
-});
+      if (targetURL.pathname === null) {
+        // URL is a fragment-only URL.
+        // Even url.parse('https://rackspace.com') produces a pathname of '/'.
+        return;
+      }
+
+      let parts = targetURL.pathname.split('/');
+
+      if (parts[0] !== '') {
+        // URL is a non-root-relative URL.
+        return;
+      }
+
+      parts.shift();
+      parts.unshift(context.revisionID);
+
+      if (targetURL.hostname) {
+        // URL is an absolute URL to an on-cluster destination.
+        if (targetURL.hostname !== config.presented_url_domain()) {
+          parts.unshift(targetURL.hostname);
+        }
+
+        targetURL.protocol = null;
+        targetURL.slashes = false;
+        targetURL.host = null;
+        targetURL.hostname = null;
+      } else if (context.host() !== config.presented_url_domain()) {
+        // URL is a root-relative URL and the current staging host is non-default.
+
+        parts.unshift(context.host());
+      }
+
+      targetURL.pathname = '/' + parts.join('/');
+
+      e.attr('href', url.format(targetURL));
+    }
+  });
+
+  return $.html();
+};
 
 module.exports = function (req, res) {
   var context = new Context(req, res);
@@ -221,6 +214,10 @@ module.exports = function (req, res) {
       TemplateService.render(context, options, function (err, renderedContent) {
         if (err) {
           return context.handleError(err);
+        }
+
+        if (config.staging_mode()) {
+          renderedContent = retargetStagingLinks(context, renderedContent);
         }
 
         context.send(renderedContent);
