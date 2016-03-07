@@ -185,7 +185,18 @@ describe('staging mode', () => {
         .expect(/<a href="https:\/\/github\.com\/deconst">/, done);
     });
 
-    it('replaces links from templates, too!');
+    it('replaces links from templates, too!', (done) => {
+      nock('http://content')
+        .get('/control')
+        .reply(200, { sha: null })
+        .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fwith-template-link')
+        .reply(200, { envelope: { body: 'irrelevant' } });
+
+      request(server.create())
+        .get('/build-12345/with-template-link/')
+        .expect(200)
+        .expect(/<a href="\/build-12345\/some\/path\/here\/#fragment">/, done);
+    });
   });
 
   afterEach(before.reconfigure);
