@@ -2,9 +2,12 @@
     "deconst.horse": {
         "content": {
             "/": "https://github.com/deconst/fake/",
-            "/search": null,
-            "/searchparams": null,
-            "/searchcats": null
+            "/subrepo/": "https://github.com/deconst/subrepo/",
+            "/redundant/": "https://github.com/deconst/redundant/",
+            "/multimapped/": "https://github.com/deconst/redundant/",
+            "/search/": null,
+            "/searchparams/": null,
+            "/searchcats/": null
         },
         "proxy": {
             "/proxy": "http://deconst.dog"
@@ -12,7 +15,8 @@
     },
     "deconst.dog": {
         "content": {
-            "/": "https://github.com/deconst-dog/fake/"
+            "/": "https://github.com/deconst-dog/fake/",
+            "/elsewhere/": "https://github.com/deconst/redundant/"
         }
     }
 }
