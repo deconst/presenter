@@ -1,6 +1,7 @@
 'use strict';
 
 const url = require('url');
+const urlJoin = require('url-join');
 const config = require('../../config');
 const logger = require('../../server/logging').logger;
 const UrlService = require('../url');
@@ -100,6 +101,8 @@ var ContentRoutingService = {
       for (let basePath in domainContent.map) {
         let baseContentID = domainContent.map[basePath];
         if (baseContentID === null) continue;
+
+        // Normalize the baseContentID without a trailing slash so the .replace() works correctly.
         baseContentID = baseContentID.replace(/\/$/, '');
 
         if (contentID.indexOf(baseContentID) !== -1) {
@@ -107,9 +110,9 @@ var ContentRoutingService = {
 
           mappings.push({
             domain: domainContent.domain,
-            baseContentID,
+            baseContentID: `${baseContentID}/`,
             basePath,
-            subPath
+            path: urlJoin(basePath, subPath)
           });
 
           if (onlyFirst) break;
@@ -129,8 +132,7 @@ var ContentRoutingService = {
     }
 
     let urls = this.getMappingsForContentID(contentID, domain, onlyFirst).map((mapping) => {
-      let path = url.resolve(mapping.basePath, mapping.subPath);
-      return UrlService.getSiteUrl(context, path, mapping.domain);
+      return UrlService.getSiteUrl(context, mapping.path, mapping.domain);
     });
 
     if (urls.length === 0) return null;
