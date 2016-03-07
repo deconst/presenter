@@ -1,6 +1,7 @@
 'use strict';
 
 const url = require('url');
+const urlJoin = require('url-join');
 const config = require('../../config');
 const logger = require('../../server/logging').logger;
 const UrlService = require('../url');
@@ -83,51 +84,60 @@ var ContentRoutingService = {
 
     return prefixMatch;
   },
-  getPresentedUrl: function (context, contentId, crossDomain) {
-    var domainContentMaps = {};
+  getMappingsForContentID: function (contentID, domain, onlyFirst) {
+    let domainContentMaps = [];
 
-    if (crossDomain) {
-      domainContentMaps = Object.keys(contentMap).map(function (k) {
-        return {
-          domain: k,
-          map: getDomainContentMap(k)
-        };
-      });
+    if (domain) {
+      domainContentMaps = [{ domain, map: getDomainContentMap(domain) }];
     } else {
-      domainContentMaps.push({
-        domain: context.host(),
-        map: getDomainContentMap(context.host())
+      domainContentMaps = Object.keys(contentMap).map((domain) => {
+        return { domain, map: getDomainContentMap(domain) };
       });
     }
 
-    var urlDomain = null;
-    var urlBase = null;
-    var afterPrefix = null;
+    let mappings = [];
 
-    domainContentMaps.forEach(function (domainContent) {
-      if (urlDomain !== null && urlBase !== null && afterPrefix !== null) {
-        return;
-      }
+    domainContentMaps.forEach((domainContent) => {
+      for (let basePath in domainContent.map) {
+        let baseContentID = domainContent.map[basePath];
+        if (baseContentID === null) continue;
 
-      for (var prefix in domainContent.map) {
-        var contentIdBase = domainContent.map[prefix];
-        if (contentIdBase === null) continue;
-        contentIdBase = contentIdBase.replace(/\/$/, '');
+        // Normalize the baseContentID without a trailing slash so the .replace() works correctly.
+        baseContentID = baseContentID.replace(/\/$/, '');
 
-        if (contentId.indexOf(contentIdBase) !== -1) {
-          urlDomain = domainContent.domain;
-          urlBase = prefix;
-          afterPrefix = contentId.replace(contentIdBase, '');
-          break;
+        if (contentID.indexOf(baseContentID) !== -1) {
+          let subPath = contentID.replace(baseContentID, '');
+
+          mappings.push({
+            domain: domainContent.domain,
+            baseContentID: `${baseContentID}/`,
+            basePath,
+            path: urlJoin(basePath, subPath)
+          });
+
+          if (onlyFirst) break;
         }
       }
     });
 
-    if (urlDomain !== null && urlBase !== null && afterPrefix !== null) {
-      return UrlService.getSiteUrl(context, url.resolve(urlBase, afterPrefix), urlDomain);
-    } else {
-      return null;
+    return mappings;
+  },
+  getPresentedUrl: function (context, contentID, crossDomain) {
+    let domain = null;
+    let onlyFirst = false;
+
+    if (!crossDomain) {
+      domain = context.host();
+      onlyFirst = true;
     }
+
+    let urls = this.getMappingsForContentID(contentID, domain, onlyFirst).map((mapping) => {
+      return UrlService.getSiteUrl(context, mapping.path, mapping.domain);
+    });
+
+    if (urls.length === 0) return null;
+
+    return urls[0];
   },
   getProxies: function (context) {
     return getDomainProxyMap(context.host());
