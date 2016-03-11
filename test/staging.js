@@ -201,7 +201,7 @@ describe('staging mode', () => {
 
   it('includes revision IDs in /_api/whereis', (done) => {
     request(server.create())
-      .get('/_api/whereis/https://github.com/build-1234/deconst/subrepo/foo/')
+      .get('/_api/whereis/https%3A%2F%2Fgithub.com%2Fbuild-1234%2Fdeconst%2Fsubrepo%2Ffoo%2F')
       .set('Accept', 'application/json')
       .expect(200)
       .expect({
