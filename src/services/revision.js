@@ -33,15 +33,31 @@ let RevisionService = {
 
     return { revisionID, stagingHost, stagingPresentedPath };
   },
-  applyToContentID: function (revisionID, contentID) {
+  fromContentID: function (contentID) {
     let u = url.parse(contentID);
-    let pathSegments = u.pathname.split('/');
+
+    let parts = u.pathname.split('/');
+    while (parts[0] === '') {
+      parts.shift();
+    }
+
+    let revisionID = parts.shift();
+    u.pathname = '/' + parts.join('/');
+    contentID = url.format(u);
+
+    return { revisionID, contentID };
+  },
+  applyToPath: function (revisionID, path) {
+    let pathSegments = path.split('/');
     while (pathSegments[0] === '') {
       pathSegments.shift();
     }
     pathSegments.unshift(revisionID);
-    u.pathname = pathSegments.join('/');
-
+    return '/' + pathSegments.join('/');
+  },
+  applyToContentID: function (revisionID, contentID) {
+    let u = url.parse(contentID);
+    u.pathname = this.applyToPath(revisionID, u.pathname);
     return url.format(u);
   }
 };

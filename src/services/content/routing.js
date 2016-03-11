@@ -78,12 +78,23 @@ var ContentRoutingService = {
   },
   getMappingsForContentID: function (contentID, domain, onlyFirst) {
     let domainContentMaps = [];
+    let revisionID = null;
 
     if (domain) {
       domainContentMaps = [{ domain, map: getDomainContentMap(domain) }];
     } else {
       domainContentMaps = Object.keys(contentMap).map((domain) => {
         return { domain, map: getDomainContentMap(domain) };
+      });
+    }
+
+    if (config.staging_mode()) {
+      let results = RevisionService.fromContentID(contentID);
+      revisionID = results.revisionID;
+      contentID = results.contentID;
+
+      logger.debug('Using content ID without revision to locate presented path', {
+        revisionID, contentID
       });
     }
 
@@ -99,6 +110,11 @@ var ContentRoutingService = {
 
         if (contentID.indexOf(baseContentID) !== -1) {
           let subPath = contentID.replace(baseContentID, '');
+
+          if (config.staging_mode()) {
+            baseContentID = RevisionService.applyToContentID(revisionID, baseContentID);
+            basePath = RevisionService.applyToPath(revisionID, basePath);
+          }
 
           mappings.push({
             domain: domainContent.domain,
