@@ -1,10 +1,10 @@
 'use strict';
 
-const url = require('url');
 const urlJoin = require('url-join');
 const config = require('../../config');
 const logger = require('../../server/logging').logger;
 const UrlService = require('../url');
+const RevisionService = require('../revision');
 
 var contentMap = {};
 
@@ -57,15 +57,7 @@ var ContentRoutingService = {
 
     // In staging mode, prepend a path segment with the revision ID into the content ID.
     if (config.staging_mode()) {
-      let u = url.parse(contentID);
-      let pathSegments = u.pathname.split('/');
-      while (pathSegments[0] === '') {
-        pathSegments.shift();
-      }
-      pathSegments.unshift(context.revisionID);
-      u.pathname = pathSegments.join('/');
-
-      contentID = url.format(u);
+      contentID = RevisionService.applyToContentID(context.revisionID, contentID);
     }
 
     return contentID;
