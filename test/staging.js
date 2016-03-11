@@ -231,5 +231,9 @@ describe('staging mode', () => {
     });
   });
 
+  describe('robots.txt', () => {
+    it('always denies everything');
+  });
+
   afterEach(before.reconfigure);
 });
