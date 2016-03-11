@@ -232,7 +232,12 @@ describe('staging mode', () => {
   });
 
   describe('robots.txt', () => {
-    it('always denies everything');
+    it('always denies everything', (done) => {
+      request(server.create())
+        .get('/robots.txt')
+        .expect(200)
+        .expect('User-agent: *\nDisallow: /\n', done);
+    });
   });
 
   afterEach(before.reconfigure);
