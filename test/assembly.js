@@ -208,4 +208,19 @@ describe('page assembly', function () {
       .expect(/0: title first/)
       .expect(/0: excerpt this <em>is<\/em> a constrained result/, done);
   });
+
+  it('renders a real robots.txt', (done) => {
+    nock('http://content')
+      .get('/control').reply(200, { sha: null })
+      .get('/assets').reply(200, {})
+      .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Frobots.txt')
+      .reply(200, {
+        envelope: { body: 'not hardcoded' }
+      });
+
+    request(server.create())
+      .get('/robots.txt')
+      .expect(200)
+      .expect(/not hardcoded/, done);
+  });
 });
