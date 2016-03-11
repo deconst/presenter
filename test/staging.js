@@ -236,6 +236,7 @@ describe('staging mode', () => {
       request(server.create())
         .get('/robots.txt')
         .expect(200)
+        .expect('Content-type', 'text/plain; charset=utf-8')
         .expect('User-agent: *\nDisallow: /\n', done);
     });
   });

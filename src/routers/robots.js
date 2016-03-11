@@ -10,5 +10,6 @@ module.exports = function (req, res) {
     return content(req, res);
   }
 
+  res.set('Content-type', 'text/plain');
   res.send('User-agent: *\nDisallow: /\n');
 };
