@@ -2,8 +2,8 @@
 
 const logger = require('../server/logging').logger;
 const config = require('../config');
-const ContentRoutingService = require('../services/content/routing');
 const TemplateService = require('../services/template');
+const RevisionService = require('../services/revision');
 
 function Context (req, resp) {
   this.request = req;
@@ -26,21 +26,11 @@ function Context (req, resp) {
 Context.prototype._applyStagingMode = function () {
   this.originalPresentedPath = this.request.path;
 
-  let parts = this.request.path.split('/');
-  while (parts[0] === '') {
-    parts.shift();
-  }
+  let result = RevisionService.fromPath(this.request.path);
 
-  let first = parts.shift();
-  if (ContentRoutingService.isKnownDomain(first)) {
-    this.stagingHost = first;
-    this.revisionID = parts.shift();
-  } else {
-    this.stagingHost = config.presented_url_domain();
-    this.revisionID = first;
-  }
-
-  this.stagingPresentedPath = '/' + parts.join('/');
+  this.stagingHost = result.stagingHost;
+  this.revisionID = result.revisionID;
+  this.stagingPresentedPath = result.stagingPresentedPath;
 };
 
 Context.prototype._summarize = function (statusCode, message, err) {
@@ -71,6 +61,10 @@ Context.prototype._summarize = function (statusCode, message, err) {
 
   if (this.templateRenderDuration !== null) {
     summary.templateRenderDuration = this.templateRenderDuration;
+  }
+
+  if (this.stagingHost) {
+    summary.stagingHost = this.stagingHost;
   }
 
   if (this.revisionID) {
