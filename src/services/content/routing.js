@@ -109,15 +109,16 @@ var ContentRoutingService = {
         baseContentID = baseContentID.replace(/\/$/, '');
 
         if (contentID.indexOf(baseContentID) !== -1) {
+          let domain = domainContent.domain;
           let subPath = contentID.replace(baseContentID, '');
 
           if (config.staging_mode()) {
             baseContentID = RevisionService.applyToContentID(revisionID, baseContentID);
-            basePath = RevisionService.applyToPath(revisionID, basePath);
+            basePath = RevisionService.applyToPath(revisionID, domain, basePath);
           }
 
           mappings.push({
-            domain: domainContent.domain,
+            domain,
             baseContentID: `${baseContentID}/`,
             basePath,
             path: urlJoin(basePath, subPath)

@@ -37,7 +37,7 @@ let RevisionService = {
     let u = url.parse(contentID);
 
     let parts = u.pathname.split('/');
-    while (parts[0] === '') {
+    if (parts[0] === '') {
       parts.shift();
     }
 
@@ -47,17 +47,22 @@ let RevisionService = {
 
     return { revisionID, contentID };
   },
-  applyToPath: function (revisionID, path) {
+  applyToPath: function (revisionID, domain, path) {
     let pathSegments = path.split('/');
-    while (pathSegments[0] === '') {
+    if (pathSegments[0] === '') {
       pathSegments.shift();
     }
+
     pathSegments.unshift(revisionID);
+    if (domain && domain !== config.presented_url_domain()) {
+      pathSegments.unshift(domain);
+    }
+
     return '/' + pathSegments.join('/');
   },
   applyToContentID: function (revisionID, contentID) {
     let u = url.parse(contentID);
-    u.pathname = this.applyToPath(revisionID, u.pathname);
+    u.pathname = this.applyToPath(revisionID, null, u.pathname);
     return url.format(u);
   }
 };
