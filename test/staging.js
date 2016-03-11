@@ -215,7 +215,20 @@ describe('staging mode', () => {
         }, done);
     });
 
-    it('includes non-default host segments');
+    it('includes non-default host segments', (done) => {
+      request(server.create())
+        .get('/_api/whereis/https%3A%2F%2Fgithub.com%2Fbuild-abc%2Fdeconst-dog%2Ffake%2F')
+        .set('Accept', 'application/json')
+        .expect(200)
+        .expect({
+          mappings: [ {
+            domain: 'deconst.dog',
+            baseContentID: 'https://github.com/build-abc/deconst-dog/fake/',
+            basePath: '/deconst.dog/build-abc/',
+            path: '/deconst.dog/build-abc/'
+          } ]
+        }, done);
+    });
   });
 
   afterEach(before.reconfigure);
