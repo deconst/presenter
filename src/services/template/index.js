@@ -1,8 +1,8 @@
-var globby = require('globby');
-var path = require('path');
-var NunjucksService = require('../nunjucks');
-var PathService = require('../path');
-var UrlService = require('../url');
+const fs = require('fs');
+const path = require('path');
+const NunjucksService = require('../nunjucks');
+const PathService = require('../path');
+const UrlService = require('../url');
 
 var TemplateService = {
   render: function (context, options, callback) {
@@ -71,17 +71,26 @@ var findTemplate = function (context, templatePath) {
     ]);
   }
 
-  var matches = globby.sync(possibilities);
+  let match = null;
 
-  if (matches.length === 0 && templatePath !== '404.html') {
+  for (var i = 0; i < possibilities.length; i++) {
+    let possibility = possibilities[i];
+    let exists = fs.accessSync(possibility, fs.R_OK);
+
+    if (exists) {
+      match = possibility;
+    }
+  }
+
+  if (match === null && templatePath !== '404.html') {
     return findTemplate(context, '404.html');
   }
 
-  if (matches.length === 0) {
+  if (match === null) {
     throw new Error('Unable to find static 404 handler');
   }
 
-  var m = matches[0].replace(defaultTemplateDir + '/', '');
+  var m = match.replace(defaultTemplateDir + '/', '');
   if (templateDir) {
     m = m.replace(templateDir + '/', '');
   }
