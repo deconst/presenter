@@ -77,10 +77,13 @@ var findTemplate = function (context, templatePath) {
 
   for (var i = 0; i < possibilities.length; i++) {
     let possibility = possibilities[i];
-    let exists = fs.accessSync(possibility, fs.R_OK);
+    try {
+      fs.accessSync(possibility, fs.R_OK);
 
-    if (exists) {
+      // possibility is an existing path
       match = possibility;
+    } catch (e) {
+      // possibility does not exist or is inaccessible
     }
   }
 
