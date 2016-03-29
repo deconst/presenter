@@ -1,6 +1,5 @@
 'use strict';
 
-const urlJoin = require('url-join');
 const config = require('../../config');
 const logger = require('../../server/logging').logger;
 const UrlService = require('../url');
@@ -8,7 +7,7 @@ const RevisionService = require('../revision');
 
 var contentMap = {};
 
-var ContentRoutingService = {
+const ContentRoutingService = {
   // Sentinel objects to return from getContentId
   UNMAPPED: {
     toString: function () {
@@ -117,11 +116,14 @@ var ContentRoutingService = {
             basePath = RevisionService.applyToPath(revisionID, domain, basePath);
           }
 
+          let sitePath = '/' + slashJoin([basePath, subPath]);
+          if (!sitePath.endsWith('/')) sitePath += '/';
+
           mappings.push({
             domain,
             baseContentID: `${baseContentID}/`,
             basePath,
-            path: urlJoin(basePath, subPath)
+            path: sitePath
           });
 
           if (onlyFirst) break;
@@ -190,9 +192,9 @@ const getDomainProxyMap = function (domain) {
 };
 
 const slashJoin = function (strings) {
-  return strings.map(function (each) {
+  return strings.map((each) => {
     return each.replace(/^\/+/, '').replace(/\/+$/, '');
-  }).filter(function (each) {
+  }).filter((each) => {
     return each !== '';
   }).join('/');
 };
