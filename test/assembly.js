@@ -1,15 +1,17 @@
+'use strict';
+
 /* globals it describe beforeEach */
 // Unit tests for page assembly.
 
-var before = require('./helpers/before');
-var config = require('../src/config');
+const before = require('./helpers/before');
+const config = require('../src/config');
 
 config.configure(before.settings);
 
-var request = require('supertest');
-var nock = require('nock');
-var server = require('../src/server');
-var ControlService = require('../src/services/control');
+const request = require('supertest');
+const nock = require('nock');
+const server = require('../src/server');
+const ControlService = require('../src/services/control');
 
 nock.enableNetConnect('127.0.0.1');
 
@@ -78,6 +80,32 @@ describe('page assembly', function () {
       .expect(404)
       .expect(/https:\/\/cdn.wtf\/hooray\/main-12345.css/)
       .expect(/user-defined 404 template/, done);
+  });
+
+  it('returns the user-defined 404 template even after the system 404 template was used', function (done) {
+    before.reconfigureWith({
+      PRESENTED_URL_DOMAIN: null
+    })();
+
+    nock('http://content')
+      .get('/control').twice().reply(200, { sha: null })
+      .get('/assets').twice().reply(200, {})
+      .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst-dog%2Ffake').reply(404)
+      .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake').reply(404);
+
+    let s = server.create();
+
+    request(s)
+      .get('/').set('Host', 'deconst.dog')
+      .expect(404)
+      .expect(/Page Not Found/, function (err) {
+        if (err) return done(err);
+
+        request(s)
+          .get('/').set('Host', 'deconst.horse')
+          .expect(404)
+          .expect(/user-defined 404 template/, done);
+      });
   });
 
   it('passes other failing status codes through', function (done) {
