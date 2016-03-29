@@ -274,12 +274,10 @@ var subdirectories = function (rootPath, callback) {
 
     async.filter(entries, function (entry, cb) {
       fs.stat(path.join(rootPath, entry), function (err, fstat) {
-        if (err) return callback(err);
-        cb(fstat.isDirectory());
+        if (err) return callback(err, null);
+        cb(null, fstat.isDirectory());
       });
-    }, function (dirs) {
-      return callback(null, dirs);
-    });
+    }, callback);
   });
 };
 
