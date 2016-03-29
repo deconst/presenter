@@ -1,10 +1,12 @@
-var path = require('path');
-var fs = require('fs');
-var walk = require('walk');
+'use strict';
 
-var logger = require('../../server/logging').logger;
+const path = require('path');
+const fs = require('fs');
+const walk = require('walk');
 
-var AtomicLoader = function (basePath, templateFiles) {
+const logger = require('../../server/logging').logger;
+
+const AtomicLoader = function (basePath, templateFiles) {
   this.templateSources = {};
 
   var templatePaths = Object.keys(templateFiles);
@@ -35,7 +37,7 @@ AtomicLoader.prototype.getSource = function (name) {
   return this.templateSources[name] || null;
 };
 
-var createAtomicLoader = function (rootPath, callback) {
+const createAtomicLoader = function (rootPath, callback) {
   if (!/\/$/.test(rootPath)) {
     rootPath += '/';
   }

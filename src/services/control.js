@@ -1,19 +1,21 @@
-var fs = require('fs');
-var path = require('path');
-var async = require('async');
-var npm = require('npm');
-var tmp = require('tmp');
-var childProcess = require('child_process');
-var mkdirp = require('mkdirp');
+'use strict';
 
-var config = require('../config');
-var logger = require('../server/logging').logger;
-var PathService = require('./path');
-var ContentRoutingService = require('./content/routing');
-var TemplateRoutingService = require('./template/routing');
-var RewriteService = require('./rewrite');
-var NunjucksService = require('./nunjucks');
-var createAtomicLoader = require('./nunjucks/atomic-loader');
+const fs = require('fs');
+const path = require('path');
+const async = require('async');
+const npm = require('npm');
+const tmp = require('tmp');
+const childProcess = require('child_process');
+const mkdirp = require('mkdirp');
+
+const config = require('../config');
+const logger = require('../server/logging').logger;
+const PathService = require('./path');
+const ContentRoutingService = require('./content/routing');
+const TemplateRoutingService = require('./template/routing');
+const RewriteService = require('./rewrite');
+const NunjucksService = require('./nunjucks');
+const createAtomicLoader = require('./nunjucks/atomic-loader');
 
 var controlSHA = null;
 var lastAttemptSHA = null;

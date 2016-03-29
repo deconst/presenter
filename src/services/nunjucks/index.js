@@ -22,7 +22,7 @@ var NunjucksService = {
       if (err) return callback(err);
 
       staticLoader = loader;
-      staticEnv = createEnvironment(null, [staticLoader]);
+      staticEnv = createEnvironment(null, [Object.create(staticLoader)]);
       callback(null);
     });
   },
@@ -56,7 +56,7 @@ var NunjucksService = {
 module.exports = NunjucksService;
 
 var createEnvironment = function (domain, loaders) {
-  loaders.push(staticLoader);
+  loaders.push(Object.create(staticLoader));
   var env = new nunjucks.Environment(loaders, {
     autoescape: false
   });
