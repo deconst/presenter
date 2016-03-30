@@ -74,4 +74,23 @@ describe('/_api/whereis', () => {
         mappings: []
       }, done);
   });
+
+  it('has a different URL segment based on the configuration', (done) => {
+    before.reconfigureWith({ PRESENTER_API_PATH: 'different' })();
+
+    request(server.create())
+      .get('/different/whereis/https%3A%2F%2Fgithub.com%2Fdeconst%2Fsubrepo%2Fsomepath')
+      .set('Accept', 'application/json')
+      .expect(200)
+      .expect({
+        mappings: [
+          {
+            domain: 'deconst.horse',
+            path: '/subrepo/somepath/',
+            baseContentID: 'https://github.com/deconst/subrepo/',
+            basePath: '/subrepo/'
+          }
+        ]
+      }, done);
+  });
 });

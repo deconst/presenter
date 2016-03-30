@@ -61,4 +61,36 @@ describe('/_api/search', function () {
         ]
       }, done);
   });
+
+  it('has a different URL segment based on the configuration', (done) => {
+    before.reconfigureWith({ PRESENTER_API_PATH: 'different' })();
+
+    nock('http://content')
+      .get('/search?q=is')
+      .reply(200, {
+        total: 1,
+        results: [
+          {
+            contentID: 'https://github.com/deconst/fake/one',
+            title: 'first',
+            excerpt: 'this <em>is</em> result one'
+          }
+        ]
+      });
+
+    request(server.create())
+      .get('/different/search?q=is')
+      .expect(200)
+      .expect({
+        pages: 1,
+        results: [
+          {
+            contentID: 'https://github.com/deconst/fake/one',
+            url: 'https://deconst.horse/one/',
+            title: 'first',
+            excerpt: 'this <em>is</em> result one'
+          }
+        ]
+      }, done);
+  });
 });
