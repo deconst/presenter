@@ -13,9 +13,11 @@ exports.install = function (app) {
     app.get('/crash', crash);
   }
 
+  const apiPath = config.presenter_api_path();
+
   app.get('/version', version);
-  app.get('/_api/whereis/:id', api.whereis);
-  app.get('/_api/search', api.search);
+  app.get(`/${apiPath}/whereis/:id`, api.whereis);
+  app.get(`/${apiPath}/search`, api.search);
   app.get('/robots.txt', robots);
   app.get('/*', content);
 };
