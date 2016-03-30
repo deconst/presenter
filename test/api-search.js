@@ -44,6 +44,7 @@ describe('/_api/search', function () {
       .expect(200)
       .expect({
         total: 11,
+        pages: 6,
         results: [
           {
             contentID: 'https://github.com/deconst/fake/one',
