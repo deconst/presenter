@@ -82,6 +82,7 @@ describe('/_api/search', function () {
       .get('/different/search?q=is')
       .expect(200)
       .expect({
+        total: 1,
         pages: 1,
         results: [
           {
