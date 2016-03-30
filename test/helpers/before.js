@@ -9,6 +9,7 @@ const settings = {
   CONTENT_SERVICE_URL: 'http://content',
   PRESENTED_URL_PROTO: 'https',
   PRESENTED_URL_DOMAIN: 'deconst.horse',
+  PRESENTER_API_PATH: '_api',
   PRESENTER_LOG_LEVEL: process.env.PRESENTER_LOG_LEVEL || 'error',
   PRESENTER_LOG_COLOR: process.env.PRESENTER_LOG_COLOR
 };

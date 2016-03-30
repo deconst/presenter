@@ -51,6 +51,12 @@ var configuration = {
     description: 'Override the domain of presented URLs',
     required: false
   },
+  presenter_api_path: {
+    env: 'PRESENTER_API_PATH',
+    description: 'Root path segment for API operations',
+    def: '_api',
+    required: false
+  },
   public_url_proto: {
     env: 'PUBLIC_URL_PROTO',
     description: 'Override the protocol of outgoing URLs',
