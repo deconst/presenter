@@ -4,7 +4,7 @@
 const version = require('./version');
 const content = require('./content');
 const crash = require('./crash');
-const mappings = require('./mappings');
+const api = require('./api');
 const robots = require('./robots');
 const config = require('../config');
 
@@ -14,7 +14,7 @@ exports.install = function (app) {
   }
 
   app.get('/version', version);
-  app.get('/_api/whereis/:id', mappings.whereis);
+  app.get('/_api/whereis/:id', api.whereis);
   app.get('/robots.txt', robots);
   app.get('/*', content);
 };
