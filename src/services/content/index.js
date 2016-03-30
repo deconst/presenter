@@ -114,9 +114,9 @@ var ContentService = {
       callback(null, JSON.parse(body));
     });
   },
-  getSearch: function (q, options, callback) {
+  getSearch: function (context, options, callback) {
     var searchUrl = urljoin(config.content_service_url(), 'search');
-    var searchQuery = {q: q};
+    var searchQuery = {q: options.q};
 
     if (options.pageNumber !== null && options.pageNumber !== undefined) {
       searchQuery.pageNumber = options.pageNumber;
@@ -170,6 +170,14 @@ var ContentService = {
         resultCount: doc.results.length,
         searchReqDuration: reqDuration
       });
+
+      doc.results = doc.results.filter(function (each) {
+        each.url = ContentRoutingService.getPresentedUrl(context, each.contentID, true);
+        return each.url !== null;
+      });
+
+      // Compute the page count as well.
+      doc.pages = Math.ceil(doc.total / (options.perPage || 10));
 
       callback(null, doc);
     });

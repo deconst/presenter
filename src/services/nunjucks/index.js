@@ -6,7 +6,6 @@ var fallback = require('./fallback');
 var createAtomicLoader = require('./atomic-loader');
 var PathService = require('../path');
 var ContentService = require('../content');
-var ContentRoutingService = require('../content/routing');
 
 var envs = {};
 var staticEnv = null;
@@ -79,19 +78,9 @@ var createEnvironment = function (domain, loaders) {
       kwargs = {};
     }
 
-    ContentService.getSearch(query, kwargs, function (err, r) {
-      if (err) return callback(err);
+    kwargs.q = query;
 
-      r.results = r.results.filter(function (each) {
-        each.url = ContentRoutingService.getPresentedUrl(context, each.contentID, true);
-        return each.url !== null;
-      });
-
-      // Compute the page count as well.
-      r.pages = Math.ceil(r.total / (kwargs.perPage || 10));
-
-      callback(null, r);
-    });
+    ContentService.getSearch(context, kwargs, callback);
   }, true);
 
   return env;
