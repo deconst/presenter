@@ -251,4 +251,20 @@ describe('page assembly', function () {
       .expect(200)
       .expect(/not hardcoded/, done);
   });
+
+  it('exposes staging mode to templates', (done) => {
+    nock('http://content')
+      .get('/control').reply(200, { sha: null })
+      .get('/assets').reply(200, {})
+      .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Fam-i-staging')
+      .reply(200, {
+        assets: [],
+        envelope: { body: 'the page content' }
+      });
+
+    request(server.create())
+      .get('/am-i-staging/')
+      .expect(200)
+      .expect(/not on staging/, done);
+  });
 });

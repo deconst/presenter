@@ -58,6 +58,23 @@ describe('staging mode', () => {
       .expect(/deconst dog content/, done);
   });
 
+  it('exposes staging mode to templates', (done) => {
+    nock('http://content')
+      .get('/control')
+      .reply(200, { sha: null })
+      .get('/assets')
+      .reply(200, {})
+      .get('/content/https%3A%2F%2Fgithub.com%2Fbuild-12345%2Fdeconst%2Ffake%2Fam-i-staging')
+      .reply(200, {
+        envelope: { body: 'subpath content' }
+      });
+
+    request(server.create())
+      .get('/build-12345/am-i-staging/')
+      .expect(200)
+      .expect(/this is staging/, done);
+  });
+
   describe('link manipulation', () => {
     it('prepends revision ID to root-relative links', (done) => {
       nock('http://content')
