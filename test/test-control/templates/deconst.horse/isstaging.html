@@ -1,0 +1,9 @@
+<h1><code>isstaging.html</code></h1>
+
+{% if deconst.isStaging %}
+<h2>this is staging</h2>
+{% else %}
+<h2>not on staging</h2>
+{% endif %}
+
+{{ deconst.content.envelope.body }}

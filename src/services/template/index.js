@@ -5,6 +5,7 @@ const path = require('path');
 const NunjucksService = require('../nunjucks');
 const PathService = require('../path');
 const UrlService = require('../url');
+const config = require('../../config');
 
 var TemplateService = {
   render: function (context, options, callback) {
@@ -40,7 +41,8 @@ var buildTemplateLocals = function (context, content, assets) {
       url: UrlService,
       context: context,
       request: context.request,
-      response: context.response
+      response: context.response,
+      isStaging: config.staging_mode()
     }
   };
 };
