@@ -165,11 +165,11 @@ module.exports = function (req, res) {
           return callback(null, null);
         }
 
-        var relativeUrls = /href=("|')(..\/)?([^\/].*?)("|')/g;
+        var relativeUrls = /href=("|')(?![a-z]+:\/?\/?|\/)(?:\.\.\/)?(.+?)("|')/g;
         toc.envelope.body =
           toc.envelope.body.replace(
             relativeUrls,
-            'href=$1' + prefix + '$3$4'
+            'href=$1' + prefix + '$2$3'
         );
 
         return callback(null, toc.envelope.body);
