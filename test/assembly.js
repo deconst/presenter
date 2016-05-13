@@ -267,4 +267,20 @@ describe('page assembly', function () {
       .expect(200)
       .expect(/not on staging/, done);
   });
+
+  it('substitutes {{ to() }} directives', (done) => {
+    nock('http://content')
+      .get('/control').reply(200, { sha: null })
+      .get('/assets').reply(200, {})
+      .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
+      .reply(200, {
+        assets: [],
+        envelope: { body: "with a {{ to('https://github.com/deconst/subrepo/some/page') }} reference" }
+      });
+
+    request(server.create())
+      .get('/')
+      .expect(200)
+      .expect(/with a https:\/\/deconst\.horse\/subrepo\/some\/page\/ reference/, done);
+  });
 });
