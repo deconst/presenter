@@ -25,13 +25,11 @@ ContentFilterService.add(function (input, next) {
   // until presenter-time.
   let urlDirectiveRx = /\{\{\s*to\('([^']+)'\)\s*\}\}/g;
 
-  if (content.contentID && content.envelope) {
+  if (content.envelope) {
     // Replace any "{{ to() }}" directives with the appropriate presented URL.
     content.envelope.body = content.envelope.body.replace(
       urlDirectiveRx,
-      function (match, contentID) {
-        return ContentRoutingService.getPresentedUrl(context, contentID);
-      }
+      (match, contentID) => ContentRoutingService.getPresentedUrl(context, contentID)
     );
   }
 
