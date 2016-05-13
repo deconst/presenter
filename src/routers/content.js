@@ -171,7 +171,7 @@ module.exports = function (req, res) {
           return callback(null, null);
         }
 
-        var relativeUrls = /href=("|')(?![a-z]+:\/?\/?|\/)(?:\.\.\/)?(.+?)("|')/g;
+        var relativeUrls = /href=("|')(?![a-z]+:\/?\/?|\/|\{\{)(?:\.\.\/)?(.+?)("|')/g;
         toc.envelope.body =
           toc.envelope.body.replace(
             relativeUrls,
