@@ -23,14 +23,22 @@ ContentFilterService.add(function (input, next) {
 
   // Match nunjucks-like "{{ to('') }}" directives that are used to defer rendering of presented URLs
   // until presenter-time.
-  let urlDirectiveRx = /\{\{\s*to\('([^']+)'\)\s*\}\}/g;
+  const urlDirectiveRx = /\{\{\s*to\('([^']+)'\)\s*\}\}/g;
 
-  if (content.envelope) {
-    // Replace any "{{ to() }}" directives with the appropriate presented URL.
-    content.envelope.body = content.envelope.body.replace(
+  // Replace any "{{ to() }}" directives with the appropriate presented URL.
+  const replaceToDirective = (source) => {
+    return source.replace(
       urlDirectiveRx,
       (match, contentID) => ContentRoutingService.getPresentedUrl(context, contentID)
     );
+  };
+
+  if (content.envelope && content.envelope.body) {
+    content.envelope.body = replaceToDirective(content.envelope.body);
+  }
+
+  if (content.globals && content.globals.toc) {
+    content.globals.toc = replaceToDirective(content.globals.toc);
   }
 
   return next();
