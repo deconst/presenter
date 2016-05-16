@@ -283,4 +283,29 @@ describe('page assembly', function () {
       .expect(200)
       .expect(/with a https:\/\/deconst\.horse\/subrepo\/some\/page\/ reference/, done);
   });
+
+  it('fetches envelope addenda', (done) => {
+    nock('http://content')
+      .get('/control').reply(200, { sha: null })
+      .get('/assets').reply(200, {})
+      .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Foriginal')
+      .reply(200, {
+        envelope: {
+          addenda: { some_name: 'https://github.com/deconst/fake/_other' },
+          body: 'original'
+        }
+      })
+      .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2F_other')
+      .reply(200, {
+        envelope: {
+          body: 'other'
+        }
+      });
+
+    request(server.create())
+      .get('/original/')
+      .expect(200)
+      .expect(/addenda: "other"/)
+      .expect(/body: "original"/, done);
+  });
 });

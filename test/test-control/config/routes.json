@@ -6,7 +6,8 @@
             "^/searchparams/?$": "searchparams.html",
             "^/searchcats/?$": "searchcats.html",
             "^/with-template-link/?$": "link.html",
-            "^/am-i-staging/$": "isstaging.html"
+            "^/am-i-staging/$": "isstaging.html",
+            "^/original/$": "addenda.html"
         }
     },
     "deconst.dog": {
