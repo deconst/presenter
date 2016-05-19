@@ -17,7 +17,7 @@ nock.enableNetConnect('127.0.0.1');
 var mockControl = function (mfs, callback) {
   if (mfs !== null) mockfs(mfs);
 
-  ControlService.load(function (ok) {
+  ControlService.load('sha', (ok) => {
     if (mfs !== null) mockfs.restore();
 
     if (!ok) {

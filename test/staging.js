@@ -18,7 +18,7 @@ describe('staging mode', () => {
     STAGING_MODE: 'true'
   }));
   beforeEach((done) => {
-    ControlService.load((ok) => {
+    ControlService.load('sha', (ok) => {
       if (!ok) return done(new Error('Control repository load failed'));
       done();
     });

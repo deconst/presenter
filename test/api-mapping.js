@@ -13,7 +13,7 @@ const ControlService = require('../src/services/control');
 describe('/_api/whereis', () => {
   beforeEach(before.reconfigure);
   beforeEach((done) => {
-    ControlService.load((ok) => {
+    ControlService.load('sha', (ok) => {
       if (!ok) return done(new Error('Control repository load failed'));
       done();
     });
