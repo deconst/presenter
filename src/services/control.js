@@ -344,7 +344,16 @@ const gitClone = function (url, branch, repoPath, callback) {
 };
 
 const gitPull = function (repoPath, callback) {
-  git(['pull'], repoPath, (err) => {
+  // Destroy any local modifications and forcibly set the workspace and index to the most
+  // recently fetched branch tip.
+
+  const fetch = (cb) => git(['fetch', '--force'], repoPath, cb);
+
+  const clean = (cb) => git(['clean', '--force', '-d'], repoPath, cb);
+
+  const reset = (cb) => git(['reset', '--hard', 'FETCH_HEAD'], repoPath, cb);
+
+  async.series([fetch, clean, reset], (err) => {
     if (err) return callback(err);
 
     readCurrentSHA(repoPath, callback);
