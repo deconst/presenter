@@ -5,6 +5,8 @@
             "/subrepo/": "https://github.com/deconst/subrepo/",
             "/redundant/": "https://github.com/deconst/redundant/",
             "/multimapped/": "https://github.com/deconst/redundant/",
+            "/prefix/": "https://github.com/deconst/prefix/",
+            "/prefix-2.0/": "https://github.com/deconst/prefix-2.0/",
             "/search/": null,
             "/searchparams/": null,
             "/searchcats/": null
