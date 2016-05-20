@@ -19,7 +19,7 @@ describe('page assembly', function () {
   beforeEach(function (done) {
     config.configure(before.settings);
 
-    ControlService.load(function (ok) {
+    ControlService.load('sha', (ok) => {
       if (!ok) {
         return done(new Error('Control repository load failed'));
       }
