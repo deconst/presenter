@@ -99,17 +99,25 @@ const ContentRoutingService = {
 
     let mappings = [];
 
+    // Normalize the contentID with a trailing slash so that the .indexOf() and .replace() checks
+    // work correctly.
+    if (!contentID.endsWith('/')) {
+      contentID = contentID + '/';
+    }
+
     domainContentMaps.forEach((domainContent) => {
       for (let basePath in domainContent.map) {
         let baseContentID = domainContent.map[basePath];
         if (baseContentID === null) continue;
 
-        // Normalize the baseContentID without a trailing slash so the .replace() works correctly.
-        baseContentID = baseContentID.replace(/\/$/, '');
+        // Normalize the baseContentID with a trailing slash as well.
+        if (!baseContentID.endsWith('/')) {
+          baseContentID = baseContentID + '/';
+        }
 
         if (contentID.indexOf(baseContentID) !== -1) {
           let domain = domainContent.domain;
-          let subPath = contentID.replace(baseContentID, '');
+          let subPath = '/' + contentID.replace(baseContentID, '');
 
           if (config.staging_mode()) {
             baseContentID = RevisionService.applyToContentID(revisionID, baseContentID);
@@ -121,7 +129,7 @@ const ContentRoutingService = {
 
           mappings.push({
             domain,
-            baseContentID: `${baseContentID}/`,
+            baseContentID,
             basePath,
             path: sitePath
           });

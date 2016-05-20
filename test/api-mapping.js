@@ -65,6 +65,23 @@ describe('/_api/whereis', () => {
       }, done);
   });
 
+  it('correctly handles when one content ID base is a prefix of another', (done) => {
+    request(server.create())
+      .get('/_api/whereis/https%3A%2F%2Fgithub.com%2Fdeconst%2Fprefix-2.0')
+      .set('Accept', 'application/json')
+      .expect(200)
+      .expect({
+        mappings: [
+          {
+            domain: 'deconst.horse',
+            path: '/prefix-2.0/',
+            baseContentID: 'https://github.com/deconst/prefix-2.0/',
+            basePath: '/prefix-2.0/'
+          }
+        ]
+      }, done);
+  });
+
   it('returns an empty collection for unknown content IDs', (done) => {
     request(server.create())
       .get('/_api/whereis/https%3A%2F%2Fgithub.com%2Fnope%2Fnope')
