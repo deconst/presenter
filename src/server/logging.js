@@ -24,12 +24,12 @@ if (process.env.NODE_ENV === 'production') {
 
 exports.logger = new winston.Logger({
   levels: {
-    trace: 0,
-    debug: 1,
-    verbose: 2,
-    info: 3,
-    warn: 4,
-    error: 5
+    trace: 5,
+    debug: 4,
+    verbose: 3,
+    info: 2,
+    warn: 1,
+    error: 0
   },
   colors: {
     trace: 'white',
