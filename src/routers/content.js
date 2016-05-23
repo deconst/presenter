@@ -12,7 +12,6 @@ const TemplateRoutingService = require('../services/template/routing');
 const ContentService = require('../services/content');
 const ContentRoutingService = require('../services/content/routing');
 const ContentFilterService = require('../services/content/filter');
-const UrlService = require('../services/url');
 const ControlService = require('../services/control');
 
 // Register content filters.
@@ -26,19 +25,11 @@ ContentFilterService.add(function (input, next) {
   const urlDirectiveRx = /\{\{\s*to\('([^']+)'\)\s*\}\}/g;
 
   // Replace any "{{ to() }}" directives with the appropriate presented URL.
-  const replaceToDirective = (source) => {
-    return source.replace(
+  if (content.envelope && content.envelope.body) {
+    content.envelope.body = content.envelope.body.replace(
       urlDirectiveRx,
       (match, contentID) => ContentRoutingService.getPresentedUrl(context, contentID)
     );
-  };
-
-  if (content.envelope && content.envelope.body) {
-    content.envelope.body = replaceToDirective(content.envelope.body);
-  }
-
-  if (content.globals && content.globals.toc) {
-    content.globals.toc = replaceToDirective(content.globals.toc);
   }
 
   return next();
@@ -122,112 +113,173 @@ let retargetStagingLinks = function (context, renderedContent) {
 };
 
 module.exports = function (req, res) {
-  var context = new Context(req, res);
+  const context = new Context(req, res);
 
-  var contentId = ContentRoutingService.getContentId(context);
-  var prefix = ContentRoutingService.getContentPrefix(context);
-  var tocId = ContentRoutingService.getContentId(context,
-    UrlService.getSitePath(prefix + '_toc')
-  );
-
+  const contentId = ContentRoutingService.getContentId(context);
   context.contentId = contentId;
 
   // Note that each function returns errors as a .err attribute of its results object rather than
   // as the err parameter to its callback. This is so that all calls are guaranteed to complete
   // before the final callback is invoked, even if one or more produces an error, and assets will
   // be available.
+  let capturedError = null;
 
-  var capturedError = null;
+  let content = null;
+  let assets = null;
+  let addendaContent = null;
+  let filteredContent = null;
+  let filteredAddendaContent = null;
+  let renderedContent = null;
 
-  async.parallel({
-    content: function (callback) {
-      ContentService.get(context, contentId, {}, function (err, content) {
+  const fetchEnvelope = (cb) => {
+    ContentService.get(context, contentId, {}, (err, response) => {
+      if (err) {
+        capturedError = err;
+        return cb(null);
+      }
+
+      content = response;
+      cb(null);
+    });
+  };
+
+  const fetchAssets = (cb) => {
+    ContentService.getAssets(context, (err, response) => {
+      if (err) {
+        logger.warn('Unable to enumerate assets.', {
+          errMessage: err.message,
+          stack: err.stack
+        });
+
+        return cb(null);
+      }
+
+      assets = response;
+      context.setAssets(assets);
+      cb(null);
+    });
+  };
+
+  const fetchControl = (cb) => {
+    ContentService.getControlSHA(context, (err, sha) => {
+      if (err) {
+        logger.warn('Unable to retrieve control repository SHA.', {
+          errMessage: err.message,
+          stack: err.stack
+        });
+
+        return cb(null);
+      }
+
+      // No need to hold up the current request for the control repository update.
+      // Kick it off here but don't wait for it to complete.
+      if (sha && sha !== ControlService.getControlSHA()) ControlService.update(sha);
+
+      cb(null);
+    });
+  };
+
+  const fetchAddenda = (cb) => {
+    if (!content || !content.envelope || !content.envelope.addenda) return cb(null);
+    const addendaSpec = content.envelope.addenda;
+
+    addendaContent = {};
+
+    async.map(Object.keys(addendaSpec), (addendaName, cb0) => {
+      let addendaID = addendaSpec[addendaName];
+
+      ContentService.get(context, addendaID, {}, (err, content) => {
         if (err) {
-          capturedError = err;
-          return callback(null, null);
-        }
-        callback(null, content);
-      });
-    },
-    assets: function (callback) {
-      ContentService.getAssets(context, function (err, assetMap) {
-        if (err) {
-          // Fail gracefully.
-          logger.warn('Unable to enumerate assets.', {
+          logger.warn('Unable to fetch addenda', {
+            contentID: contentId,
+            addendaID,
+            addendaName,
             errMessage: err.message,
             stack: err.stack
           });
 
-          return callback(null, {});
+          return cb0(null);
         }
 
-        context.setAssets(assetMap);
-        callback(null, assetMap);
-      });
-    },
-    toc: function (callback) {
-      ContentService.get(context, tocId, {ignoreErrors: true}, function (err, toc) {
-        if (err || !toc) {
-          return callback(null, null);
+        if (content) {
+          addendaContent[addendaName] = content;
         }
 
-        var relativeUrls = /href=("|')(?![a-z]+:\/?\/?|\/|\{\{)(?:\.\.\/)?(.+?)("|')/g;
-        toc.envelope.body =
-          toc.envelope.body.replace(
-            relativeUrls,
-            'href=$1' + prefix + '$2$3'
-        );
-
-        return callback(null, toc.envelope.body);
+        cb0(null);
       });
-    },
-    control: function (callback) {
-      ContentService.getControlSHA(context, function (err, sha) {
-        if (err) return callback(err);
+    }, cb);
+  };
 
-        // No need to hold up the current request for the control repository update.
-        // Kick it off here but don't wait for it to complete.
-        if (sha && sha !== ControlService.getControlSHA()) ControlService.update(sha);
+  const fetch = (cb) => {
+    async.parallel([fetchEnvelope, fetchAssets, fetchControl], (err) => {
+      if (err) return cb(err);
+      fetchAddenda(cb);
+    });
+  };
 
-        callback(null, sha);
+  const filterEnvelope = (cb) => {
+    if (!content) return cb(null);
+
+    const input = { context, content };
+
+    ContentFilterService.filter(input, (err, result) => {
+      if (err) return cb(err);
+
+      filteredContent = result.content;
+      cb(null);
+    });
+  };
+
+  const filterAddenda = (cb) => {
+    if (!addendaContent) return cb(null);
+
+    filteredAddendaContent = {};
+
+    async.map(Object.keys(addendaContent), (addendaName, cb0) => {
+      const input = { context, content: addendaContent[addendaName] };
+
+      ContentFilterService.filter(input, (err, result) => {
+        if (err) return cb(err);
+
+        filteredAddendaContent[addendaName] = result.content;
+        cb0(null);
       });
-    }
-  }, function (err, output) {
+    }, cb);
+  };
+
+  const filter = (cb) => {
+    async.parallel([filterEnvelope, filterAddenda], cb);
+  };
+
+  const render = (cb) => {
+    if (!content) return cb(null);
+
+    const options = {
+      templatePath: TemplateRoutingService.getRoute(context),
+      content: filteredContent,
+      addenda: filteredAddendaContent,
+      assets
+    };
+
+    logger.debug('Template options', options);
+
+    TemplateService.render(context, options, (err, result) => {
+      if (err) return cb(err);
+
+      if (config.staging_mode()) {
+        result = retargetStagingLinks(context, result);
+      }
+
+      renderedContent = result;
+      cb(null);
+    });
+  };
+
+  async.series([fetch, filter, render], (err) => {
     if (err || capturedError) {
       return context.handleError(err || capturedError);
     }
 
-    if (output.toc) {
-      output.content.globals = {
-        toc: output.toc
-      };
-    }
-
-    var input = {
-      context: context,
-      content: output.content
-    };
-
-    ContentFilterService.filter(input, function (err, filterResult) {
-      if (err) return context.handleError(err);
-
-      var options = {
-        templatePath: TemplateRoutingService.getRoute(context),
-        content: filterResult.content,
-        assets: output.assets
-      };
-
-      TemplateService.render(context, options, function (err, renderedContent) {
-        if (err) {
-          return context.handleError(err);
-        }
-
-        if (config.staging_mode()) {
-          renderedContent = retargetStagingLinks(context, renderedContent);
-        }
-
-        context.send(renderedContent);
-      });
-    });
+    context.send(renderedContent);
   });
 };
