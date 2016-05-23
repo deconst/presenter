@@ -10,7 +10,7 @@ const config = require('../../config');
 var TemplateService = {
   render: function (context, options, callback) {
     var templateFile = findTemplate(context, options.templatePath);
-    var templateLocals = buildTemplateLocals(context, options.content, options.assets);
+    var templateLocals = buildTemplateLocals(context, options);
     var startTs = Date.now();
 
     NunjucksService.getEnvironment(context, function (err, env) {
@@ -27,17 +27,23 @@ var TemplateService = {
 
 module.exports = TemplateService;
 
-var buildTemplateLocals = function (context, content, assets) {
-  if (assets) {
+var buildTemplateLocals = function (context, options) {
+  if (options.assets) {
     // Some templates still use deconst.content.assets instead of deconst.assets
-    content.assets = assets;
+    options.content.assets = options.assets;
+  }
+
+  // TOC compatibility
+  if (options.addenda && options.addenda.repository_toc) {
+    options.content.globals.toc = options.addenda.repository_toc.envelope.body;
   }
 
   return {
     deconst: {
       env: process.env,
-      content: content || {},
-      assets: assets || {},
+      content: options.content || {},
+      assets: options.assets || {},
+      addenda: options.addenda || {},
       url: UrlService,
       context: context,
       request: context.request,
