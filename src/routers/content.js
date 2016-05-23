@@ -261,8 +261,6 @@ module.exports = function (req, res) {
       assets
     };
 
-    logger.debug('Template options', options);
-
     TemplateService.render(context, options, (err, result) => {
       if (err) return cb(err);
 
