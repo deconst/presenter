@@ -35,6 +35,10 @@ var buildTemplateLocals = function (context, options) {
 
   // TOC compatibility
   if (options.addenda && options.addenda.repository_toc) {
+    if (!options.content.globals) {
+      options.content.globals = {};
+    }
+
     options.content.globals.toc = options.addenda.repository_toc.envelope.body;
   }
 
