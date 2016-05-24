@@ -33,15 +33,6 @@ var buildTemplateLocals = function (context, options) {
     options.content.assets = options.assets;
   }
 
-  // TOC compatibility
-  if (options.addenda && options.addenda.repository_toc) {
-    if (!options.content.globals) {
-      options.content.globals = {};
-    }
-
-    options.content.globals.toc = options.addenda.repository_toc.envelope.body;
-  }
-
   return {
     deconst: {
       env: process.env,
