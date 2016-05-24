@@ -48,7 +48,8 @@ Context.prototype._summarize = function (statusCode, message, err) {
   };
 
   if (this.contentId !== null) {
-    summary.contentID = this.contentId;
+    // Normalize sentinel "IDs" like UNMAPPED and EMPTY_ENVELOPE to Strings.
+    summary.contentID = this.contentId.toString();
   }
 
   if (this.templatePath !== null) {
