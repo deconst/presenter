@@ -9,11 +9,19 @@ const config = require('../../config');
 
 var TemplateService = {
   render: function (context, options, callback) {
-    var templateFile = findTemplate(context, options.templatePath);
+    let templatePath = options.templatePath;
+    const templateParts = templatePath.split(path.sep).filter((part) => part.length > 0);
+    let domain = context.host();
+    if (templateParts.length > 0 && NunjucksService.hasEnvironment(templateParts[0])) {
+      domain = templateParts[0];
+      templatePath = templateParts.slice(1).join(path.sep);
+    }
+
+    var templateFile = findTemplate(domain, templatePath);
     var templateLocals = buildTemplateLocals(context, options);
     var startTs = Date.now();
 
-    NunjucksService.getEnvironment(context, function (err, env) {
+    NunjucksService.getEnvironment(domain, function (err, env) {
       if (err) return callback(err);
 
       env.render(templateFile, templateLocals, function (err, result) {
@@ -48,7 +56,7 @@ var buildTemplateLocals = function (context, options) {
   };
 };
 
-var findTemplate = function (context, templatePath) {
+var findTemplate = function (domain, templatePath) {
   templatePath = templatePath || 'index';
 
   var defaultTemplateDir = PathService.getDefaultTemplatesPath();
@@ -63,8 +71,8 @@ var findTemplate = function (context, templatePath) {
   ];
 
   var templateDir = null;
-  if (context.host()) {
-    templateDir = PathService.getTemplatesPath(context.host());
+  if (domain) {
+    templateDir = PathService.getTemplatesPath(domain);
     var templateBase = path.resolve(templateDir, templatePath);
 
     possibilities = possibilities.concat([
@@ -91,7 +99,7 @@ var findTemplate = function (context, templatePath) {
   }
 
   if (match === null && templatePath !== '404.html') {
-    return findTemplate(context, '404.html');
+    return findTemplate(domain, '404.html');
   }
 
   if (match === null) {
