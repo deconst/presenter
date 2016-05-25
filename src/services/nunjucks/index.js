@@ -28,9 +28,7 @@ var NunjucksService = {
   clearEnvironments: function () {
     envs = {};
   },
-  getEnvironment: function (context, callback) {
-    var domain = context.host();
-
+  getEnvironment: function (domain, callback) {
     if (!envs[domain]) {
       logger.warn('Missing environment for domain', {
         domain: domain
@@ -40,6 +38,9 @@ var NunjucksService = {
     }
 
     callback(null, envs[domain]);
+  },
+  hasEnvironment: function (domain) {
+    return domain in envs;
   },
   installEnvironment: function (domain, loaders, plugins) {
     var env = createEnvironment(domain, loaders);

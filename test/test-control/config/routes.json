@@ -7,7 +7,8 @@
             "^/searchcats/?$": "searchcats.html",
             "^/with-template-link/?$": "link.html",
             "^/am-i-staging/$": "isstaging.html",
-            "^/original/$": "addenda.html"
+            "^/original/$": "addenda.html",
+            "^/xdomain/?$": "deconst.dog/default.html"
         }
     },
     "deconst.dog": {
