@@ -141,21 +141,12 @@ const ContentRoutingService = {
 
     return mappings;
   },
-  getPresentedUrl: function (context, contentID, crossDomain) {
-    let domain = null;
-    let onlyFirst = false;
-
-    if (!crossDomain) {
-      domain = context.host();
-      onlyFirst = true;
-    }
-
-    let urls = this.getMappingsForContentID(contentID, domain, onlyFirst).map((mapping) => {
+  getPresentedUrl: function (context, contentID) {
+    let urls = this.getMappingsForContentID(contentID, null, true).map((mapping) => {
       return UrlService.getSiteUrl(context, mapping.path, mapping.domain);
     });
 
     if (urls.length === 0) return null;
-
     return urls[0];
   },
   getProxies: function (context) {
