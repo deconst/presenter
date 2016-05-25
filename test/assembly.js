@@ -275,13 +275,29 @@ describe('page assembly', function () {
       .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
       .reply(200, {
         assets: [],
+        envelope: { body: "with a {{ to('https://github.com/deconst-dog/fake/some/page') }} reference" }
+      });
+
+    request(server.create())
+      .get('/')
+      .expect(200)
+      .expect(/with a https:\/\/deconst\.dog\/some\/page\/ reference/, done);
+  });
+
+  it('substitutes {{ to() }} directives with root-relative links for same-domain mappings', (done) => {
+    nock('http://content')
+      .get('/control').reply(200, { sha: null })
+      .get('/assets').reply(200, {})
+      .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake')
+      .reply(200, {
+        assets: [],
         envelope: { body: "with a {{ to('https://github.com/deconst/subrepo/some/page') }} reference" }
       });
 
     request(server.create())
       .get('/')
       .expect(200)
-      .expect(/with a https:\/\/deconst\.horse\/subrepo\/some\/page\/ reference/, done);
+      .expect(/with a \/subrepo\/some\/page\/ reference/, done);
   });
 
   it('fetches envelope addenda', (done) => {
