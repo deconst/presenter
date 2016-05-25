@@ -172,7 +172,7 @@ var ContentService = {
       });
 
       doc.results = doc.results.filter(function (each) {
-        each.url = ContentRoutingService.getPresentedUrl(context, each.contentID, true);
+        each.url = ContentRoutingService.getPresentedUrl(context, each.contentID);
         return each.url !== null;
       });
 
