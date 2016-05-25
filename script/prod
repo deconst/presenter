@@ -11,7 +11,12 @@ if [ -z "${CONTROL_REPO_PATH:-}" ]; then
   echo "Please set \${CONTROL_REPO_PATH} to the path within the container at which the control repository is mounted."
   exit 1
 elif [ -d "${CONTROL_REPO_PATH:-}" ]; then
-  chown -R presenter:presenter "${CONTROL_REPO_PATH}"
+  # Docker for Mac presents paths on mounted volumes as being owned by the current user and group.
+  # This is handy, but inconsistent with the way that volumes are mounted by docker-machine.
+  if ! /bin/su presenter -c "[ -w \"${CONTROL_REPO_PATH}\" ]"; then
+    chmod -R g+w "${CONTROL_REPO_PATH}"
+    chown -fR :presenter "${CONTROL_REPO_PATH}"
+  fi
 fi
 
 exec /bin/su presenter -c 'npm start'
