@@ -268,6 +268,22 @@ describe('page assembly', function () {
       .expect(/not on staging/, done);
   });
 
+  it('permits cross-domain template re-use', (done) => {
+    nock('http://content')
+      .get('/control').reply(200, { sha: null })
+      .get('/assets').reply(200, {})
+      .get('/content/https%3A%2F%2Fgithub.com%2Fdeconst%2Ffake%2Fxdomain')
+      .reply(200, {
+        assets: [],
+        envelope: { body: 'xdomain page' }
+      });
+
+    request(server.create())
+      .get('/xdomain/')
+      .expect(200)
+      .expect(/in deconst\.dog/, done);
+  });
+
   it('substitutes {{ to() }} directives', (done) => {
     nock('http://content')
       .get('/control').reply(200, { sha: null })
