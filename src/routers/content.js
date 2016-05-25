@@ -77,7 +77,7 @@ let retargetStagingLinks = function (context, renderedContent) {
     if (target) {
       let targetURL = url.parse(target);
 
-      if (targetURL.scheme && targetURL.scheme !== 'http' && targetURL.scheme !== 'http') {
+      if (targetURL.scheme && targetURL.scheme !== 'http' && targetURL.scheme !== 'https') {
         // URL is a non-HTTP protocol. Don't touch it.
         return;
       }
