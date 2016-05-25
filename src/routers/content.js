@@ -28,7 +28,23 @@ ContentFilterService.add(function (input, next) {
   if (content.envelope && content.envelope.body) {
     content.envelope.body = content.envelope.body.replace(
       urlDirectiveRx,
-      (match, contentID) => ContentRoutingService.getPresentedUrl(context, contentID)
+      (match, contentID) => {
+        const original = ContentRoutingService.getPresentedUrl(context, contentID);
+        const parsed = url.parse(original);
+
+        if (parsed.host === context.host()) {
+          delete parsed.protocol;
+          delete parsed.hostname;
+          delete parsed.host;
+          delete parsed.port;
+          parsed.slashes = false;
+        }
+
+        const final = url.format(parsed);
+
+        logger.debug('Replacing to() directive', { match, contentID, destination: final });
+        return final;
+      }
     );
   }
 
