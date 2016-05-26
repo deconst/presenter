@@ -29,10 +29,17 @@ ContentFilterService.add(function (input, next) {
     content.envelope.body = content.envelope.body.replace(
       urlDirectiveRx,
       (match, contentID) => {
-        const original = ContentRoutingService.getPresentedUrl(context, contentID);
+        // Force non-staging presented URLs, even in staging mode.
+        const original = ContentRoutingService.getPresentedUrl(context, contentID, true);
         const parsed = url.parse(original);
 
+        logger.debug('Presented URL for content ID', {
+          contentID,
+          presentedURL: parsed
+        });
+
         if (parsed.host === context.host()) {
+          // Link within this domain. Convert to a root-relative link instead.
           delete parsed.protocol;
           delete parsed.hostname;
           delete parsed.host;

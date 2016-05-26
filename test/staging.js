@@ -227,7 +227,7 @@ describe('staging mode', () => {
       request(server.create())
         .get('/build-12345/')
         .expect(200)
-        .expect(/<a href="https:\/\/deconst\.dog\/build-12345\/other\/">x<\/a>/, done);
+        .expect(/<a href="\/deconst\.dog\/build-12345\/other\/">x<\/a>/, done);
     });
 
     it('replaces links from templates, too!', (done) => {
