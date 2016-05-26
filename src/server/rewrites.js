@@ -30,7 +30,7 @@ module.exports = function (app) {
         status: result.status
       });
 
-      return res.redirect(result.status, decodeURIComponent(result.toURL));
+      return res.redirect(result.status, result.toURL);
     } else if (result && !result.redirect) {
       logger.debug('Rewrote request URL', {
         fromURL: req.url,
