@@ -267,7 +267,7 @@ describe('staging mode', () => {
         .expect(200)
         .expect({
           mappings: [ {
-            domain: 'deconst.dog',
+            domain: 'deconst.horse',
             baseContentID: 'https://github.com/build-abc/deconst-dog/fake/',
             basePath: '/deconst.dog/build-abc/',
             path: '/deconst.dog/build-abc/'
