@@ -103,4 +103,22 @@ describe('[control-repo] the app', function () {
         .expect(301, done);
     });
   });
+
+  it('redirects correctly with URL-encoded characters in the path', function (done) {
+    mockControl(null, function () {
+      request(server.create())
+        .get('/different-host/some%e2text/')
+        .expect('Location', 'https://stable.horse/some%e2text/')
+        .expect(301, done);
+    });
+  });
+
+  it('redirects correctly with invalid URL-encoded characters', function (done) {
+    mockControl(null, function () {
+      request(server.create())
+        .get('/different-host/%zz/')
+        .expect('Location', 'https://stable.horse/%zz/')
+        .expect(301, done);
+    });
+  });
 });
