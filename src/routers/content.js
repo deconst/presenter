@@ -31,6 +31,15 @@ ContentFilterService.add(function (input, next) {
       (match, contentID) => {
         // Force non-staging presented URLs, even in staging mode.
         const original = ContentRoutingService.getPresentedUrl(context, contentID, true);
+        if (original === null) {
+          logger.error('Unable to replace to() directive: unmapped contentID target', {
+            directive: match,
+            contentID
+          });
+
+          return match;
+        }
+
         const parsed = url.parse(original);
 
         logger.debug('Presented URL for content ID', {
