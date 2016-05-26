@@ -75,12 +75,35 @@ const ContentRoutingService = {
 
     return prefixMatch;
   },
-  getMappingsForContentID: function (contentID, domain, onlyFirst) {
+
+  // Return an array containing mapping objects for each occurrence of a content ID within the
+  // content map. An empty array will be returned if the content ID is not mapped anywhere.
+  //
+  // options.domain - Only search the content map for this domain. Default: search all domains.
+  // options.onlyFirst - Only return the first mapping (as a one-element array). Default: return
+  //   all mappings.
+  // options.stagingOutput - If contentID is interpreted as a staging ID with a revision ID
+  //   segment, report the staging presented URL rather than the non-staging one. Default: return
+  //   staging URLs.
+  //
+  // Mapping objects contain:
+  // mapping.domain - Domain at which the content ID was matched.
+  // mapping.path - The full presented path to the content with the requested ID.
+  // mapping.baseContentID - Content ID base that successfully matched. This may be a prefix of the
+  //   queried one.
+  // mapping.basePath - Presented path prefix that was mapped. They may be a prefix of mapping.path.
+  getMappingsForContentID: function (contentID, options) {
+    options = Object.assign({
+      domain: null,
+      onlyFirst: false,
+      stagingOutput: true
+    }, options);
+
     let domainContentMaps = [];
     let revisionID = null;
 
-    if (domain) {
-      domainContentMaps = [{ domain, map: getDomainContentMap(domain) }];
+    if (options.domain) {
+      domainContentMaps = [{ domain: options.domain, map: getDomainContentMap(options.domain) }];
     } else {
       domainContentMaps = Object.keys(contentMap).map((domain) => {
         return { domain, map: getDomainContentMap(domain) };
@@ -119,9 +142,12 @@ const ContentRoutingService = {
           let domain = domainContent.domain;
           let subPath = '/' + contentID.replace(baseContentID, '');
 
-          if (config.staging_mode()) {
+          if (config.staging_mode() && options.stagingOutput) {
             baseContentID = RevisionService.applyToContentID(revisionID, baseContentID);
             basePath = RevisionService.applyToPath(revisionID, domain, basePath);
+            if (config.presented_url_domain() && domain !== config.presented_url_domain()) {
+              domain = config.presented_url_domain();
+            }
           }
 
           let sitePath = '/' + slashJoin([basePath, subPath]);
@@ -134,15 +160,21 @@ const ContentRoutingService = {
             path: sitePath
           });
 
-          if (onlyFirst) break;
+          if (options.onlyFirst) break;
         }
       }
     });
 
     return mappings;
   },
-  getPresentedUrl: function (context, contentID) {
-    let urls = this.getMappingsForContentID(contentID, null, true).map((mapping) => {
+
+  getPresentedUrl: function (context, contentID, nonStagingURL) {
+    const options = {
+      onlyFirst: true,
+      stagingOutput: !nonStagingURL
+    };
+
+    let urls = this.getMappingsForContentID(contentID, options).map((mapping) => {
       return UrlService.getSiteUrl(context, mapping.path, mapping.domain);
     });
 
