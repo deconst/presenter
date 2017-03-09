@@ -28,3 +28,44 @@ docker-compose build && docker-compose up -d
 The app will run in the background until you run `docker-compose stop`. You can also run `docker-compose logs` to see what the app is doing.
 
 The presenter portion of the app runs under [nodemon](http://nodemon.io/), so the presenter will be restarted automatically every time you save a file that's part of its source code. Certain changes (like adding a dependency to `package.json`) will require you to rebuild and restart the container.
+
+# Deconst Dev Env in Kubernetes with Minikube
+
+These instructions will create the resources necessary to run the deconst presenter service in a dev env in Kubernetes with Minikube.
+
+1. Run through [Deconst Dev Env in Kubernetes with Minikube](https://github.com/deconst/content#deconst-dev-env-in-kubernetes-with-minikube)
+
+1. Customize your environment settings
+
+    For a basic dev env setup, you won't need to change any environment settings.
+
+    ```bash
+    cp env.example env
+    ${EDITOR} env
+    source ./env
+    ```
+
+1. Create resources
+
+    ```bash
+    script/template kubernetes/deployment.yaml | kubectl apply -f -
+    ```
+
+1. Watch and wait for resources
+
+    ```bash
+    watch kubectl get pods --namespace deconst
+    ```
+
+1. Test that the presenter service is nominally working
+
+    ```bash
+    curl $(minikube service --url --namespace deconst presenter)/version
+    ```
+
+1. Delete resources
+
+    ```bash
+    kubectl delete deployments --namespace deconst presenter
+    kubectl delete services --namespace deconst presenter
+    ```
