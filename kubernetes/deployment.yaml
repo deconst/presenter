@@ -33,15 +33,15 @@ spec:
               containerPort: 8080
           env:
             - name: NODE_ENV
-              value: development
+              value: $NODE_ENV
             - name: CONTROL_REPO_PATH
-              value: /tmp/control-repo
+              value: $CONTROL_REPO_PATH
             - name: CONTROL_REPO_URL
               value: $CONTROL_REPO_URL
             - name: CONTROL_REPO_BRANCH
               value: $CONTROL_REPO_BRANCH
             - name: CONTENT_SERVICE_URL
-              value: http://content.deconst.svc.cluster.local:9000/
+              value: $CONTENT_SERVICE_URL
             - name: PRESENTED_URL_PROTO
               value: $PRESENTED_URL_PROTO
             - name: PRESENTED_URL_DOMAIN
