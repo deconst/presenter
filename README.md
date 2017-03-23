@@ -33,17 +33,26 @@ The presenter portion of the app runs under [nodemon](http://nodemon.io/), so th
 
 These instructions will create the resources necessary to run the deconst presenter service in a dev env in Kubernetes with Minikube.
 
-1. Run through [Deconst Dev Env in Kubernetes with Minikube](https://github.com/deconst/content#deconst-dev-env-in-kubernetes-with-minikube)
+1. If necessary, deploy the [content service](https://github.com/deconst/content#deconst-dev-env-in-kubernetes-with-minikube)
 
 1. Customize your environment settings
-
-    For a basic dev env setup, you won't need to change any environment settings.
 
     ```bash
     cp env.example env
     ${EDITOR} env
+    ```
+
+    Edit the following environment variables.
+
+    * `CONTENT_SERVICE_URL=http://content.deconst.svc.cluster.local:9000/`
+    * `CONTROL_REPO_PATH=/tmp/control-repo`
+    * `CONTROL_REPO_URL=https://github.com/deconst/deconst-docs-control.git`
+    * `PRESENTED_URL_DOMAIN=deconst.horse`
+
+    ```bash
     source ./env
     ```
+
 
 1. Create resources
 
