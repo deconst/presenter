@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
         - name: presenter
-          image: quay.io/deconst/presenter
+          image: $DOCKER_IMAGE
           ports:
             - name: presenter
               containerPort: 8080

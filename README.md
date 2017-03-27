@@ -44,15 +44,25 @@ These instructions will create the resources necessary to run the deconst presen
 
     Edit the following environment variables.
 
+    * `DOCKER_IMAGE=kube-registry.kube-system.svc.cluster.local:31000/presenter:dev`
+      * If you want to use the production image instead, keep the default value and skip the next step
     * `CONTENT_SERVICE_URL=http://content.deconst.svc.cluster.local:9000/`
     * `CONTROL_REPO_PATH=/tmp/control-repo`
     * `CONTROL_REPO_URL=https://github.com/deconst/deconst-docs-control.git`
     * `PRESENTED_URL_DOMAIN=deconst.horse`
 
+
     ```bash
     source ./env
     ```
 
+1. Build a development Docker image
+
+    ```bash
+    eval $(minikube docker-env)
+    docker build --tag kube-registry.kube-system.svc.cluster.local:31000/presenter:dev .
+    docker push kube-registry.kube-system.svc.cluster.local:31000/presenter
+    ```
 
 1. Create resources
 
@@ -69,7 +79,7 @@ These instructions will create the resources necessary to run the deconst presen
 1. Test that the presenter service is nominally working
 
     ```bash
-    curl $(minikube service --url --namespace deconst presenter)/version
+    curl $(minikube service --url --namespace deconst presenter)/version/
     ```
 
 1. Deploy the [deconst docs](https://github.com/deconst/deconst-docs#deconst-dev-env-in-kubernetes-with-minikube)
