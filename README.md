@@ -33,7 +33,9 @@ The presenter portion of the app runs under [nodemon](http://nodemon.io/), so th
 
 These instructions will create the resources necessary to run the deconst presenter service in a dev env in Kubernetes with Minikube.
 
-1. If necessary, deploy the [content service](https://github.com/deconst/content#deconst-dev-env-in-kubernetes-with-minikube)
+1. If necessary, deploy the [content service](https://github.com/deconst/content-service#deconst-dev-env-in-kubernetes-with-minikube)
+
+1. Open a new shell
 
 1. Customize your environment settings
 
@@ -61,7 +63,7 @@ These instructions will create the resources necessary to run the deconst presen
     ```bash
     eval $(minikube docker-env)
     docker build --tag kube-registry.kube-system.svc.cluster.local:31000/presenter:dev .
-    docker push kube-registry.kube-system.svc.cluster.local:31000/presenter
+    docker push kube-registry.kube-system.svc.cluster.local:31000/presenter:dev
     ```
 
 1. Create resources
