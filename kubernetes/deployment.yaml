@@ -52,5 +52,60 @@ spec:
               value: \"$PRESENTER_LOG_COLOR\"
             - name: PRESENTER_DIAGNOSTICS
               value: \"$PRESENTER_DIAGNOSTICS\"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: deconst
+  name: staging-presenter
+  labels:
+    name: staging-presenter
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: staging-present
+  selector:
+    name: staging-presenter
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  namespace: deconst
+  name: staging-presenter
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: staging-presenter
+    spec:
+      containers:
+        - name: staging-presenter
+          image: $DOCKER_IMAGE
+          ports:
+            - name: staging-present
+              containerPort: 8080
+          env:
+            - name: NODE_ENV
+              value: $NODE_ENV
+            - name: CONTROL_REPO_PATH
+              value: $CONTROL_REPO_PATH
+            - name: CONTROL_REPO_URL
+              value: $CONTROL_REPO_URL
+            - name: CONTROL_REPO_BRANCH
+              value: $CONTROL_REPO_BRANCH
+            - name: CONTENT_SERVICE_URL
+              value: http://staging-content.deconst.svc.cluster.local:9000/
+            - name: PRESENTED_URL_PROTO
+              value: $PRESENTED_URL_PROTO
+            - name: PRESENTED_URL_DOMAIN
+              value: $PRESENTED_URL_DOMAIN
+            - name: PRESENTER_LOG_LEVEL
+              value: $PRESENTER_LOG_LEVEL
+            - name: PRESENTER_LOG_COLOR
+              value: \"$PRESENTER_LOG_COLOR\"
+            - name: PRESENTER_DIAGNOSTICS
+              value: \"$PRESENTER_DIAGNOSTICS\"
             - name: STAGING_MODE
-              value: \"$STAGING_MODE\"
+              value: \"true\"

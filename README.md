@@ -78,10 +78,11 @@ These instructions will create the resources necessary to run the deconst presen
     watch kubectl get pods --namespace deconst
     ```
 
-1. Test that the presenter service is nominally working
+1. Test that the presenter and staging presenter services are nominally working
 
     ```bash
     curl $(minikube service --url --namespace deconst presenter)/version/
+    curl $(minikube service --url --namespace deconst staging-presenter)/version/
     ```
 
 1. Deploy the [deconst docs](https://github.com/deconst/deconst-docs#deconst-dev-env-in-kubernetes-with-minikube)
@@ -89,6 +90,6 @@ These instructions will create the resources necessary to run the deconst presen
 1. Delete resources
 
     ```bash
-    kubectl delete deployments --namespace deconst presenter
-    kubectl delete services --namespace deconst presenter
+    kubectl delete deploy/presenter svc/presenter --namespace deconst
+    kubectl delete deploy/staging-presenter svc/staging-presenter  --namespace deconst
     ```
