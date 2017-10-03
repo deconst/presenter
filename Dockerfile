@@ -1,8 +1,8 @@
-FROM alpine:3.3
+FROM alpine:3.6
 
 ENV NPM_CONFIG_LOGLEVEL=warn
 
-RUN apk add --no-cache nodejs git && rm -rf /var/cache/apk/*
+RUN apk add --no-cache nodejs nodejs-npm git && rm -rf /var/cache/apk/*
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
