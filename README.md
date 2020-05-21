@@ -1,6 +1,6 @@
 # DEPRECATED. Use https://gitlab.com/deconst-next/presenter
 
-# presenter
+## Presenter
 
 A Deconst component that assembles and returns completed HTML documents to end users.
 
