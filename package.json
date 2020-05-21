@@ -20,7 +20,7 @@
     "express": "4.13.4",
     "globby": "4.0.0",
     "handlebars": "4.0.5",
-    "lodash": "4.6.1",
+    "lodash": "4.17.15",
     "mkdirp": "0.5.1",
     "mock-fs": "3.8.0",
     "moment": "2.19.3",
