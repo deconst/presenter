@@ -26,7 +26,7 @@
     "moment": "2.19.3",
     "mware": "0.0.3",
     "npm": "2.15.2",
-    "nunjucks": "2.4.1",
+    "nunjucks": "3.2.1",
     "nunjucks-date": "1.2.0",
     "q": "1.4.1",
     "request": "2.69.0",
